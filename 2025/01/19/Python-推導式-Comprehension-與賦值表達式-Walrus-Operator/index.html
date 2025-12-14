@@ -1,0 +1,294 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Python 推導式(Comprehension)與賦值表達式(Walrus Operator) | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="介紹推導式以及Python 3.8 才有的功能，也被稱為海象運算符">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 推導式(Comprehension)與賦值表達式(Walrus Operator)">
+<meta property="og:url" content="http://example.com/2025/01/19/Python-%E6%8E%A8%E5%B0%8E%E5%BC%8F-Comprehension-%E8%88%87%E8%B3%A6%E5%80%BC%E8%A1%A8%E9%81%94%E5%BC%8F-Walrus-Operator/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="介紹推導式以及Python 3.8 才有的功能，也被稱為海象運算符">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg">
+<meta property="article:published_time" content="2025-01-19T13:25:40.495Z">
+<meta property="article:modified_time" content="2025-12-14T13:03:20.492Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python 推導式(Comprehension)與賦值表達式(Walrus Operator)",
+  "url": "http://example.com/2025/01/19/Python-%E6%8E%A8%E5%B0%8E%E5%BC%8F-Comprehension-%E8%88%87%E8%B3%A6%E5%80%BC%E8%A1%A8%E9%81%94%E5%BC%8F-Walrus-Operator/",
+  "image": "https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg",
+  "datePublished": "2025-01-19T13:25:40.495Z",
+  "dateModified": "2025-12-14T13:03:20.492Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2025/01/19/Python-%E6%8E%A8%E5%B0%8E%E5%BC%8F-Comprehension-%E8%88%87%E8%B3%A6%E5%80%BC%E8%A1%A8%E9%81%94%E5%BC%8F-Walrus-Operator/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Python 推導式(Comprehension)與賦值表達式(Walrus Operator)',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/"><span class="site-name">Python 推導式(Comprehension)與賦值表達式(Walrus Operator)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">Python 推導式(Comprehension)與賦值表達式(Walrus Operator)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2025-01-19T13:25:40.495Z" title="Created 2025-01-19 21:25:40">2025-01-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2025-12-14T13:03:20.492Z" title="Updated 2025-12-14 21:03:20">2025-12-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Python/">Python</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Python/%E7%A8%8B%E5%BC%8F%E8%AA%9E%E8%A8%80/">程式語言</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Comprehension與Walrus-Operator"><a href="#Comprehension與Walrus-Operator" class="headerlink" title="Comprehension與Walrus Operator"></a>Comprehension與Walrus Operator</h1><h2 id="推導式-comprehension"><a href="#推導式-comprehension" class="headerlink" title="推導式(comprehension)"></a>推導式(comprehension)</h2><p>推導式是python獨有的方法可簡潔for loop，來看例子</p>
+<p>正常情況for loop</p>
+<h3 id="list"><a href="#list" class="headerlink" title="list"></a>list</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">greater_than_five = []</span><br><span class="line">numbers = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>]</span><br><span class="line"><span class="keyword">for</span> number <span class="keyword">in</span> numbers:</span><br><span class="line">    <span class="keyword">if</span> number &gt; <span class="number">5</span>:</span><br><span class="line">        greater_than_five.append(number)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>從程式中簡單的邏輯卻不太簡潔，我們可以漂亮的改用推導式</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">numbers = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>]</span><br><span class="line">greater_than_five= [n <span class="keyword">for</span> n <span class="keyword">in</span> numbers </span><br><span class="line">                    <span class="keyword">if</span> n &gt; <span class="number">5</span>]</span><br><span class="line"><span class="built_in">print</span>(greater_than_five)</span><br><span class="line">&gt;&gt; [<span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>推導式好處在將結果賦予變數，不須再for loop外層宣告變數，也不用再用append加入list，簡潔了程式</p>
+<h3 id="dict"><a href="#dict" class="headerlink" title="dict"></a>dict</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">numbers = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>]</span><br><span class="line">greater_than_five = &#123;<span class="string">f&#x27;loop_<span class="subst">&#123;n&#125;</span>&#x27;</span>: n <span class="keyword">for</span> n <span class="keyword">in</span> numbers</span><br><span class="line">                     <span class="keyword">if</span> n &gt; <span class="number">5</span>&#125;</span><br><span class="line"><span class="built_in">print</span>(greater_than_five)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="string">&#x27;loop_6&#x27;</span>: <span class="number">6</span>, <span class="string">&#x27;loop_7&#x27;</span>: <span class="number">7</span>, <span class="string">&#x27;loop_8&#x27;</span>: <span class="number">8</span>, <span class="string">&#x27;loop_9&#x27;</span>: <span class="number">9</span>, <span class="string">&#x27;loop_10&#x27;</span>: <span class="number">10</span>&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="推導式須注意部分"><a href="#推導式須注意部分" class="headerlink" title="推導式須注意部分"></a>推導式須注意部分</h3><p>推導式好用，但有些部分要注意</p>
+<ul>
+<li>過多迴圈避免使用推導式<br>  如果for loop超過三個就不建議用推導式了，在閱讀上與維護會相當複雜</li>
+</ul>
+<p>三個for loop用推導式簡直是地獄</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用推導式生成三維列表，並在每層嵌套中進行條件判斷</span></span><br><span class="line">result = [[[i * j * k <span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>) <span class="keyword">if</span> i * j * k % <span class="number">2</span> == <span class="number">0</span>] <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>)] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>)]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>正常foor loop，較上面例子看起來好閱讀一些</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">result = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>):</span><br><span class="line">    layer = []</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>):</span><br><span class="line">        row = []</span><br><span class="line">        <span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>):</span><br><span class="line">            value = i * j * k</span><br><span class="line">            <span class="keyword">if</span> value % <span class="number">2</span> == <span class="number">0</span>:</span><br><span class="line">                row.append(value)</span><br><span class="line">        layer.append(row)</span><br><span class="line">    result.append(layer)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>💡補充知識:在程式上請避免縮排大於三，迴圈也盡量避免超過二，避免增加閱讀上困難，如果沒辦法避免也請用<a target="_blank" rel="noopener" href="https://hackmd.io/4H1J5p1GTOG3f90I7u-bRA">Early Retrurn Pattern</a>來處理</p>
+</blockquote>
+<ul>
+<li><p>需評估判斷式是否會增新增條件<br>當判斷條件為複數或以上就不推薦使用推導式，尤其是預期未來業務邏輯會增加，那就會讓閱讀上與程式更加混亂與擴充邏輯</p>
+<p>  判斷式條件複數時難以閱讀，個人習慣是條件大於三不使用推導式，如果複數條件會看條件複雜性來決定是否使用推導式，以下例子對於python不熟悉的人閱讀會比較吃力，但以條件來看複雜性不算高還能接受</p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">data = [</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;Alice&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">25</span>, <span class="string">&quot;city&quot;</span>: <span class="string">&quot;New York&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;Bob&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">30</span>, <span class="string">&quot;city&quot;</span>: <span class="string">&quot;San Francisco&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;Charlie&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">35</span>, <span class="string">&quot;city&quot;</span>: <span class="string">&quot;New York&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;David&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">40</span>, <span class="string">&quot;city&quot;</span>: <span class="string">&quot;Chicago&quot;</span>&#125;</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 複雜條件：選擇年齡大於 30 且城市為 New York 的人</span></span><br><span class="line">filtered = [person <span class="keyword">for</span> person <span class="keyword">in</span> data <span class="keyword">if</span> person[<span class="string">&quot;age&quot;</span>] &gt; <span class="number">30</span> <span class="keyword">and</span> person[<span class="string">&quot;city&quot;</span>] == <span class="string">&quot;New York&quot;</span>]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>相較於單純用for loop還比較清晰</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">filtered = []</span><br><span class="line"><span class="keyword">for</span> person <span class="keyword">in</span> data:</span><br><span class="line">    <span class="keyword">if</span> person[<span class="string">&quot;age&quot;</span>] &gt; <span class="number">30</span> <span class="keyword">and</span> person[<span class="string">&quot;city&quot;</span>] == <span class="string">&quot;New York&quot;</span>:</span><br><span class="line">        filtered.append(person)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><p>縮排需要注意，避免增加閱讀上的困難</p>
+<p>  例子：篩選合格的學生成績</p>
+</li>
+</ul>
+<p>假設我們有一組學生的考試成績數據，想要篩選出所有及格的成績（及格分數為 60 分及以上），並將這些成績加入到一個新列表中。</p>
+<p>沒推導式的寫法</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">grades = [</span><br><span class="line">[<span class="number">55</span>, <span class="number">78</span>, <span class="number">62</span>],</span><br><span class="line">[<span class="number">88</span>, <span class="number">45</span>, <span class="number">91</span>],</span><br><span class="line">[<span class="number">76</span>, <span class="number">58</span>, <span class="number">73</span>]</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">passing_grades = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> student_grades <span class="keyword">in</span> grades:  <span class="comment"># 外層迴圈，遍歷每一個學生的成績</span></span><br><span class="line">    <span class="keyword">for</span> grade <span class="keyword">in</span> student_grades:  <span class="comment"># 內層迴圈，遍歷該學生的每一科成績</span></span><br><span class="line">        <span class="keyword">if</span> grade &gt;= <span class="number">60</span>:  <span class="comment"># 如果成績及格</span></span><br><span class="line">            passing_grades.append(grade)  <span class="comment"># 將及格成績加入新列表</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>改成推導式但沒排版，非常難以閱讀</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">grades = [</span><br><span class="line">[<span class="number">55</span>, <span class="number">78</span>, <span class="number">62</span>],</span><br><span class="line">[<span class="number">88</span>, <span class="number">45</span>, <span class="number">91</span>],</span><br><span class="line">[<span class="number">76</span>, <span class="number">58</span>, <span class="number">73</span>]</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">passing_grades = [grade <span class="keyword">for</span> student_grades <span class="keyword">in</span> grades <span class="keyword">for</span> grade <span class="keyword">in</span> student_grades <span class="keyword">if</span> grade &gt;= <span class="number">60</span>]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(passing_grades)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>來看有排版部分，這是我個人習慣，一行只會有一個for loop或if，與上面對比清晰好閱讀</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">grades = [</span><br><span class="line">    [<span class="number">55</span>, <span class="number">78</span>, <span class="number">62</span>],</span><br><span class="line">    [<span class="number">88</span>, <span class="number">45</span>, <span class="number">91</span>],</span><br><span class="line">    [<span class="number">76</span>, <span class="number">58</span>, <span class="number">73</span>]</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">passing_grades = [grade <span class="keyword">for</span> student_grades <span class="keyword">in</span> grades</span><br><span class="line">                  <span class="keyword">for</span> grade <span class="keyword">in</span> student_grades</span><br><span class="line">                  <span class="keyword">if</span> grade &gt;= <span class="number">60</span>]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(passing_grades)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>💡迴圈寫法是由上而下，而推導式相反會由下至上，這邊可能要注意</p>
+</blockquote>
+<h3 id="推導式好處"><a href="#推導式好處" class="headerlink" title="推導式好處"></a>推導式好處</h3><ul>
+<li>程式簡潔</li>
+<li>需要for loop量大的數據會增加效能，因為for loop call append()降低效能</li>
+</ul>
+<h2 id="賦值表達式-Walrus-Operator"><a href="#賦值表達式-Walrus-Operator" class="headerlink" title="賦值表達式(Walrus Operator)"></a>賦值表達式(Walrus Operator)</h2><p>Python 3.8 才有的功能，也被稱為海象運算符（Walrus Operator），符號為 :&#x3D;(很像象牙)。它允許在表達式中進行賦值操作，來實際舉例會比較易懂</p>
+<p>例子: 需要檢查使用者輸入的長度是否大於5，如果小於5也請告知使用者長度還少多少</p>
+<p>沒有用賦值表達是寫法</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">user_input = <span class="built_in">input</span>(<span class="string">&quot;Enter a string: &quot;</span>)</span><br><span class="line">length = <span class="built_in">len</span>(user_input)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> length &gt; <span class="number">5</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Input is long enough: <span class="subst">&#123;user_input&#125;</span>&quot;</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Input is too short. Needs <span class="subst">&#123;<span class="number">5</span> - length&#125;</span> more characters.&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>使用賦值表達式可以省去變數宣告，也簡潔了程式碼</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (user_input := <span class="built_in">input</span>(<span class="string">&quot;Enter a string: &quot;</span>)):</span><br><span class="line">    length = <span class="built_in">len</span>(user_input)</span><br><span class="line">    <span class="keyword">if</span> length &gt; <span class="number">5</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Input is long enough: <span class="subst">&#123;user_input&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Input is too short. Needs <span class="subst">&#123;<span class="number">5</span> - length&#125;</span> more characters.&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="賦值表達式需注意部分"><a href="#賦值表達式需注意部分" class="headerlink" title="賦值表達式需注意部分"></a>賦值表達式需注意部分</h3><ul>
+<li>當要使用賦值表達式在運算結果需要特別注意()範圍，否則結果會不如你預期</li>
+</ul>
+<p>例子1: 需要儲存5-3結果大於1然後再乘10<br>括號範圍: (result:&#x3D;(5-3))</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (result:=(<span class="number">5</span>-<span class="number">3</span>)) &gt;<span class="number">1</span>:</span><br><span class="line">    cal = result*<span class="number">10</span></span><br><span class="line">    <span class="built_in">print</span>(cal)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">20</span></span><br></pre></td></tr></table></figure>
+<p>例子2:將外圍括號去除，會發現結果不如預期，<br>括號範圍:無<br>結果: result 值會被賦值為 (5-3) &gt; 1 result 會是 bool True，True*10 結果就會是10  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> result:=(<span class="number">5</span>-<span class="number">3</span>) &gt;<span class="number">1</span>:</span><br><span class="line">    cal = result*<span class="number">10</span></span><br><span class="line">    <span class="built_in">print</span>(cal)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">10</span></span><br></pre></td></tr></table></figure>
+<p>例子3<br>括號範圍:(result:&#x3D;(5-3) &gt;1)<br>結果: 括號條件result也是bool True，所以最終 cal為 10</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (result:=(<span class="number">5</span>-<span class="number">3</span>) &gt;<span class="number">1</span>):</span><br><span class="line">    cal = result*<span class="number">10</span></span><br><span class="line">    <span class="built_in">print</span>(cal)</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="賦值表達式優缺點"><a href="#賦值表達式優缺點" class="headerlink" title="賦值表達式優缺點"></a>賦值表達式優缺點</h3><p>優點</p>
+<ul>
+<li>簡潔省去多餘的變數宣告</li>
+</ul>
+<p>缺點</p>
+<ul>
+<li>不熟悉python 3.8的開發者可能看不懂</li>
+</ul>
+<p>[1] stackoverflow - Why is a list comprehension so much faster than appending to a list?<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/30245397/why-is-a-list-comprehension-so-much-faster-than-appending-to-a-list">https://stackoverflow.com/questions/30245397/why-is-a-list-comprehension-so-much-faster-than-appending-to-a-list</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="http://example.com">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="http://example.com/2025/01/19/Python-%E6%8E%A8%E5%B0%8E%E5%BC%8F-Comprehension-%E8%88%87%E8%B3%A6%E5%80%BC%E8%A1%A8%E9%81%94%E5%BC%8F-Walrus-Operator/">http://example.com/2025/01/19/Python-%E6%8E%A8%E5%B0%8E%E5%BC%8F-Comprehension-%E8%88%87%E8%B3%A6%E5%80%BC%E8%A1%A8%E9%81%94%E5%BC%8F-Walrus-Operator/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Python/">Python</a></div><div class="post-share"><div class="social-share" data-image="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/01/19/Python-contains-Magic-Method/" title="Python__contains__ Magic Method"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">Python__contains__ Magic Method</div></div><div class="info-2"><div class="info-item-1">Python container object container object由__contains__方法實作，在使用 in 時被呼叫 1234i in container# 實際操作container.__contains__(i)  透過in強化程式可讀性另外在判斷條件情境下使用__container__會幫助可讀性以及class的內聚，來舉個例子，假設有個相撲遊戲，舞台為10 * 10正方形範圍，需要判斷玩家是否在舞台內以及出界 使用function實作使用function雖然能理解但不值觀，需要透過function的明確命名，以及function內處理if邏輯很難看懂x與y意圖，在閱讀上需要整段code看完才能理解 1234567891011121314151617def is_position_within_stage(position, stage_size):    x, y = position    return 0 &lt;= x &lt;= stage_size and 0 &lt;= y &lt;= stage_size# 創建舞台邊長stage_si...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Python-geitem-%E3%80%81-setitem-Magic-Method/" title="Python __geitem__、 __setitem__ Magic Method"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Python __geitem__、 __setitem__ Magic Method</div></div><div class="info-2"><div class="info-item-1">Python Magic Method __geitem__、 __setitem__ Magic Method__getitem__定義： getitem 是一個 Python 魔法方法（或稱為特殊方法），用於實現對象的索引訪問。當你使用索引（例如 obj[index]）訪問對象的元素時，Python 會自動調用 getitem 方法。 用途： 它允許你自定義對象的索引操作行為。你可以控制如何從對象中檢索數據。 1234567891011class MyList:    def __init__(self, data):        self.data = data    def __getitem__(self, index):        return self.data[index]# 使用my_list = MyList([1, 2, 3])print(my_list[1])  # 輸出：2   __setitem__定義： setitem 是另一個 Python 魔法方法，用於設置對象中某個索引位置的值。當你使用索引（例如 obj[index] &#x3D; va...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/01/19/Python-iterable%E3%80%81iterator%E3%80%81sequence/" title="Python iterable、iterator、sequence"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Python iterable、iterator、sequence</div></div><div class="info-2"><div class="info-item-1">#iterable、iterator、sequence  iterable與iteratoriterableiterable 是無狀態的，可迭代的對象list、tuple、dictorytion)皆是 常用的for i in iterable 123numbers = [1,2,3]for n in numbers    print(n)   💡在for loop 之前，會將iterable透過iter()轉成iterator，再根據iterator操作 💡在for loop時，會檢查iterable是否實現__next__與__getitem__，如果沒有則會raise not iterable，關於__getitem__下面會說到  iteratoriterator 是一個object且有置狀態的知道目前迭代位置，而iterator主要由兩個magic method實現就稱為iterator  __iter__(): 返回obejct自己， __next__(): 返回集合中next element，如果下一個element為空則會raise StopIteration ...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Python-contains-Magic-Method/" title="Python__contains__ Magic Method"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Python__contains__ Magic Method</div></div><div class="info-2"><div class="info-item-1">Python container object container object由__contains__方法實作，在使用 in 時被呼叫 1234i in container# 實際操作container.__contains__(i)  透過in強化程式可讀性另外在判斷條件情境下使用__container__會幫助可讀性以及class的內聚，來舉個例子，假設有個相撲遊戲，舞台為10 * 10正方形範圍，需要判斷玩家是否在舞台內以及出界 使用function實作使用function雖然能理解但不值觀，需要透過function的明確命名，以及function內處理if邏輯很難看懂x與y意圖，在閱讀上需要整段code看完才能理解 1234567891011121314151617def is_position_within_stage(position, stage_size):    x, y = position    return 0 &lt;= x &lt;= stage_size and 0 &lt;= y &lt;= stage_size# 創建舞台邊長stage_si...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Python-geitem-%E3%80%81-setitem-Magic-Method/" title="Python __geitem__、 __setitem__ Magic Method"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Python __geitem__、 __setitem__ Magic Method</div></div><div class="info-2"><div class="info-item-1">Python Magic Method __geitem__、 __setitem__ Magic Method__getitem__定義： getitem 是一個 Python 魔法方法（或稱為特殊方法），用於實現對象的索引訪問。當你使用索引（例如 obj[index]）訪問對象的元素時，Python 會自動調用 getitem 方法。 用途： 它允許你自定義對象的索引操作行為。你可以控制如何從對象中檢索數據。 1234567891011class MyList:    def __init__(self, data):        self.data = data    def __getitem__(self, index):        return self.data[index]# 使用my_list = MyList([1, 2, 3])print(my_list[1])  # 輸出：2   __setitem__定義： setitem 是另一個 Python 魔法方法，用於設置對象中某個索引位置的值。當你使用索引（例如 obj[index] &#x3D; va...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Python-Property/" title="Python Property"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Python Property</div></div><div class="info-2"><div class="info-item-1">propertyproperty 是一種用來管理對象屬性訪問的機制。它允許你使用方法來管理屬性讀取、寫入和刪除，而不需要直接調用方法。這樣做可以使屬性操作更直觀，並提供更多的控制和封裝，而在python中所有property都是public，可以透過以下例子來驗證 例子 school為內部會使用的property 1234567891011class Student(object):    def __init__(self, name, age, school):        self.name = name        self.age = age        self._school = schoolstudent_info = Student(name=&#x27;Jed&#x27;, age=18, school=&#x27;Python_School&#x27;) property皆public，可以看到student_info.__dict__能看到_school property 1234print(student_info.__dict__)&gt;&gt...</div></div></div></a><a class="pagination-related" href="/2025/01/19/%E5%B7%A5%E5%BB%A0%E6%A8%A1%E5%BC%8F%E8%A8%AD%E8%A8%88-%E5%89%B5%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/" title="工廠模式設計(創建型模式)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">工廠模式設計(創建型模式)</div></div><div class="info-2"><div class="info-item-1">工廠模式設計(創建型模式) 工廠方法與簡單工廠差異在於  工廠類不負責創建，而是交由子類來決定實例  遵循開閉原則：   可以透過引進新的具體工廠類來擴展產品的種類，而不需要修改現有代碼。  遵循單一職責原則：   每個具體工廠類別只負責創造一種特定產品，職責單一，程式碼更清晰。  增強程式碼的靈活性：   子類別可以覆寫工廠方法來改變創建產品的方式，增強了程式碼的靈活性和可擴展性。   在可提取共通邏輯進行抽象，並封裝且隱藏實作細節，能夠隨著需求快速創建物件的場景     來時做一個案例，今天收到需求是串接第三方服務來登入，有X、Meta、Google，在第三方服務需實作登入以及確認服務狀態，所以提取出共通行為進行抽象基類 123456789101112from abc import ABC, abstractmethodclass ThirdPartyServices(ABC):    @abstractmethod    def login(self):        pass    @abstractmethod    def get_health_status(self...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Python-Context-manager/" title="Python Context manager"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Python Context manager</div></div><div class="info-2"><div class="info-item-1">Python Context manager上下文管理器（Context Manager）在 Python 中，上下文管理器是一種自動管理資源的工具，能幫助我們確保在使用完資源後進行適當的清理。中文有一句成語叫「前因後果」，我們可以用這個成語來形象地解釋上下文管理器的作用。 例子 假設今天老闆要求你用財務上半季的營收 Excel 檔案視覺化為長條圖。要完成這個任務，我們首先需要讀取 Excel 檔案。這裡，我們可以使用上下文管理器來處理檔案的打開和關閉。  前因：因為需要處理某個資源（如打開文件），所以我們寫了一段代碼來操作這個資源。 後果：當代碼執行完畢後，需要進行一些清理工作（如關閉文件），這樣可以確保資源被正確地釋放。  例子1 1234567# 上下文管理器示例excel_file = open(&#x27;202401.csv&#x27;)  # 上文 (前因)try:    excel_to_bar_chart(excel_file)finally:    excel_file.close()  # 下文 (後果)  上面程式碼的確達到需求，但有沒有更簡潔的寫法呢?在...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">邁向雲原生&架構師之路</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">27</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">21</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">放我的學習筆記</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Comprehension%E8%88%87Walrus-Operator"><span class="toc-number">1.</span> <span class="toc-text">Comprehension與Walrus Operator</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A8%E5%B0%8E%E5%BC%8F-comprehension"><span class="toc-number">1.1.</span> <span class="toc-text">推導式(comprehension)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#list"><span class="toc-number">1.1.1.</span> <span class="toc-text">list</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#dict"><span class="toc-number">1.1.2.</span> <span class="toc-text">dict</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A8%E5%B0%8E%E5%BC%8F%E9%A0%88%E6%B3%A8%E6%84%8F%E9%83%A8%E5%88%86"><span class="toc-number">1.1.3.</span> <span class="toc-text">推導式須注意部分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A8%E5%B0%8E%E5%BC%8F%E5%A5%BD%E8%99%95"><span class="toc-number">1.1.4.</span> <span class="toc-text">推導式好處</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B3%A6%E5%80%BC%E8%A1%A8%E9%81%94%E5%BC%8F-Walrus-Operator"><span class="toc-number">1.2.</span> <span class="toc-text">賦值表達式(Walrus Operator)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B3%A6%E5%80%BC%E8%A1%A8%E9%81%94%E5%BC%8F%E9%9C%80%E6%B3%A8%E6%84%8F%E9%83%A8%E5%88%86"><span class="toc-number">1.2.1.</span> <span class="toc-text">賦值表達式需注意部分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B3%A6%E5%80%BC%E8%A1%A8%E9%81%94%E5%BC%8F%E5%84%AA%E7%BC%BA%E9%BB%9E"><span class="toc-number">1.2.2.</span> <span class="toc-text">賦值表達式優缺點</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/xa6tpsoqTQDyslzqHusztEOiZ4YAYB05.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hash(哈希、雜湊)"/></a><div class="content"><a class="title" href="/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)">Hash(哈希、雜湊)</a><time datetime="2025-02-10T09:02:48.461Z" title="Created 2025-02-10 17:02:48">2025-02-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/06/%E5%A0%86%E7%96%8A-Stack/" title="堆疊(Stack)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="堆疊(Stack)"/></a><div class="content"><a class="title" href="/2025/02/06/%E5%A0%86%E7%96%8A-Stack/" title="堆疊(Stack)">堆疊(Stack)</a><time datetime="2025-02-06T13:50:02.159Z" title="Created 2025-02-06 21:50:02">2025-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/06/%E4%BD%87%E5%88%97-Queue/" title="佇列(Queue)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="佇列(Queue)"/></a><div class="content"><a class="title" href="/2025/02/06/%E4%BD%87%E5%88%97-Queue/" title="佇列(Queue)">佇列(Queue)</a><time datetime="2025-02-06T08:44:39.592Z" title="Created 2025-02-06 16:44:39">2025-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/05/%E9%8F%88%E7%B5%90%E4%B8%B2%E5%88%97-Linked-List/" title="鏈結串列(Linked List)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/u1DqPVdoQex63jMr0edeKqLVXf6JaPVN.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="鏈結串列(Linked List)"/></a><div class="content"><a class="title" href="/2025/02/05/%E9%8F%88%E7%B5%90%E4%B8%B2%E5%88%97-Linked-List/" title="鏈結串列(Linked List)">鏈結串列(Linked List)</a><time datetime="2025-02-05T14:31:49.548Z" title="Created 2025-02-05 22:31:49">2025-02-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/HR21KzZAddWqXVimHGkaCdAKIOYUIfb1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="陣列(Array)概念與介紹"/></a><div class="content"><a class="title" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹">陣列(Array)概念與介紹</a><time datetime="2025-02-04T09:37:45.398Z" title="Created 2025-02-04 17:37:45">2025-02-04</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By Jed Hung</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.3"></script><script src="/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

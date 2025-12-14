@@ -1,0 +1,332 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Docker 基礎入門介紹 | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="講解什麼是Docker與docker compose，以及與一般VM差別">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker 基礎入門介紹">
+<meta property="og:url" content="http://example.com/2025/01/27/Docker-%E5%9F%BA%E7%A4%8E%E5%85%A5%E9%96%80%E4%BB%8B%E7%B4%B9/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="講解什麼是Docker與docker compose，以及與一般VM差別">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg">
+<meta property="article:published_time" content="2025-01-27T08:50:05.137Z">
+<meta property="article:modified_time" content="2025-12-14T13:01:32.813Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="Docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Docker 基礎入門介紹",
+  "url": "http://example.com/2025/01/27/Docker-%E5%9F%BA%E7%A4%8E%E5%85%A5%E9%96%80%E4%BB%8B%E7%B4%B9/",
+  "image": "https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg",
+  "datePublished": "2025-01-27T08:50:05.137Z",
+  "dateModified": "2025-12-14T13:01:32.813Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2025/01/27/Docker-%E5%9F%BA%E7%A4%8E%E5%85%A5%E9%96%80%E4%BB%8B%E7%B4%B9/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Docker 基礎入門介紹',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/"><span class="site-name">Docker 基礎入門介紹</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">Docker 基礎入門介紹</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2025-01-27T08:50:05.137Z" title="Created 2025-01-27 16:50:05">2025-01-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2025-12-14T13:01:32.813Z" title="Updated 2025-12-14 21:01:32">2025-12-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Docker/">Docker</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>Docker 是一種軟體平台，可讓您快速地建置、測試和部署應用程式。它通過將應用程式及其依賴環境打包(封裝)到一個輕量級、可攜帶的容器中，實現跨平台的一致性和高效性。</p>
+<aside>
+💡
+
+<p>在早期安裝一個服務在本地上(如Redis、Apache etc..)，如果要移植到另一個系統時，需要考量系統架構如X86或者ARM，且需要重新安裝或者執行Script shell，又或者不小心把環境弄髒或者弄壞又要重新清除又安裝，這些非常浪費時間又麻煩的事情。</p>
+</aside>
+
+<p><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/X1EI242705ZU9695T9SVRIFI8CT88VTW.png" alt="image.png"></p>
+<hr>
+<h2 id="Docker-術語"><a href="#Docker-術語" class="headerlink" title="Docker 術語"></a>Docker 術語</h2><h3 id="容器（Container）"><a href="#容器（Container）" class="headerlink" title="容器（Container）"></a><strong>容器（Container）</strong></h3><p>顧名思義就跟docker logo上的貨櫃一樣概念，單一一個服務為一個貨櫃，而這些貨櫃在docker 稱為容器(Container)。容器是一個輕量級的、獨立的運行環境，包含應用程式及其所有的依賴項（如庫、工具、配置文件等）。它類似於虛擬機，但資源佔用更少，啟動速度更快。可以隔離多個服務之間互相影響。</p>
+<h3 id="鏡像（Image）"><a href="#鏡像（Image）" class="headerlink" title="鏡像（Image）"></a><strong>鏡像（Image）</strong></h3><p><strong>Image</strong>是<strong>Container</strong>的靜態模板，包含了運行應用程式所需的所有內容（如操作系統、應用程式代碼和依賴項）。<strong>Container</strong>是基於<strong>Image</strong>啟動的可運行實例。可以簡單使用DockerFile來建立客製Image</p>
+<h3 id="Docker-引擎（Docker-Engine）"><a href="#Docker-引擎（Docker-Engine）" class="headerlink" title="Docker 引擎（Docker Engine）"></a><strong>Docker 引擎（Docker Engine）</strong></h3><p>Docker 的核心組件，負責構建、運行和管理容器。</p>
+<h3 id="Docker-Hub"><a href="#Docker-Hub" class="headerlink" title="Docker Hub"></a><strong>Docker Hub</strong></h3><p>一個雲端註冊表，用於存儲和分發 Docker 鏡像。你可以從 Docker Hub 上下載公共鏡像，也可以上傳自己的鏡像。</p>
+<aside>
+💡
+
+<p>其實不只有Docker Hub，像是AWS提供ECR也是可以存放在AWS雲服務上，這取決於自家架構運用在哪個服務商上。</p>
+</aside>
+
+<h2 id="Docker-與-VM"><a href="#Docker-與-VM" class="headerlink" title="Docker 與 VM"></a>Docker 與 VM</h2><p>VM運行在<strong>Hypervisor</strong>（虛擬化管理程序）上，每個虛擬機都有自己的操作系統。而Docker 容器運行在共享的操作系統內核上，通過 Docker Engine實現應用隔離。</p>
+<p>有用過VMware朋友都知道在一開始要安裝iso然後切割硬碟空間，然後運行上切太少vcpu或記憶體就會卡到不行，因為VM使用體積大，而每次啟動或關機都特別慢。</p>
+<p>Docker 和 VM 的主要區別</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th><strong>Docker（容器）</strong></th>
+<th><strong>虛擬機（VM）</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>架構</strong></td>
+<td>共享主機的操作系統內核，通過容器運行應用程式。</td>
+<td>每個虛擬機有完整的操作系統，運行在虛擬硬體上。</td>
+</tr>
+<tr>
+<td><strong>啟動速度</strong></td>
+<td>幾秒內啟動（輕量級）。</td>
+<td>通常需要幾分鐘（因為要啟動整個操作系統）。</td>
+</tr>
+<tr>
+<td><strong>資源使用</strong></td>
+<td>更高效，因為不需要運行多個操作系統。</td>
+<td>更耗資源，因為每個 VM 都需要自己的操作系統。</td>
+</tr>
+<tr>
+<td><strong>隔離性</strong></td>
+<td>容器之間隔離，但共享內核，隔離性稍弱。</td>
+<td>完全隔離，每個 VM 都有自己的操作系統和內核。</td>
+</tr>
+<tr>
+<td><strong>存儲空間</strong></td>
+<td>體積小（幾十 MB 到幾百 MB）。</td>
+<td>體積大（幾 GB 或更多）。</td>
+</tr>
+<tr>
+<td><strong>移植性</strong></td>
+<td>高移植性，容器可以在任何支持 Docker 的平台上運行。</td>
+<td>移植性較低，虛擬機需要與虛擬化平台兼容。</td>
+</tr>
+<tr>
+<td><strong>性能</strong></td>
+<td>接近原生性能（共享主機內核）。</td>
+<td>性能稍低，因為有虛擬化層的開銷。</td>
+</tr>
+<tr>
+<td><strong>適用場景</strong></td>
+<td>適合輕量級應用、微服務架構、快速部署與測試。</td>
+<td>適合需要完整隔離的場景，如運行不同的操作系統。</td>
+</tr>
+</tbody></table>
+<p>前面講了那麼多理論接著我們直接來實作Django web 的 docker image，請試著建立一個Django 的專案，然後將Dcockerfile放入專案內</p>
+<p>Dockerfile</p>
+<figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用輕量級的 Python 鏡像</span></span><br><span class="line"><span class="keyword">FROM</span> python:<span class="number">3.11</span>-slim</span><br><span class="line"></span><br><span class="line"><span class="comment">#工作目錄</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#安裝</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> pip install poetry</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 設定環境變數，避免Poetry建立虛擬環境，我們也不必再Container又隔離環境沒意義</span></span><br><span class="line"><span class="keyword">ENV</span> POETRY_VIRTUALENVS_CREATE=false</span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> pyproject.toml /app/</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安裝依賴</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> poetry install --no-root</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 複製其餘專案文件</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> . /app/</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 暴露端口</span></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">80</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 設定預設啟動命令</span></span><br><span class="line"><span class="keyword">CMD</span><span class="language-bash"> [<span class="string">&quot;poetry&quot;</span>, <span class="string">&quot;run&quot;</span>, <span class="string">&quot;manage.py&quot;</span>, <span class="string">&quot;runserver&quot;</span>, <span class="string">&quot;0.0.0.0:80&quot;</span>]</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>放進專案內部後並執行docker build commandline</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build . -t mydjangoweb </span><br></pre></td></tr></table></figure>
+
+<p>執行完後就可以去Docker Desktop查看image已經完成，如果是linux系統可以用</p>
+<p><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/Q3GNWFU62ELECUZLN2TK3ZWLV3WZ53CD.png" alt="image.png"></p>
+<p>如果是linux系統可以用commandline來查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker image <span class="built_in">ls</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/9BWU5KRKA14EOKE3JEIJEZG56O4HOV48.png" alt="image.png"></p>
+<p>到這邊你就會思單一服務還好，如果是多個服務像是一個網站會有資料庫、快取、伺服器、log分析等等多數服務，那要如何將他們包成image又或者綑綁呢?  不用擔心有docker compose可以幫你統一管理以及處理這些多服務!</p>
+<h2 id="Docker-Compose"><a href="#Docker-Compose" class="headerlink" title="Docker Compose"></a><strong>Docker Compose</strong></h2><p><strong>Docker Compose</strong> 是一個工具，專門用來管理和編排多個 Docker 容器的部署。當你的應用需要多個容器（例如一個 Web 伺服器、資料庫和緩存服務）時，Docker Compose 可以幫助你簡化這些容器的配置和啟動過程。可以看到下面圖中，章魚將每一個貨櫃綑綁一起，管理以及部屬。</p>
+<p><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/QM3NB4PGUEUML6YJNXTEW57DH8NFQQ1E.png" alt="image.png"></p>
+<hr>
+<h3 id="docker-compose-yml-文件"><a href="#docker-compose-yml-文件" class="headerlink" title="docker-compose.yml 文件"></a><strong><code>docker-compose.yml</code> 文件</strong></h3><ul>
+<li>Docker Compose 使用 YAML 文件來定義應用的服務、網絡和卷。</li>
+<li>你可以在這個文件中描述多個容器的配置，例如使用的映像、環境變數、端口映射等。</li>
+</ul>
+<h3 id="服務（Services）"><a href="#服務（Services）" class="headerlink" title="服務（Services）"></a><strong>服務（Services）</strong></h3><p>每個服務對應一個容器，像是 Web 伺服器、資料庫等。</p>
+<h3 id="網絡（Networks）"><a href="#網絡（Networks）" class="headerlink" title="網絡（Networks）"></a><strong>網絡（Networks）</strong></h3><p>Docker Compose 自動為服務之間創建網絡，讓它們能夠互相通信。</p>
+<h3 id="卷（Volumes）"><a href="#卷（Volumes）" class="headerlink" title="卷（Volumes）"></a><strong>卷（Volumes）</strong></h3><p>用來持久化數據，確保容器重啟後數據不會丟失。</p>
+<aside>
+💡
+
+<p>因為Docker不是持久化的，每次重啟資料都不會保留，所以可以設置Volumes來持久化資料。</p>
+</aside>
+
+<p>接著我們來練習透過docker compose 建立 Elastic stack的Elasticsearch、Kibana 和 Logstash </p>
+<aside>
+💡
+
+<p>Elastic Stack 是一組開源工具，專門用於<strong>收集、處理、存儲、分析</strong>和<strong>可視化數據</strong>。它由四個主要組件組成：<strong>Elasticsearch</strong>、<strong>Logstash</strong>、<strong>Kibana</strong> 和 <strong>Beats</strong>。這些工具協同工作，可以處理來自多種來源的大量數據，應用於日誌管理、系統監控、安全分析等場景。</p>
+</aside>
+
+<p>docker-compose.yml</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&#x27;3.8&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">elasticsearch:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">docker.elastic.co/elasticsearch/elasticsearch:8.10.0</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">elasticsearch</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">discovery.type=single-node</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">bootstrap.memory_lock=true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">xpack.security.enabled=false</span></span><br><span class="line">    <span class="attr">ulimits:</span></span><br><span class="line">      <span class="attr">memlock:</span></span><br><span class="line">        <span class="attr">soft:</span> <span class="number">-1</span></span><br><span class="line">        <span class="attr">hard:</span> <span class="number">-1</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;9200:9200&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;9300:9300&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">es_data:/usr/share/elasticsearch/data</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">es_network</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">kibana:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">docker.elastic.co/kibana/kibana:8.9.0</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">kibana</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ELASTICSEARCH_URL=http://elasticsearch:9200</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;5601:5601&quot;</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">es_network</span></span><br><span class="line">    <span class="attr">depends_on:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">elasticsearch</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">logstash:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">docker.elastic.co/logstash/logstash:8.17.1</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">logstash</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./logstash/pipeline:/usr/share/logstash/pipeline</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">LS_JAVA_OPTS=-Xmx256m</span> <span class="string">-Xms256m</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">es_network</span></span><br><span class="line">    <span class="attr">depends_on:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">elasticsearch</span></span><br><span class="line"></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="attr">es_data:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">local</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">es_network:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">bridge</span></span><br></pre></td></tr></table></figure>
+
+<p>執行docker compose </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -p Elastic-stack up</span><br></pre></td></tr></table></figure>
+
+<p>可以看到簡簡單單三個Container服務就被建立起來並運行了</p>
+<p><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/QFO9EFD3XDVDP3724YQ68ZXFCO95X61S.png" alt="image.png"></p>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>docker 不僅加速了工程師在開發建置環境的時間以及測試，且能透過docker compose進行管理以及快速部屬，較於傳統需要一個個服務慢慢安裝來說便利許多，現今工程師如果還不會docker那要趕緊卷起來了!</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="http://example.com">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="http://example.com/2025/01/27/Docker-%E5%9F%BA%E7%A4%8E%E5%85%A5%E9%96%80%E4%BB%8B%E7%B4%B9/">http://example.com/2025/01/27/Docker-%E5%9F%BA%E7%A4%8E%E5%85%A5%E9%96%80%E4%BB%8B%E7%B4%B9/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Docker/">Docker</a></div><div class="post-share"><div class="social-share" data-image="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/01/27/Docker-%E5%8A%A0%E9%80%9F%E7%9A%84%E6%8A%80%E5%B7%A7%E4%BB%A5%E5%8F%8A%E7%AE%A1%E7%90%86/" title="Docker 加速的技巧以及管理"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/vvYDcnuBlA0R22glza9oucfH2RdW2faQ.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">Docker 加速的技巧以及管理</div></div><div class="info-2"><div class="info-item-1">Docker在近幾十年內是目前大多企業最常使用的技術，在開發上Docker也是不可或缺的，而本篇文章將提出幾項如何讓Docker加快以及減少空間好管理得的技巧。 善用Docker Cache在寫Dockerfile時，是否注意到每次在做Docker build image時總是特別慢，特別是在node install，或者 python poetry install，每次都浪費幾分鐘時間，其實在Dockerfile在內部就有Cache來幫你處理，直接舉個例子。 建置一個Python Django image正常情況下你會像下面這樣建立。 1234567891011121314151617181920# 使用輕量級的 Python 鏡像FROM python:3.11-slim#工作目錄WORKDIR /app#複製所有專案COPY . /app/#安裝RUN pip install poetry# 安裝依賴RUN poetry install --no-root# 暴露端口EXPOSE 80# 設定預設啟動命令CMD [&quot;poetry&quot;, &quot;run&...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Web-API%E8%A8%AD%E8%A8%88-API%E5%8F%AF%E8%A6%8B%E6%80%A7%E9%A1%9E%E5%9E%8B/" title="Web API設計 - API可見性類型"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Web API設計 - API可見性類型</div></div><div class="info-2"><div class="info-item-1">API 可見性的類型四種API可見性類型  ##解決方案內部API (Solution-Internal API) 解決方案內部API是用於應用程式內部的元件之間的通信，僅限於應用程式內部使用，不對外開放。  用途：將應用程式依邏輯分解成元件，這些元件暴露API來進行內部通信。 特點： 僅限於內部系統使用，通常由單一專案或產品負責開發、營運和維護。 主要用於服務內部元件的協同工作。    例子：  後端服務間的API：例如，處理用戶資料的服務與支付服務之間的API。 內部數據庫管理API：例如，內部API負責處理數據存取和管理。   夥伴API (Partner API)夥伴API是供特定合作夥伴使用的API，通常會有某些存取限制，且需要合作夥伴進行認證。  用途：用於兩個或多個組織之間進行系統集成和數據共享。 特點： 主要用於與合作夥伴或外部系統的集成。 需要身份驗證和授權來確保安全。 通常用於跨企業或跨部門的協作。    例子：  支付API：例如，支付平台提供的API給商家用於支付處理。 第三方物流API：例如，電子商務平台與物流公司之間的API集成。   公開API (P...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/01/27/Docker-%E5%8A%A0%E9%80%9F%E7%9A%84%E6%8A%80%E5%B7%A7%E4%BB%A5%E5%8F%8A%E7%AE%A1%E7%90%86/" title="Docker 加速的技巧以及管理"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/vvYDcnuBlA0R22glza9oucfH2RdW2faQ.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-27</div><div class="info-item-2">Docker 加速的技巧以及管理</div></div><div class="info-2"><div class="info-item-1">Docker在近幾十年內是目前大多企業最常使用的技術，在開發上Docker也是不可或缺的，而本篇文章將提出幾項如何讓Docker加快以及減少空間好管理得的技巧。 善用Docker Cache在寫Dockerfile時，是否注意到每次在做Docker build image時總是特別慢，特別是在node install，或者 python poetry install，每次都浪費幾分鐘時間，其實在Dockerfile在內部就有Cache來幫你處理，直接舉個例子。 建置一個Python Django image正常情況下你會像下面這樣建立。 1234567891011121314151617181920# 使用輕量級的 Python 鏡像FROM python:3.11-slim#工作目錄WORKDIR /app#複製所有專案COPY . /app/#安裝RUN pip install poetry# 安裝依賴RUN poetry install --no-root# 暴露端口EXPOSE 80# 設定預設啟動命令CMD [&quot;poetry&quot;, &quot;run&...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">邁向雲原生&架構師之路</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">27</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">21</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">放我的學習筆記</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker-%E8%A1%93%E8%AA%9E"><span class="toc-number">1.</span> <span class="toc-text">Docker 術語</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%B9%E5%99%A8%EF%BC%88Container%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">容器（Container）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%8F%A1%E5%83%8F%EF%BC%88Image%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">鏡像（Image）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Docker-%E5%BC%95%E6%93%8E%EF%BC%88Docker-Engine%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">Docker 引擎（Docker Engine）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Docker-Hub"><span class="toc-number">1.4.</span> <span class="toc-text">Docker Hub</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker-%E8%88%87-VM"><span class="toc-number">2.</span> <span class="toc-text">Docker 與 VM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker-Compose"><span class="toc-number">3.</span> <span class="toc-text">Docker Compose</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#docker-compose-yml-%E6%96%87%E4%BB%B6"><span class="toc-number">3.1.</span> <span class="toc-text">docker-compose.yml 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%8D%E5%8B%99%EF%BC%88Services%EF%BC%89"><span class="toc-number">3.2.</span> <span class="toc-text">服務（Services）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B6%B2%E7%B5%A1%EF%BC%88Networks%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">網絡（Networks）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%B7%EF%BC%88Volumes%EF%BC%89"><span class="toc-number">3.4.</span> <span class="toc-text">卷（Volumes）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">4.</span> <span class="toc-text">結論</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/xa6tpsoqTQDyslzqHusztEOiZ4YAYB05.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hash(哈希、雜湊)"/></a><div class="content"><a class="title" href="/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)">Hash(哈希、雜湊)</a><time datetime="2025-02-10T09:02:48.461Z" title="Created 2025-02-10 17:02:48">2025-02-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/06/%E5%A0%86%E7%96%8A-Stack/" title="堆疊(Stack)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="堆疊(Stack)"/></a><div class="content"><a class="title" href="/2025/02/06/%E5%A0%86%E7%96%8A-Stack/" title="堆疊(Stack)">堆疊(Stack)</a><time datetime="2025-02-06T13:50:02.159Z" title="Created 2025-02-06 21:50:02">2025-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/06/%E4%BD%87%E5%88%97-Queue/" title="佇列(Queue)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="佇列(Queue)"/></a><div class="content"><a class="title" href="/2025/02/06/%E4%BD%87%E5%88%97-Queue/" title="佇列(Queue)">佇列(Queue)</a><time datetime="2025-02-06T08:44:39.592Z" title="Created 2025-02-06 16:44:39">2025-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/05/%E9%8F%88%E7%B5%90%E4%B8%B2%E5%88%97-Linked-List/" title="鏈結串列(Linked List)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/u1DqPVdoQex63jMr0edeKqLVXf6JaPVN.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="鏈結串列(Linked List)"/></a><div class="content"><a class="title" href="/2025/02/05/%E9%8F%88%E7%B5%90%E4%B8%B2%E5%88%97-Linked-List/" title="鏈結串列(Linked List)">鏈結串列(Linked List)</a><time datetime="2025-02-05T14:31:49.548Z" title="Created 2025-02-05 22:31:49">2025-02-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/HR21KzZAddWqXVimHGkaCdAKIOYUIfb1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="陣列(Array)概念與介紹"/></a><div class="content"><a class="title" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹">陣列(Array)概念與介紹</a><time datetime="2025-02-04T09:37:45.398Z" title="Created 2025-02-04 17:37:45">2025-02-04</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By Jed Hung</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.3"></script><script src="/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

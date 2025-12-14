@@ -1,0 +1,852 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>二元樹(Binary Tree)概念與介紹 | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="介紹什麼是二元樹，以及他的資料結構實作方式，和各種不同的樹介紹，最後以排行榜實作樹與array比較">
+<meta property="og:type" content="article">
+<meta property="og:title" content="二元樹(Binary Tree)概念與介紹">
+<meta property="og:url" content="http://example.com/2025/02/03/%E4%BA%8C%E5%85%83%E6%A8%B9-Binary-Tree-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="介紹什麼是二元樹，以及他的資料結構實作方式，和各種不同的樹介紹，最後以排行榜實作樹與array比較">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/ZZzBzVCtH9Sj87wTn8YLPC7eJt479XOu.png">
+<meta property="article:published_time" content="2025-02-03T08:30:45.989Z">
+<meta property="article:modified_time" content="2025-12-14T13:04:01.791Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="Binary Tree">
+<meta property="article:tag" content="資料結構">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/ZZzBzVCtH9Sj87wTn8YLPC7eJt479XOu.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "二元樹(Binary Tree)概念與介紹",
+  "url": "http://example.com/2025/02/03/%E4%BA%8C%E5%85%83%E6%A8%B9-Binary-Tree-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/",
+  "image": "https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/ZZzBzVCtH9Sj87wTn8YLPC7eJt479XOu.png",
+  "datePublished": "2025-02-03T08:30:45.989Z",
+  "dateModified": "2025-12-14T13:04:01.791Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2025/02/03/%E4%BA%8C%E5%85%83%E6%A8%B9-Binary-Tree-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '二元樹(Binary Tree)概念與介紹',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/ZZzBzVCtH9Sj87wTn8YLPC7eJt479XOu.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/"><span class="site-name">二元樹(Binary Tree)概念與介紹</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">二元樹(Binary Tree)概念與介紹</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2025-02-03T08:30:45.989Z" title="Created 2025-02-03 16:30:45">2025-02-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2025-12-14T13:04:01.791Z" title="Updated 2025-12-14 21:04:01">2025-12-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%B3%87%E6%96%99%E7%B5%90%E6%A7%8B/">資料結構</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="二元樹介紹"><a href="#二元樹介紹" class="headerlink" title="二元樹介紹"></a>二元樹介紹</h2><p>二元樹是一格樹狀的資料結構，因為結構像樹枝，而每個樹枝支點這邊稱為節點(<code>node</code>)，一個節點包含：</p>
+<ul>
+<li><strong>數值或資料（Value）</strong>：存儲在節點中的資料。</li>
+<li><strong>左指標（Left Pointer）</strong>：指向左子節點的指標。</li>
+<li><strong>右指標（Right Pointer）</strong>：指向右子節點的指標。</li>
+</ul>
+<p>左右子節點會比較數值本身來決定，比數值本身大放右子節點，反之小放左子節點，另外樹的對上方稱為根節點(<code>root node</code>)，而底部的節點沒有子節點所以稱為葉節點，</p>
+<p>例子</p>
+<p>搜尋二元樹會依照數值大小決定放左邊還是右邊，比value 小就放左指標，比value大就放右邊，資料為5、3、8、2、4、7依序建立二元樹。</p>
+<pre><code class="highlight mermaid">graph TD
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    E((4))
+    F((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; F</code></pre>
+
+<p><code>5</code> 為根節點因為在最上方</p>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+</code></pre>
+
+<p>接著是 <code>3</code>，而 <code>5</code> 比 <code>3</code> 大，因此下方的左子節點為 <code>3</code></p>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((3))
+
+    A --&gt; B
+</code></pre>
+
+<p>接著是 <code>8</code>，而 <code>5</code> 比 <code>8</code> 小，因此下方的右子節點為 <code>8</code></p>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((3))
+    C((8))
+
+    A --&gt; B
+    A --&gt; C
+</code></pre>
+
+<p>接著是 <code>2</code>，而 <code>3</code> 與 <code>5</code> 比 <code>2</code> 大，因此 <code>3</code> 節點下方的左子節點為 <code>2</code></p>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+</code></pre>
+
+<p>接著是 <code>4</code>，而 <code>5</code> 比 <code>4</code> 大，但 <code>3</code> 比 <code>4</code> 小，因此 <code>3</code> 節點下方的右子節點為 <code>4</code></p>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    E((4))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+</code></pre>
+
+<p>接著是 <code>7</code>，而 <code>5</code> 比 <code>7</code> 小，但 <code>8</code> 比 <code>7</code> 大，因此 <code>8</code> 節點下方的左子節點為 <code>7</code></p>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    E((4))
+    F((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; F
+</code></pre>
+
+<p>從樹狀資料結構中我們可以得知</p>
+<ul>
+<li><code>5</code> 為根節點</li>
+<li><code>2</code>、<code>4</code>、<code>7</code> 為葉節點</li>
+<li>根節點的右子節點都會比左子節點大</li>
+</ul>
+<p>當我們刪除二元樹中的一個節點時，我們根據該節點的子樹情況採取不同的處理方式。二元樹中節點的刪除有三種情況：</p>
+<ul>
+<li><p><strong>刪除葉節點（沒有子節點）</strong>：直接刪除該節點。</p>
+<p>  刪除一個葉節點。節點 <code>2</code> 是一個葉節點，沒有子節點，所以可以直接刪除。所以 <code>2</code>、<code>4</code>、<code>7</code> 是可以直接刪除的。</p>
+</li>
+</ul>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((3))
+    C((8))
+    E((4))
+    F((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; E
+    C --&gt; F
+</code></pre>
+<ul>
+<li><p><strong>刪除只有一個子節點的節點</strong>：將該節點的子節點提上來，並連接到父節點。</p>
+<p>  刪除 <code>8</code> 節點，而下面只有一個子節點 <code>7</code>，所以直接提上去</p>
+</li>
+</ul>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((3))
+    C((7))
+    D((2))
+    E((4))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+</code></pre>
+<ul>
+<li><p><strong>刪除有兩個子節點的節點</strong>：分別兩種方法，找出左子樹的最大節點或右子樹的最小節點</p>
+<p>  刪除節點 <code>3</code>，找出左子樹最大節點，也就是 <code>2</code></p>
+</li>
+</ul>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((2))
+    C((8))
+    D((4))
+    E((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    C --&gt; E
+</code></pre>
+<p>刪除節點 <code>3</code>，找出右子樹最小節點，也就是 <code>4</code></p>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((4))
+    C((8))
+    D((2))
+    E((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    C --&gt; E
+</code></pre>
+<h2 id="二元樹深度"><a href="#二元樹深度" class="headerlink" title="二元樹深度"></a>二元樹深度</h2><p>我們可以將樹由上而下看，從縱軸 <code>5</code> 為第0層，<code>3</code> 和 <code>8</code> 為第1層，<code>2</code>、<code>4</code>、<code>7</code> 為第2層。這樣可以根據層級計算每層最多可以有多少個節點。對於一棵理想的二元樹，第 <code>i</code> 層最多可以有 <code>2^i</code> 個節點。因此，第 <code>i</code> 層最多可以容納的節點數是：</p>
+<ul>
+<li>第一層（<code>i=0</code>）：最多有 <code>2^0 = 1</code> 個節點。</li>
+<li>第二層（<code>i=1</code>）：最多有 <code>2^1 = 2</code> 個節點。</li>
+<li>第三層（<code>i=2</code>）：最多有 <code>2^2 = 4</code> 個節點。</li>
+<li>第四層（<code>i=3</code>）：最多有 <code>2^3 = 8</code> 個節點。</li>
+</ul>
+<p>理想的情況下，每一層的節點數都不會超過 <code>2^i</code>。但是，實際情況下，樹的節點數量可能會有所不同，特別是在不平衡的二元樹中。</p>
+<pre><code class="highlight mermaid">graph TD
+
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    E((4))
+    F((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; F
+</code></pre>
+
+<h2 id="二元樹類型"><a href="#二元樹類型" class="headerlink" title="二元樹類型"></a>二元樹類型</h2><h3 id="二元搜尋樹"><a href="#二元搜尋樹" class="headerlink" title="二元搜尋樹"></a>二元搜尋樹</h3><p>在二元搜尋樹中，搜尋節點的操作非常高效。每個節點的數值比其左子節點的數值要大，比其右子節點的數值要小，因此我們可以根據這一性質，從根節點開始搜尋，逐層縮小搜尋範圍。</p>
+<p><strong>特徵：</strong></p>
+<ul>
+<li>如果根節點的數值等於目標數值，則找到目標。</li>
+<li>如果目標數值小於根節點的數值，則搜尋左子樹。</li>
+<li>如果目標數值大於根節點的數值，則搜尋右子樹。</li>
+</ul>
+<p><strong>重複這些步驟</strong>，直到找到目標節點或沒有更多節點可搜尋為止。</p>
+<p><strong>例子：</strong></p>
+<p>搜尋節點<code>4</code></p>
+<pre><code class="highlight mermaid">graph TD
+    style A fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
+    style B fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
+    style C fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
+    style D fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
+    style E fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
+    style F fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
+
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    E((4))
+    F((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; F
+
+    %% 搜尋過程
+    A -.-&gt;|目標 4 比 5 小往左| B
+    B -.-&gt;|目標 4 比 3 大往右| E
+</code></pre>
+
+<h3 id="完全二元樹（Complete-Binary-Tree）"><a href="#完全二元樹（Complete-Binary-Tree）" class="headerlink" title="完全二元樹（Complete Binary Tree）"></a>完全二元樹（Complete Binary Tree）</h3><p>完全二元樹其中所有層（除了最後一層）都是滿的，且最後一層的節點都集中在最左邊。也就是說，最後一層的節點可以不完全，但必須從左到右排列，沒有空隙。</p>
+<p><strong>特徵：</strong></p>
+<ul>
+<li>所有層除了最後一層，都是滿的。</li>
+<li>最後一層的節點都集中在最左邊。</li>
+</ul>
+<p><strong>例子：</strong></p>
+<p><code>A</code>到<code>G</code>按順序由上而下，由左至右，符合完全二元樹</p>
+<pre><code class="highlight mermaid">graph TD
+    A((A))
+    B((B))
+    C((C))
+    D((D))
+    E((E))
+    F((F))
+    G((G))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; F
+    C --&gt; G
+</code></pre>
+
+<p>完全二元樹的反例</p>
+<p><code>A</code>到<code>G</code>按順序由上而下，由左至右，但<code>E</code>由左至右接的不是<code>F</code>而是<code>G</code>，因此不符合完全二元樹</p>
+<pre><code class="highlight mermaid">graph TD
+    A((A))
+    B((B))
+    C((C))
+    D((D))
+    E((E))
+    G((G))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; G
+</code></pre>
+
+<p>例子-基於Binary Search Tree(BST)規則</p>
+<p>數據分別為<code>5、3、8、2、4、7 0</code>，且符合<code>BST</code>規則以外，也符合完全二元，反之如果把<code>7</code>改成<code>9</code>，就會變成<code>8</code>的右子節點，就不為完全二元樹</p>
+<pre><code class="highlight mermaid">graph TD
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    E((4))
+    F((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; F
+</code></pre>
+
+<hr>
+<h3 id="平衡二元樹（Balanced-Binary-Tree）"><a href="#平衡二元樹（Balanced-Binary-Tree）" class="headerlink" title="平衡二元樹（Balanced Binary Tree）"></a>平衡二元樹（Balanced Binary Tree）</h3><p>平衡二元樹每一個節點的左右子樹深度差不超過 <code>1</code>，這樣可以確保樹的深度是平衡的，從而避免因為深度過高而影響查詢效率。</p>
+<aside>
+💡
+
+<p>平衡二元樹，<strong>左右子樹的深度差</strong>（即 left height - right height）不能大於 1。</p>
+</aside>
+
+<p><strong>特徵：</strong></p>
+<ul>
+<li>對於每一個節點，左右子樹的深度差的絕對值不會大於 <code>1</code>。</li>
+<li>確保樹的深度不會過大，保持查找、插入、刪除操作的效率。</li>
+</ul>
+<p><strong>平衡二元樹例子：</strong></p>
+<pre><code class="highlight mermaid">
+graph TD
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    E((4))
+    F((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; F
+</code></pre>
+
+<p><strong>根節點 <code>5</code></strong>：</p>
+<ul>
+<li>左子樹高度：從 <code>5</code> 到 <code>3</code>，再到 <code>2</code> 或 <code>4</code>，最高為 <code>2</code></li>
+<li>右子樹高度：從 <code>5</code> 到 <code>8</code>，再到 <code>7</code>，最高為 <code>2</code></li>
+<li>高度差：<code>2 - 2 = 0</code>，這是平衡的。</li>
+</ul>
+<p><strong>節點 <code>3</code></strong>：</p>
+<ul>
+<li>左子樹高度：只有節點 <code>2</code>，高度為 <code>1</code></li>
+<li>右子樹高度：只有節點 <code>4</code>，高度為 <code>1</code></li>
+<li>高度差：<code>1 - 1 = 0</code>，這是平衡的。</li>
+</ul>
+<p><strong>節點 <code>8</code></strong>：</p>
+<ul>
+<li>左子樹高度：只有節點 <code>7</code>，高度為 <code>1</code></li>
+<li>右子樹高度：沒有右子樹，高度為 <code>0</code></li>
+<li>高度差：<code>1 - 0 = 1</code>，這是平衡的。</li>
+</ul>
+<p>因此，這棵樹是<strong>平衡二元樹</strong>，因為每個節點的左右子樹深度差都不大於 <code>1</code>，符合平衡二元樹的條件。</p>
+<p><strong>不平衡二元樹例子：</strong></p>
+<pre><code class="highlight mermaid">graph TD
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    E((4))
+    F((7))
+    G((6))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; F
+    F --&gt; G
+</code></pre>
+
+<p>判斷是否為平衡二元樹</p>
+<p>根節點 <code>5</code>：</p>
+<ul>
+<li><strong>左子樹高度</strong>：從 <code>5</code> 到 <code>3</code>，再到 <code>2</code> 或 <code>4</code>，最高為 <code>2</code></li>
+<li><strong>右子樹高度</strong>：從 <code>5</code> 到 <code>8</code>，再到 <code>7</code>，再到 <code>6</code>，最高為 <code>3</code></li>
+<li><strong>高度差</strong>：<code>3 - 2 = 1</code>，這是平衡的。</li>
+</ul>
+<p>節點 <code>3</code>：</p>
+<ul>
+<li><strong>左子樹高度</strong>：只有節點 <code>2</code>，高度為 <code>1</code></li>
+<li><strong>右子樹高度</strong>：只有節點 <code>4</code>，高度為 <code>1</code></li>
+<li><strong>高度差</strong>：<code>1 - 1 = 0</code>，這是平衡的。</li>
+</ul>
+<p>節點 <code>8</code>：</p>
+<ul>
+<li><strong>左子樹高度</strong>：沒有左子樹，高度為 <code>0</code></li>
+<li><strong>右子樹高度</strong>：從 <code>8</code> 到 <code>7</code>，再到 <code>6</code>，高度為 <code>2</code></li>
+<li><strong>高度差</strong>：<code>2 - 0 = 2</code>，這是不平衡的，因為高度差大於 <code>1</code>。</li>
+</ul>
+<p>這棵樹是 <strong>不平衡的二元樹</strong>，因為節點 <code>8</code> 的左右子樹深度差超過了 <code>1</code>，不滿足平衡二元樹的條件。</p>
+<h3 id="完美二元樹（Perfect-Binary-Tree）"><a href="#完美二元樹（Perfect-Binary-Tree）" class="headerlink" title="完美二元樹（Perfect Binary Tree）"></a>完美二元樹（Perfect Binary Tree）</h3><p>完美二元樹每一層的節點數量都達到最大數量，並且所有葉子節點都在同一層。換句話說，這是一個完全填滿的二元樹，沒有任何空隙。</p>
+<aside>
+💡
+
+<p>完美二元樹，每層的節點數量必定是 2^n，其中 n是層數。</p>
+</aside>
+
+<p><strong>特徵：</strong></p>
+<ul>
+<li>每一層都是滿的。</li>
+<li>所有葉子節點都在同一層。</li>
+</ul>
+<p><strong>例子：</strong></p>
+<pre><code class="highlight mermaid">graph TD
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    E((4))
+    F((7))
+    G((6))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    B --&gt; E
+    C --&gt; F
+    C --&gt; G
+</code></pre>
+
+<h3 id="二元樹彙整"><a href="#二元樹彙整" class="headerlink" title="二元樹彙整"></a>二元樹彙整</h3><table>
+<thead>
+<tr>
+<th>樹的類型</th>
+<th>規則</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>完全二元樹</strong></td>
+<td>依序從左到右填滿，不能跳空</td>
+</tr>
+<tr>
+<td><strong>平衡二元樹</strong></td>
+<td>任意節點的左右子樹高度差不超過 <code>1</code></td>
+</tr>
+<tr>
+<td><strong>搜尋二元樹（BST）</strong></td>
+<td>左子樹小於根，右子樹大於根</td>
+</tr>
+<tr>
+<td><strong>完美二元樹</strong></td>
+<td>每一層都填滿，沒有缺口</td>
+</tr>
+</tbody></table>
+<h2 id="記憶體中的二元樹"><a href="#記憶體中的二元樹" class="headerlink" title="記憶體中的二元樹"></a>記憶體中的二元樹</h2><p>透過Array來儲存二元樹存儲方式：</p>
+<table>
+<thead>
+<tr>
+<th>Index</th>
+<th>Index 0</th>
+<th>Index 1</th>
+<th>Index 2</th>
+<th>Index 3</th>
+<th>Index 4</th>
+<th>Index 5</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Value</td>
+<td>5</td>
+<td>3</td>
+<td>8</td>
+<td>2</td>
+<td>null</td>
+<td>7</td>
+</tr>
+</tbody></table>
+<pre><code class="highlight mermaid">graph TD
+    A((5))
+    B((3))
+    C((8))
+    D((2))
+    F((7))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    C --&gt; F
+</code></pre>
+
+<p>因為3節點的右子節點是空的，所以Index 4為null，這種儲存方式有個好處是可以找尋左右子節點索引以及父節點索引，可以透過公式計算</p>
+<p><strong>左子節點 (Left child)</strong>：</p>
+<ul>
+<li>左子節點的索引：<code>2 * index + 1</code></li>
+</ul>
+<p><strong>右子節點 (Right child)</strong>：</p>
+<ul>
+<li>右子節點的索引：<code>2 * index + 2</code></li>
+</ul>
+<p><strong>父節點 (Parent node)</strong>：</p>
+<ul>
+<li>父節點的索引：<code>(index - 1) // 2</code>(整數除法 <code>//</code>，保證返回的是父節點的整數索引)</li>
+</ul>
+<p><strong>例子</strong></p>
+<p><strong>節點 3</strong>（索引 <code>1</code>）：</p>
+<ul>
+<li>左子節點：<code>2 * 1 + 1 = 3</code>，對應節點 <code>2</code>。</li>
+<li>右子節點：<code>2 * 1 + 2 = 4</code>，對應節點 <code>4</code>。</li>
+<li>父節點：<code>(1 - 1) // 2 = 0</code>，對應節點 <code>5</code>。</li>
+</ul>
+<p><strong>節點 2</strong>（索引 <code>3</code>）：</p>
+<ul>
+<li>左子節點：<code>2 * 3 + 1 = 7</code>，該位置是 <code>null</code>，表示無左子節點。</li>
+<li>右子節點：<code>2 * 3 + 2 = 8</code>，該位置是 <code>null</code>，表示無右子節點。</li>
+<li>父節點：<code>(3 - 1) // 2 = 1</code>，對應節點 <code>3</code>。</li>
+</ul>
+<p>但這種方式有個缺點處理<strong>稀疏二元樹</strong>時，使用陣列來儲存會遇到一些挑戰。稀疏二元樹是指樹中有很多節點的子樹為空，這意味著樹的結構並不完全填滿每一層或每一個節點位置。在這種情況下，陣列的使用會變得不那麼高效，因為會有很多空位，浪費記憶體，且會造成空間的浪費。</p>
+<p>例子</p>
+<p>這是一個稀疏二元樹</p>
+<pre><code class="highlight mermaid">graph TD
+    A((5))
+    B((3))
+    C((8))
+    D((4))
+    E((9))
+    F((11))
+
+    A --&gt; B
+    A --&gt; C
+    B --&gt; D
+    C --&gt; E
+    E --&gt; F
+</code></pre>
+
+<p>而陣列儲存方式，可以發現9個Index為null，因為會有很多空位，浪費記憶體，且會造成空間的浪費。</p>
+<table>
+<thead>
+<tr>
+<th>Index</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Value</td>
+<td>5</td>
+<td>3</td>
+<td>8</td>
+<td>null</td>
+<td>4</td>
+<td>null</td>
+<td>9</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+<td>11</td>
+</tr>
+</tbody></table>
+<p>稀疏二元樹(含null表示)</p>
+<pre><code class="highlight mermaid">graph TD
+    A((5)):::node
+    B((3)):::node
+    C((8)):::node
+    D((null)):::null
+    E((4)):::node
+    F((null)):::null
+    G((9)):::node
+    H((null)):::null
+    I((null)):::null
+    J((null)):::null
+    K((null)):::null
+    L((null)):::null
+    M((null)):::null
+    N((null)):::null
+    O((11)):::node
+
+    A --&gt;|index 1| B
+    A --&gt;|index 2| C
+    B --&gt;|index 3| D
+    B --&gt;|index 4| E
+    C --&gt;|index 5| F
+    C --&gt;|index 6| G
+    D --&gt;|index 7| H
+    D --&gt;|index 8| I
+    E --&gt;|index 9| J
+    E --&gt;|index 10| K
+    F --&gt;|index 11| L
+    F --&gt;|index 12| M
+    G --&gt;|index 13| N
+    G --&gt;|index 14| O
+
+    classDef node fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef null fill:#bbb,stroke:#888,stroke-width:2px;
+</code></pre>
+
+<h2 id="搜尋二元樹應用與實驗"><a href="#搜尋二元樹應用與實驗" class="headerlink" title="搜尋二元樹應用與實驗"></a>搜尋二元樹應用與實驗</h2><p>在旁行榜中，我們可以應用二元樹來實作找尋特定玩家分樹，並與陣列做效能比較，以下為請ChatGPT 生出來的 Python範例</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">BSTNode</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, player, score</span>):</span><br><span class="line">        <span class="variable language_">self</span>.player = player  <span class="comment"># 玩家名稱</span></span><br><span class="line">        <span class="variable language_">self</span>.score = score  <span class="comment"># 玩家分數</span></span><br><span class="line">        <span class="variable language_">self</span>.left = <span class="literal">None</span>  <span class="comment"># 左子樹</span></span><br><span class="line">        <span class="variable language_">self</span>.right = <span class="literal">None</span>  <span class="comment"># 右子樹</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">BinarySearchTree</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="variable language_">self</span>.root = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 插入新分數</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">insert</span>(<span class="params">self, player, score</span>):</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable language_">self</span>.root:</span><br><span class="line">            <span class="variable language_">self</span>.root = BSTNode(player, score)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="variable language_">self</span>._insert(<span class="variable language_">self</span>.root, player, score)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遞歸插入節點</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_insert</span>(<span class="params">self, node, player, score</span>):</span><br><span class="line">        <span class="keyword">if</span> player &lt; node.player:</span><br><span class="line">            <span class="keyword">if</span> node.left:</span><br><span class="line">                <span class="variable language_">self</span>._insert(node.left, player, score)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                node.left = BSTNode(player, score)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> node.right:</span><br><span class="line">                <span class="variable language_">self</span>._insert(node.right, player, score)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                node.right = BSTNode(player, score)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 查詢玩家分數</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">search</span>(<span class="params">self, player</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._search(<span class="variable language_">self</span>.root, player)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遞歸查詢玩家</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_search</span>(<span class="params">self, node, player</span>):</span><br><span class="line">        <span class="keyword">if</span> node <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">None</span>  <span class="comment"># 玩家不存在</span></span><br><span class="line">        <span class="keyword">if</span> player == node.player:</span><br><span class="line">            <span class="keyword">return</span> node.score  <span class="comment"># 找到玩家，返回分數</span></span><br><span class="line">        <span class="keyword">elif</span> player &lt; node.player:</span><br><span class="line">            <span class="keyword">return</span> <span class="variable language_">self</span>._search(node.left, player)  <span class="comment"># 查詢左子樹</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="variable language_">self</span>._search(node.right, player)  <span class="comment"># 查詢右子樹</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用陣列實現查詢</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ArrayLeaderboard</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="variable language_">self</span>.players = []</span><br><span class="line">        <span class="variable language_">self</span>.scores = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">insert</span>(<span class="params">self, player, score</span>):</span><br><span class="line">        <span class="variable language_">self</span>.players.append(player)</span><br><span class="line">        <span class="variable language_">self</span>.scores.append(score)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">search</span>(<span class="params">self, player</span>):</span><br><span class="line">        <span class="keyword">if</span> player <span class="keyword">in</span> <span class="variable language_">self</span>.players:</span><br><span class="line">            index = <span class="variable language_">self</span>.players.index(player)</span><br><span class="line">            <span class="keyword">return</span> <span class="variable language_">self</span>.scores[index]</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span>  <span class="comment"># 玩家不存在</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 測試查詢效率</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 設定遊戲數據</span></span><br><span class="line">num_players = <span class="number">10000000</span>  <span class="comment"># 1000萬玩家</span></span><br><span class="line">players = [<span class="string">f&quot;Player<span class="subst">&#123;i&#125;</span>&quot;</span> <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(num_players)]</span><br><span class="line">scores = [random.randint(<span class="number">1</span>, <span class="number">1000</span>) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(num_players)]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 使用二元搜尋樹 (BST)</span></span><br><span class="line">bst = BinarySearchTree()</span><br><span class="line"><span class="keyword">for</span> player, score <span class="keyword">in</span> <span class="built_in">zip</span>(players, scores):</span><br><span class="line">    bst.insert(player, score)</span><br><span class="line"></span><br><span class="line">start_time = time.time()</span><br><span class="line">bst_result = bst.search(<span class="string">&quot;Player50000&quot;</span>)  <span class="comment"># 查詢 Player50000 的分數</span></span><br><span class="line">end_time = time.time()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;使用二元搜尋樹查詢: Player50000 的分數是: <span class="subst">&#123;bst_result&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;二元搜尋樹查詢時間: <span class="subst">&#123;end_time - start_time&#125;</span> 秒&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 使用陣列</span></span><br><span class="line">array_leaderboard = ArrayLeaderboard()</span><br><span class="line"><span class="keyword">for</span> player, score <span class="keyword">in</span> <span class="built_in">zip</span>(players, scores):</span><br><span class="line">    array_leaderboard.insert(player, score)</span><br><span class="line"></span><br><span class="line">start_time = time.time()</span><br><span class="line">array_result = array_leaderboard.search(<span class="string">&quot;Player50000&quot;</span>)  <span class="comment"># 查詢 Player50000 的分數</span></span><br><span class="line">end_time = time.time()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;使用陣列查詢: Player50000 的分數是: <span class="subst">&#123;array_result&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;陣列查詢時間: <span class="subst">&#123;end_time - start_time&#125;</span> 秒&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>二元搜尋樹（BST）</strong>：將會隨著玩家數量的增加，時間複雜度保持在 <strong>O(log n)</strong>，查詢速度將比陣列快得多。</p>
+<p><strong>陣列查詢</strong>：每次查詢的時間複雜度是 <strong>O(n)</strong>，即使陣列已經排序，查詢仍然需要遍歷陣列以找到指定的玩家。</p>
+<p>最終結果</p>
+<p>陣列查詢時間:0.0015113353729248047 秒</p>
+<p>二元樹查詢時間:趨近於0</p>
+<p><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/Z9I5T58EGKI6JBNZHI1TW5THZP4OGPXH.png" alt="image.png"></p>
+<table>
+<thead>
+<tr>
+<th>特徵</th>
+<th><strong>二元樹</strong></th>
+<th><strong>陣列</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>查詢速度</strong></td>
+<td><strong>O(log n)</strong>，適合查詢有序數據</td>
+<td><strong>O(1)</strong>，隨機訪問快速</td>
+</tr>
+<tr>
+<td><strong>插入與刪除</strong></td>
+<td><strong>O(log n)</strong>，適合頻繁插入與刪除</td>
+<td><strong>O(n)</strong>，插入與刪除需移動元素</td>
+</tr>
+<tr>
+<td><strong>內存效率</strong></td>
+<td>每個節點需儲存指標，內存較高</td>
+<td>內存利用率較高，動態調整大小</td>
+</tr>
+<tr>
+<td><strong>簡單性與可讀性</strong></td>
+<td>需要更多代碼來實現操作，較複雜</td>
+<td>實現簡單且直觀，易理解</td>
+</tr>
+<tr>
+<td><strong>應用場景</strong></td>
+<td>需要高效查詢、排序和動態更新的情境</td>
+<td>隨機存取、遍歷或簡單插入&#x2F;刪除的場景</td>
+</tr>
+<tr>
+<td><strong>性能差異</strong></td>
+<td>查詢、插入、刪除效率較高</td>
+<td>查詢速度快，插入刪除較為低效</td>
+</tr>
+</tbody></table>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>二元樹不只有排行榜實作方式，還有許多像是PostgreSQL 的Index(B-Tree and B+ Tree)，以及圈圈叉叉Minimax 也有用到二元樹概念等等…，許多應用原理都是基於二元樹延伸概念，因此了解二元樹是演算法中最重要一環。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="http://example.com">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="http://example.com/2025/02/03/%E4%BA%8C%E5%85%83%E6%A8%B9-Binary-Tree-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/">http://example.com/2025/02/03/%E4%BA%8C%E5%85%83%E6%A8%B9-Binary-Tree-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%B3%87%E6%96%99%E7%B5%90%E6%A7%8B/">資料結構</a><a class="post-meta__tags" href="/tags/Binary-Tree/">Binary Tree</a></div><div class="post-share"><div class="social-share" data-image="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/ZZzBzVCtH9Sj87wTn8YLPC7eJt479XOu.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/HR21KzZAddWqXVimHGkaCdAKIOYUIfb1.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">陣列(Array)概念與介紹</div></div><div class="info-2"><div class="info-item-1">Array介紹Array是最常被運用也做重要的資料結構，Array也提供了基本API像是建立、插入、更新、刪除、搜尋，除了直觀的API以外，經典演算法也是基於Array實作像是排序法，在資料結構與演算法中都是。 例子-生活中一週行程表（Weekly Schedule） 你的一週行程可以用陣列表示，每一天都是一個固定的位置：    Index 0 1 2 3 4 5 6    星期 日 一 二 三 四 五 六   活動 休息 上班 運動 會議 逛街 約會 聚會   Array在記憶體中是**連續儲存的，**以下舉個例子 例子-int 型別的陣列假設 arr = [10, 20, 30, 40] 在記憶體中，arr[0] 起始位址為 1000（假設每個 int 佔 4 bytes），則記憶體位址如下：    索引 元素 記憶體位址（假設起始位址 1000）    0 10 1000   1 20 1004   2 30 1008   3 40 1012   而讀取可以透過Index來取值如:存取 arr[2]因此時間複雜度是O(1)  💡  連續儲存的在不同語言與儲存不同型態是不一...</div></div></div></a><a class="pagination-related" href="/2025/01/27/Docker-%E5%8A%A0%E9%80%9F%E7%9A%84%E6%8A%80%E5%B7%A7%E4%BB%A5%E5%8F%8A%E7%AE%A1%E7%90%86/" title="Docker 加速的技巧以及管理"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/vvYDcnuBlA0R22glza9oucfH2RdW2faQ.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Docker 加速的技巧以及管理</div></div><div class="info-2"><div class="info-item-1">Docker在近幾十年內是目前大多企業最常使用的技術，在開發上Docker也是不可或缺的，而本篇文章將提出幾項如何讓Docker加快以及減少空間好管理得的技巧。 善用Docker Cache在寫Dockerfile時，是否注意到每次在做Docker build image時總是特別慢，特別是在node install，或者 python poetry install，每次都浪費幾分鐘時間，其實在Dockerfile在內部就有Cache來幫你處理，直接舉個例子。 建置一個Python Django image正常情況下你會像下面這樣建立。 1234567891011121314151617181920# 使用輕量級的 Python 鏡像FROM python:3.11-slim#工作目錄WORKDIR /app#複製所有專案COPY . /app/#安裝RUN pip install poetry# 安裝依賴RUN poetry install --no-root# 暴露端口EXPOSE 80# 設定預設啟動命令CMD [&quot;poetry&quot;, &quot;run&...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/02/05/%E9%8F%88%E7%B5%90%E4%B8%B2%E5%88%97-Linked-List/" title="鏈結串列(Linked List)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/u1DqPVdoQex63jMr0edeKqLVXf6JaPVN.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-05</div><div class="info-item-2">鏈結串列(Linked List)</div></div><div class="info-2"><div class="info-item-1">鏈結串列(Linked List)鏈結串列為重要數據結構之一，用於動態管理數據，且元素在記憶體中是不連續儲存的，而是用指標進行連接，這種特性優勢在於頻繁操作插入與刪除的情境。 什麼是指標?引用維基百科解釋:在電腦科學中，指標（英語：Pointer），是在許多程式語言中用來儲存記憶體位址的變數。指標變數的值直接指向（points to）存在該位址的對象的值。所指向的可以是電腦主記憶體中的另一個值，或者在某些情況下，是主記憶體對映電腦硬體的值。 這邊簡單舉個例子 例子-大賣場 賣場中有商品與擺放商品架子以及指引，假設頻果放在3號架子，我們手中有商品查詢清單，將得知蘋果的位置(位址)  蘋果（商品） &#x3D; 變數的值 例如：string goods = &quot;apple&quot;; 中的 &quot;apple&quot;。   3 號架子（位置） &#x3D; 變數的記憶體位址 例如：&amp;goods 可能是 0x7ffee436a6c。   商品查詢清單中的一筆紀錄 &#x3D; 指標變數 例如：string* pointer = &amp;goods; 這筆紀錄...</div></div></div></a><a class="pagination-related" href="/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/xa6tpsoqTQDyslzqHusztEOiZ4YAYB05.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-10</div><div class="info-item-2">Hash(哈希、雜湊)</div></div><div class="info-2"><div class="info-item-1">哈希表(Hash Table)哈希也稱雜湊，是一種 基於Key-Value（鍵值對） 的數據結構，通過哈希函數（Hash Function）將鍵映射到特定的存儲位置，以實現高效的數據查找、插入和刪除。 為了讓文章好閱讀後續都已Hash來呈現，中文太多意思怕混亂。 在現實生活中舉例就像英文與中文對應關係。    英文 中文    cat 貓   dog 狗   fish 魚   轉換成程式的話就會像這樣，有key與value對應關係，因此也稱為Hash Table(哈希表)。    key value    cat 貓   dog 狗   fish 魚   在查詢時只需要輸入key就能找到對應的value，例如轉換成python dict就會是 1language_mapping = &#123;&#x27;cat&#x27; &#x27;貓&#x27;,&#x27;dog&#x27;:&#x27;狗&#x27;,&#x27;fish&#x27;:&#x27;魚&#x27;&#125;   💡  如果要在python 使用Hash其實就直接用dict就好，因為dict是基於Has...</div></div></div></a><a class="pagination-related" href="/2025/02/06/%E5%A0%86%E7%96%8A-Stack/" title="堆疊(Stack)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-06</div><div class="info-item-2">堆疊(Stack)</div></div><div class="info-2"><div class="info-item-1">堆疊介紹堆疊也是線性資料結構，他與Queue不同在於他是垂直的，這是甚麼意思呢? 我們直接看Stack的圖形。Stack是由上往下，其實就想像假設有個極端的電梯只能垂直進去，Insert時，一開始C先會先進去，接著B，再來A，由底部堆積上來，當電梯一到達樓層時，A會先出去，接著B，再換C，因此他有著先進後出(FILO)特性。 graph TD     a[&quot;電梯入口&quot;]     A[&quot;A&quot;]     B[&quot;B&quot;]     C[&quot;C&quot;]     D[&quot;電梯後面鏡子&quot;]     a --&gt; A --&gt; B --&gt; C --&gt; D   push在Stack中將資料放入Stack這動作叫做push，下面來push一個D看看動作。 原本電梯例子 graph TD     a[&quot;電梯入口&quot;]     A[&quot;A&quot;]     B[&quot;B&quot;]     C[&quot;C&quot;]     D[&quot;電梯後面鏡...</div></div></div></a><a class="pagination-related" href="/2025/02/06/%E4%BD%87%E5%88%97-Queue/" title="佇列(Queue)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-06</div><div class="info-item-2">佇列(Queue)</div></div><div class="info-2"><div class="info-item-1">Queue介紹Queue也是一個重要的線性資料結構之一，Insert資料至Queue稱為enqueue，從Queue讀取或取出稱為dequeue，特色是先進先出(FIFO)。 例子-排隊 有A、B、C、D在排隊買飲料，我們可以從圖中看到D先到所以買完飲料後就走，這就是先進先出(FIFO)特性。 graph LR     A[&quot;A&quot;] --- B[&quot;B&quot;] --- C[&quot;C&quot;] --- D[&quot;D&quot;] --- E[&quot;飲料店櫃台&quot;]   enqueue顧名思義就是將資料加入Queue，以下為排隊為例 graph LR     A[&quot;A&quot;] --- B[&quot;B&quot;] --- C[&quot;C&quot;] --- D[&quot;D&quot;] --- E[&quot;飲料店櫃台&quot;]   假設有個a要來排飲料這時Queue變化就會像這樣 graph LR     a[&quot;a&quot;] --- A[&quot;A&quot;] -...</div></div></div></a><a class="pagination-related" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/HR21KzZAddWqXVimHGkaCdAKIOYUIfb1.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-04</div><div class="info-item-2">陣列(Array)概念與介紹</div></div><div class="info-2"><div class="info-item-1">Array介紹Array是最常被運用也做重要的資料結構，Array也提供了基本API像是建立、插入、更新、刪除、搜尋，除了直觀的API以外，經典演算法也是基於Array實作像是排序法，在資料結構與演算法中都是。 例子-生活中一週行程表（Weekly Schedule） 你的一週行程可以用陣列表示，每一天都是一個固定的位置：    Index 0 1 2 3 4 5 6    星期 日 一 二 三 四 五 六   活動 休息 上班 運動 會議 逛街 約會 聚會   Array在記憶體中是**連續儲存的，**以下舉個例子 例子-int 型別的陣列假設 arr = [10, 20, 30, 40] 在記憶體中，arr[0] 起始位址為 1000（假設每個 int 佔 4 bytes），則記憶體位址如下：    索引 元素 記憶體位址（假設起始位址 1000）    0 10 1000   1 20 1004   2 30 1008   3 40 1012   而讀取可以透過Index來取值如:存取 arr[2]因此時間複雜度是O(1)  💡  連續儲存的在不同語言與儲存不同型態是不一...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">邁向雲原生&架構師之路</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">27</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">21</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">放我的學習筆記</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%85%83%E6%A8%B9%E4%BB%8B%E7%B4%B9"><span class="toc-number">1.</span> <span class="toc-text">二元樹介紹</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%85%83%E6%A8%B9%E6%B7%B1%E5%BA%A6"><span class="toc-number">2.</span> <span class="toc-text">二元樹深度</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%85%83%E6%A8%B9%E9%A1%9E%E5%9E%8B"><span class="toc-number">3.</span> <span class="toc-text">二元樹類型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E5%85%83%E6%90%9C%E5%B0%8B%E6%A8%B9"><span class="toc-number">3.1.</span> <span class="toc-text">二元搜尋樹</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E5%85%A8%E4%BA%8C%E5%85%83%E6%A8%B9%EF%BC%88Complete-Binary-Tree%EF%BC%89"><span class="toc-number">3.2.</span> <span class="toc-text">完全二元樹（Complete Binary Tree）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B3%E8%A1%A1%E4%BA%8C%E5%85%83%E6%A8%B9%EF%BC%88Balanced-Binary-Tree%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">平衡二元樹（Balanced Binary Tree）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E7%BE%8E%E4%BA%8C%E5%85%83%E6%A8%B9%EF%BC%88Perfect-Binary-Tree%EF%BC%89"><span class="toc-number">3.4.</span> <span class="toc-text">完美二元樹（Perfect Binary Tree）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E5%85%83%E6%A8%B9%E5%BD%99%E6%95%B4"><span class="toc-number">3.5.</span> <span class="toc-text">二元樹彙整</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A8%98%E6%86%B6%E9%AB%94%E4%B8%AD%E7%9A%84%E4%BA%8C%E5%85%83%E6%A8%B9"><span class="toc-number">4.</span> <span class="toc-text">記憶體中的二元樹</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%90%9C%E5%B0%8B%E4%BA%8C%E5%85%83%E6%A8%B9%E6%87%89%E7%94%A8%E8%88%87%E5%AF%A6%E9%A9%97"><span class="toc-number">5.</span> <span class="toc-text">搜尋二元樹應用與實驗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">6.</span> <span class="toc-text">結論</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/xa6tpsoqTQDyslzqHusztEOiZ4YAYB05.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hash(哈希、雜湊)"/></a><div class="content"><a class="title" href="/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)">Hash(哈希、雜湊)</a><time datetime="2025-02-10T09:02:48.461Z" title="Created 2025-02-10 17:02:48">2025-02-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/06/%E5%A0%86%E7%96%8A-Stack/" title="堆疊(Stack)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="堆疊(Stack)"/></a><div class="content"><a class="title" href="/2025/02/06/%E5%A0%86%E7%96%8A-Stack/" title="堆疊(Stack)">堆疊(Stack)</a><time datetime="2025-02-06T13:50:02.159Z" title="Created 2025-02-06 21:50:02">2025-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/06/%E4%BD%87%E5%88%97-Queue/" title="佇列(Queue)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="佇列(Queue)"/></a><div class="content"><a class="title" href="/2025/02/06/%E4%BD%87%E5%88%97-Queue/" title="佇列(Queue)">佇列(Queue)</a><time datetime="2025-02-06T08:44:39.592Z" title="Created 2025-02-06 16:44:39">2025-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/05/%E9%8F%88%E7%B5%90%E4%B8%B2%E5%88%97-Linked-List/" title="鏈結串列(Linked List)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/u1DqPVdoQex63jMr0edeKqLVXf6JaPVN.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="鏈結串列(Linked List)"/></a><div class="content"><a class="title" href="/2025/02/05/%E9%8F%88%E7%B5%90%E4%B8%B2%E5%88%97-Linked-List/" title="鏈結串列(Linked List)">鏈結串列(Linked List)</a><time datetime="2025-02-05T14:31:49.548Z" title="Created 2025-02-05 22:31:49">2025-02-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/HR21KzZAddWqXVimHGkaCdAKIOYUIfb1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="陣列(Array)概念與介紹"/></a><div class="content"><a class="title" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹">陣列(Array)概念與介紹</a><time datetime="2025-02-04T09:37:45.398Z" title="Created 2025-02-04 17:37:45">2025-02-04</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By Jed Hung</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.3"></script><script src="/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

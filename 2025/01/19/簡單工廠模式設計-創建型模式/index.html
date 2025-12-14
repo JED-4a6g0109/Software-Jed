@@ -1,0 +1,261 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>簡單工廠模式設計(創建型模式) | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="簡單工廠模式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="簡單工廠模式設計(創建型模式)">
+<meta property="og:url" content="http://example.com/2025/01/19/%E7%B0%A1%E5%96%AE%E5%B7%A5%E5%BB%A0%E6%A8%A1%E5%BC%8F%E8%A8%AD%E8%A8%88-%E5%89%B5%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="簡單工廠模式">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg">
+<meta property="article:published_time" content="2025-01-19T13:03:30.113Z">
+<meta property="article:modified_time" content="2025-12-14T13:04:34.473Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="工廠模式">
+<meta property="article:tag" content="設計模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "簡單工廠模式設計(創建型模式)",
+  "url": "http://example.com/2025/01/19/%E7%B0%A1%E5%96%AE%E5%B7%A5%E5%BB%A0%E6%A8%A1%E5%BC%8F%E8%A8%AD%E8%A8%88-%E5%89%B5%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/",
+  "image": "https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg",
+  "datePublished": "2025-01-19T13:03:30.113Z",
+  "dateModified": "2025-12-14T13:04:34.473Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2025/01/19/%E7%B0%A1%E5%96%AE%E5%B7%A5%E5%BB%A0%E6%A8%A1%E5%BC%8F%E8%A8%AD%E8%A8%88-%E5%89%B5%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Failed',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '簡單工廠模式設計(創建型模式)',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/"><span class="site-name">簡單工廠模式設計(創建型模式)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  Back to Home</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">簡單工廠模式設計(創建型模式)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2025-01-19T13:03:30.113Z" title="Created 2025-01-19 21:03:30">2025-01-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2025-12-14T13:04:34.473Z" title="Updated 2025-12-14 21:04:34">2025-12-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%A8%AD%E8%A8%88%E6%A8%A1%E5%BC%8F/">設計模式</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="工廠模式設計-創建型模式"><a href="#工廠模式設計-創建型模式" class="headerlink" title="工廠模式設計(創建型模式)"></a>工廠模式設計(創建型模式)</h1><ul>
+<li>簡單工廠</li>
+<li>工廠方法</li>
+<li>抽象工廠</li>
+</ul>
+<h2 id="簡單工廠-靜態工廠"><a href="#簡單工廠-靜態工廠" class="headerlink" title="簡單工廠(靜態工廠)"></a>簡單工廠(靜態工廠)</h2><p>在可提取共通邏輯進行抽象，並封裝且隱藏實作細節，常運用在初期系統開發以及產品數量較少且變化不頻繁的場景</p>
+<ul>
+<li>工廠類提供靜態方法來選擇要建立的實例</li>
+<li>根據參數透過工廠來建立實例</li>
+<li>有些書歸類為是程式上的風格不一定歸納為設計</li>
+</ul>
+<p>今天啊浩去三媽臭臭鍋吃飯，然後看到了三媽的飲料機，而飲料機比喻為工廠，提供了可樂，雪碧，檸檬紅茶，三種飲料，基底都是水，外部透過參數選擇要建立的飲料，並流出來</p>
+<p>水為抽象類(基類)</p>
+<ul>
+<li>可樂</li>
+<li>雪碧</li>
+<li>檸檬紅茶</li>
+</ul>
+<p>飲料則定了三個class，各自實作飲料，雖然現實中飲料機是直接現成飲料倒進去XD，我們想像飲料機有了水只要加上飲料的原料就能生產飲料出來</p>
+<blockquote>
+<p>💡無需傳遞實例變量、無需實例，簡單工程又稱靜態工廠</p>
+</blockquote>
+<h3 id="UML-類圖"><a href="#UML-類圖" class="headerlink" title="UML 類圖"></a>UML 類圖</h3><p><img src="https://hackmd.io/_uploads/ByE0xNcO0.png" alt="簡單工廠類圖"></p>
+<h3 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h3><ul>
+<li>無需關注與理解工廠內部實作，只需傳遞參數建立實例</li>
+<li>建立職責區分開</li>
+<li>在業務需求不變下只需繼承base class就能快速創建新需求</li>
+</ul>
+<h3 id="場景"><a href="#場景" class="headerlink" title="場景"></a>場景</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> abc <span class="keyword">import</span> ABC, abstractmethod</span><br><span class="line"><span class="keyword">from</span> enum <span class="keyword">import</span> Enum</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ShapeEnum</span>(<span class="title class_ inherited__">Enum</span>):</span><br><span class="line">    square = <span class="string">&#x27;square&#x27;</span></span><br><span class="line">    triangle = <span class="string">&#x27;triangle&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Shape</span>(<span class="title class_ inherited__">ABC</span>):</span><br><span class="line"></span><br><span class="line"><span class="meta">    @abstractmethod</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">draw</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Square</span>(<span class="title class_ inherited__">Shape</span>):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">draw</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;draw Square&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Triangle</span>(<span class="title class_ inherited__">Shape</span>):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">draw</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;draw Triangle&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ShapeFactory</span>:</span><br><span class="line"></span><br><span class="line"><span class="meta">    @staticmethod</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">create_shape</span>(<span class="params">select: ShapeEnum</span>):</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> select == ShapeEnum.square:</span><br><span class="line">            <span class="keyword">return</span> Square()</span><br><span class="line">        <span class="keyword">if</span> select == ShapeEnum.triangle:</span><br><span class="line">            <span class="keyword">return</span> Triangle()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    shape_factory = ShapeFactory()</span><br><span class="line">    triangle = shape_factory.create_shape(select=ShapeEnum.triangle)</span><br><span class="line">    triangle.draw()</span><br><span class="line"></span><br><span class="line">    square = shape_factory.create_shape(select=ShapeEnum.square)</span><br><span class="line">    square.draw()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="設計問題"><a href="#設計問題" class="headerlink" title="設計問題"></a>設計問題</h2><h3 id="高耦合與違反開閉原則"><a href="#高耦合與違反開閉原則" class="headerlink" title="高耦合與違反開閉原則"></a>高耦合與違反開閉原則</h3><p>今天突然收到需求要新增新增start形狀時，此設計需要做什麼?</p>
+<ul>
+<li>對內部新增class</li>
+<li>針對factory class做修改</li>
+</ul>
+<p>上述違反了開閉原則的不修改情況下更改行為，且高耦合對擴展不夠開放。</p>
+<blockquote>
+<p>💡何謂開閉原則(OCP)?<br>「軟體中的對象應該對於擴展是開放的，但是對於修改是封閉的」，一個實體是允許在不改變它的原始碼的前提下變更它的行為。</p>
+</blockquote>
+<h2 id="解決設計"><a href="#解決設計" class="headerlink" title="解決設計"></a>解決設計</h2><ul>
+<li>工廠方法設計模式</li>
+<li>抽象工廠設計模式</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="http://example.com">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="http://example.com/2025/01/19/%E7%B0%A1%E5%96%AE%E5%B7%A5%E5%BB%A0%E6%A8%A1%E5%BC%8F%E8%A8%AD%E8%A8%88-%E5%89%B5%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/">http://example.com/2025/01/19/%E7%B0%A1%E5%96%AE%E5%B7%A5%E5%BB%A0%E6%A8%A1%E5%BC%8F%E8%A8%AD%E8%A8%88-%E5%89%B5%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles on this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless otherwise stated.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Python/">Python</a><a class="post-meta__tags" href="/tags/%E5%B7%A5%E5%BB%A0%E6%A8%A1%E5%BC%8F/">工廠模式</a><a class="post-meta__tags" href="/tags/%E8%A8%AD%E8%A8%88%E6%A8%A1%E5%BC%8F/">設計模式</a></div><div class="post-share"><div class="social-share" data-image="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/01/19/API%E9%98%B2%E7%A6%A6%E6%80%A7%E7%A8%8B%E5%BC%8F%E8%A8%AD%E8%A8%88/" title="API防禦性程式設計"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">Previous</div><div class="info-item-2">API防禦性程式設計</div></div><div class="info-2"><div class="info-item-1">防禦性程式設計 防禦性程式防禦性設計與DbC合約設計有些不同，防禦性設計專注於程式上的保護，但這兩項設計並沒有相斥，是可以互補的 Value substitution (值的替換)當輸入非預期值必須要處理的情境例子:  api interface定義article_id要傳遞的是int，但client卻輸入str，像這種情況就需要處理，即使DbC合約上沒講也應該要防呆 1/api/v1/articles/&#123;article_id&#125;/comments  遇到這種情境通常會使用Value substitution來解決，直接舉例API常見的情況，當client傳遞參數到後端時，需要做非預期值的處理，將錯誤轉成HTTP Code 告知 client為錯誤格式請求，避免讓程式直接error 123456789101112131415161718from fastapi import FastAPI, HTTPExceptionimport uvicornapp = FastAPI()db = &#123;1: &#123;&quot;article_id&quot;: ...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Python-Clean-Code-%E6%A6%82%E5%BF%B5%E4%BB%A5%E5%8F%8A%E6%B7%BA%E8%AB%87/" title="Python Clean Code"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/XWU53IIYXCG7KEQ4F4591FESDS5YH0LC.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">Next</div><div class="info-item-2">Python Clean Code</div></div><div class="info-2"><div class="info-item-1">Python Clean Code 概念以及淺談(1)此文章主要講述  何謂 Clean Code? Python 結構化、格式化、統一程式碼與該如何落實Code style規範與工具  何謂Clean Code?何謂Clean Code? 其實沒有一定的答案也沒有絕對，但Clean Code不限語言有這幾種常見特性  簡潔明瞭：程式碼應該易於理解，避免不必要的複雜性。 可讀性：良好的命名、適當的註解和結構化的代碼有助於其他開發者快速理解程式碼的功能。 可維護性：程式碼應該易於修改和擴展，能夠適應未來的需求變更。 一致性：遵循一致的編碼風格和規範，保持程式碼的一致性。  專業的軟體工程師寫程式不是寫給機器的，目的除了給機器跑能動以外還要人能看的懂才是好Code  Clean Code重要性可維護性和可閱讀性直接影響開發速度和專案的可行性。如果收到需求後需要花時間進行重構，並且每次收到新需求時都要重構，不僅會浪費時間，還可能導致重構的成本超過重新設計的成本。更糟的是，如果在重構過程中引發了錯誤，可能會導致服務中斷或產品無法使用。這些情況是軟體工程師最不希望遇到的。這樣的情況充分說明...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/01/19/%E5%B7%A5%E5%BB%A0%E6%A8%A1%E5%BC%8F%E8%A8%AD%E8%A8%88-%E5%89%B5%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/" title="工廠模式設計(創建型模式)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">工廠模式設計(創建型模式)</div></div><div class="info-2"><div class="info-item-1">工廠模式設計(創建型模式) 工廠方法與簡單工廠差異在於  工廠類不負責創建，而是交由子類來決定實例  遵循開閉原則：   可以透過引進新的具體工廠類來擴展產品的種類，而不需要修改現有代碼。  遵循單一職責原則：   每個具體工廠類別只負責創造一種特定產品，職責單一，程式碼更清晰。  增強程式碼的靈活性：   子類別可以覆寫工廠方法來改變創建產品的方式，增強了程式碼的靈活性和可擴展性。   在可提取共通邏輯進行抽象，並封裝且隱藏實作細節，能夠隨著需求快速創建物件的場景     來時做一個案例，今天收到需求是串接第三方服務來登入，有X、Meta、Google，在第三方服務需實作登入以及確認服務狀態，所以提取出共通行為進行抽象基類 123456789101112from abc import ABC, abstractmethodclass ThirdPartyServices(ABC):    @abstractmethod    def login(self):        pass    @abstractmethod    def get_health_status(self...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Web-API%E8%A8%AD%E8%A8%88-%E8%A8%AD%E8%A8%88%E8%88%87%E6%8C%91%E6%88%B0/" title="Web API設計 - 設計與挑戰"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Web API設計 - 設計與挑戰</div></div><div class="info-2"><div class="info-item-1">API 設計全名 Application Programming Interface  透過了解需求的優先級，設計者可以在這些選項之間找到平衡。 1. 通用 API vs 特定 API所有客戶端是否應該使用同一個通用 API，還是為不同需求提供特定的 API？  通用 API 優勢： 高重用性，減少重複開發。 易於維護，統一版本管理。   劣勢： 可能過於複雜，導致學習曲線陡峭。 難以滿足特定需求，客戶端需進行額外的資料處理。 設計過於通用時，API定義模糊不清。   例子：GraphQL 允許客戶端自行定義所需的資料結構。   特定 API 優勢： 精準滿足需求，減少客戶端資料處理負擔。 更易於理解，適合特定場景。   劣勢： 重複開發，增加維護成本。 客戶端需求變更時，需頻繁修改 API。   例子：REST API 中 /users/{id} 提供特定使用者的資訊，而 /users 提供所有使用者的資訊。     2. 細 vs 粗的EndPoint(端點)與操作範圍如何在API的功能廣度與深度之間取得平衡?  細粒度端點 優勢： 更靈活，可精確執行操作。 客戶端只需請求所...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Python-Context-manager/" title="Python Context manager"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Python Context manager</div></div><div class="info-2"><div class="info-item-1">Python Context manager上下文管理器（Context Manager）在 Python 中，上下文管理器是一種自動管理資源的工具，能幫助我們確保在使用完資源後進行適當的清理。中文有一句成語叫「前因後果」，我們可以用這個成語來形象地解釋上下文管理器的作用。 例子 假設今天老闆要求你用財務上半季的營收 Excel 檔案視覺化為長條圖。要完成這個任務，我們首先需要讀取 Excel 檔案。這裡，我們可以使用上下文管理器來處理檔案的打開和關閉。  前因：因為需要處理某個資源（如打開文件），所以我們寫了一段代碼來操作這個資源。 後果：當代碼執行完畢後，需要進行一些清理工作（如關閉文件），這樣可以確保資源被正確地釋放。  例子1 1234567# 上下文管理器示例excel_file = open(&#x27;202401.csv&#x27;)  # 上文 (前因)try:    excel_to_bar_chart(excel_file)finally:    excel_file.close()  # 下文 (後果)  上面程式碼的確達到需求，但有沒有更簡潔的寫法呢?在...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Python-Anti-pattern/" title="Python Anti-pattern"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Python Anti-pattern</div></div><div class="info-2"><div class="info-item-1">Anti-pattern指在軟體開發中，看似合理的解決方案，但實際上會導致更多問題且難以維護的設計，從設計中可以看到這些常見特性 :  難以維護  難以閱讀  難以擴展  性能問題  漏洞  副作用多  短期開發速成，長期有害(技術債)   Anti-pattern反設計可以指任何的設計而非只有code的設計，例如:資料庫Schema設計，系統設計等等。本篇是針對code的設計去探討  常見的Anti-pattern God Object（上帝物件）描述：一個物件負責過多的功能，導致高度耦合，缺乏單一責任性。問題：難以測試和維護，修改一個功能可能壞多個功能。 Spaghetti Code（意大利麵條代碼）描述：結構混亂，通常是因為過度使用全局變量或缺乏清晰的模塊劃分。問題：難以理解和修改，任何變動都可能導致不可預見的錯誤。 Cargo Cult Programming描述：盲目地模仿設計模式或是方法，而不理解其內在的原理和適用範圍。問題：通常會在錯誤的上下文中使用，導致不合適的解決方案。 假設開發者看到某個項目中使用了多重繼承，便在自己的代碼中也使用這種模式，儘管實際上不需要。 ...</div></div></div></a><a class="pagination-related" href="/2025/01/19/macOS-%E9%80%8F%E9%81%8E-langchain-%E5%9C%A8-local-%E4%BD%BF%E7%94%A8llama-%E6%A8%A1%E5%9E%8B/" title="macOS 透過 langchain 在 local 使用llama 模型"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">macOS 透過 langchain 在 local 使用llama 模型</div></div><div class="info-2"><div class="info-item-1">macOS 透過 langchain 在 local 使用llama 模型step1. 下載模型https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/tree/main前往huggingface下載模型llama-2-7b-chat.Q4_0.gguf，可能要先與專案管理者授權需等待一點時間(約半天內就能過審) step2 安裝Metal GPU MacOS conda版本版本安裝xcode123456789# check the path of your xcode install xcode-select -p# xcode installed returns# /Applications/Xcode-beta.app/Contents/Developer# if xcode is missing then install it... it takes ages;xcode-select --install    安裝conda12wget https://github.com/conda-forge/miniforge/r...</div></div></div></a><a class="pagination-related" href="/2025/01/19/Python-contains-Magic-Method/" title="Python__contains__ Magic Method"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">Python__contains__ Magic Method</div></div><div class="info-2"><div class="info-item-1">Python container object container object由__contains__方法實作，在使用 in 時被呼叫 1234i in container# 實際操作container.__contains__(i)  透過in強化程式可讀性另外在判斷條件情境下使用__container__會幫助可讀性以及class的內聚，來舉個例子，假設有個相撲遊戲，舞台為10 * 10正方形範圍，需要判斷玩家是否在舞台內以及出界 使用function實作使用function雖然能理解但不值觀，需要透過function的明確命名，以及function內處理if邏輯很難看懂x與y意圖，在閱讀上需要整段code看完才能理解 1234567891011121314151617def is_position_within_stage(position, stage_size):    x, y = position    return 0 &lt;= x &lt;= stage_size and 0 &lt;= y &lt;= stage_size# 創建舞台邊長stage_si...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">邁向雲原生&架構師之路</div><div class="site-data"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">27</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">21</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">18</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">放我的學習筆記</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B7%A5%E5%BB%A0%E6%A8%A1%E5%BC%8F%E8%A8%AD%E8%A8%88-%E5%89%B5%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">工廠模式設計(創建型模式)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B0%A1%E5%96%AE%E5%B7%A5%E5%BB%A0-%E9%9D%9C%E6%85%8B%E5%B7%A5%E5%BB%A0"><span class="toc-number">1.1.</span> <span class="toc-text">簡單工廠(靜態工廠)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#UML-%E9%A1%9E%E5%9C%96"><span class="toc-number">1.1.1.</span> <span class="toc-text">UML 類圖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%80%A7"><span class="toc-number">1.1.2.</span> <span class="toc-text">特性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A0%B4%E6%99%AF"><span class="toc-number">1.1.3.</span> <span class="toc-text">場景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A8%AD%E8%A8%88%E5%95%8F%E9%A1%8C"><span class="toc-number">1.2.</span> <span class="toc-text">設計問題</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E8%80%A6%E5%90%88%E8%88%87%E9%81%95%E5%8F%8D%E9%96%8B%E9%96%89%E5%8E%9F%E5%89%87"><span class="toc-number">1.2.1.</span> <span class="toc-text">高耦合與違反開閉原則</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%B1%BA%E8%A8%AD%E8%A8%88"><span class="toc-number">1.3.</span> <span class="toc-text">解決設計</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Posts</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/xa6tpsoqTQDyslzqHusztEOiZ4YAYB05.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hash(哈希、雜湊)"/></a><div class="content"><a class="title" href="/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)">Hash(哈希、雜湊)</a><time datetime="2025-02-10T09:02:48.461Z" title="Created 2025-02-10 17:02:48">2025-02-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/06/%E5%A0%86%E7%96%8A-Stack/" title="堆疊(Stack)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="堆疊(Stack)"/></a><div class="content"><a class="title" href="/2025/02/06/%E5%A0%86%E7%96%8A-Stack/" title="堆疊(Stack)">堆疊(Stack)</a><time datetime="2025-02-06T13:50:02.159Z" title="Created 2025-02-06 21:50:02">2025-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/06/%E4%BD%87%E5%88%97-Queue/" title="佇列(Queue)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/AJlUGQxMphTRULj2G0LhWfNHjeZgQUuO.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="佇列(Queue)"/></a><div class="content"><a class="title" href="/2025/02/06/%E4%BD%87%E5%88%97-Queue/" title="佇列(Queue)">佇列(Queue)</a><time datetime="2025-02-06T08:44:39.592Z" title="Created 2025-02-06 16:44:39">2025-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/05/%E9%8F%88%E7%B5%90%E4%B8%B2%E5%88%97-Linked-List/" title="鏈結串列(Linked List)"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/u1DqPVdoQex63jMr0edeKqLVXf6JaPVN.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="鏈結串列(Linked List)"/></a><div class="content"><a class="title" href="/2025/02/05/%E9%8F%88%E7%B5%90%E4%B8%B2%E5%88%97-Linked-List/" title="鏈結串列(Linked List)">鏈結串列(Linked List)</a><time datetime="2025-02-05T14:31:49.548Z" title="Created 2025-02-05 22:31:49">2025-02-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/HR21KzZAddWqXVimHGkaCdAKIOYUIfb1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="陣列(Array)概念與介紹"/></a><div class="content"><a class="title" href="/2025/02/04/%E9%99%A3%E5%88%97-Array-%E6%A6%82%E5%BF%B5%E8%88%87%E4%BB%8B%E7%B4%B9/" title="陣列(Array)概念與介紹">陣列(Array)概念與介紹</a><time datetime="2025-02-04T09:37:45.398Z" title="Created 2025-02-04 17:37:45">2025-02-04</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By Jed Hung</span><span class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Reading Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light and Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle Between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Settings"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back to Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.3"></script><script src="/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
