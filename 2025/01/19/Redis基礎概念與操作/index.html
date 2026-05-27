@@ -1,0 +1,522 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Redis基礎概念與操作 | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Redis非常快速，級別是In-memory 資料庫，本文將說明概念以及基本操作">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis基礎概念與操作">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2025/01/19/Redis%E5%9F%BA%E7%A4%8E%E6%A6%82%E5%BF%B5%E8%88%87%E6%93%8D%E4%BD%9C/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="Redis非常快速，級別是In-memory 資料庫，本文將說明概念以及基本操作">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg">
+<meta property="article:published_time" content="2025-01-19T12:49:55.910Z">
+<meta property="article:modified_time" content="2025-12-14T13:03:42.619Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="NoSQL">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Redis基礎概念與操作",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2025/01/19/Redis%E5%9F%BA%E7%A4%8E%E6%A6%82%E5%BF%B5%E8%88%87%E6%93%8D%E4%BD%9C/",
+  "image": "https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg",
+  "datePublished": "2025-01-19T12:49:55.910Z",
+  "dateModified": "2025-12-14T13:03:42.619Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2025/01/19/Redis%E5%9F%BA%E7%A4%8E%E6%A6%82%E5%BF%B5%E8%88%87%E6%93%8D%E4%BD%9C/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Redis基礎概念與操作',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">42</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">32</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">Redis基礎概念與操作</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Redis基礎概念與操作</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2025-01-19T12:49:55.910Z" title="發表於 2025-01-19 20:49:55">2025-01-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2025-12-14T13:03:42.619Z" title="更新於 2025-12-14 21:03:42">2025-12-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/Redis/">Redis</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/Redis/NoSQL/">NoSQL</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/Redis/NoSQL/%E8%B3%87%E6%96%99%E5%BA%AB/">資料庫</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h1><p>此文章你可以獲取的知識有</p>
+<ul>
+<li>基本概念與用途</li>
+<li>數據結構與優點</li>
+<li>Redis 的環境安裝</li>
+<li>主要數據結構操作<ul>
+<li><strong>String</strong>：如何新增、刪除、查詢、設置過期時間。</li>
+<li><strong>List</strong>：如何插入、讀取、刪除元素，以及保留指定範圍的元素。</li>
+<li><strong>Set</strong>：如何新增、查詢、刪除集合中的元素，以及進行交集、聯集、差集操作。</li>
+<li><strong>SortedSet</strong>：如何使用 ZADD 新增元素，使用 ZRANGE 查詢，使用 ZSCORE 查看分數，使用 ZRANK 和 ZREVRANK 查詢排名。</li>
+<li><strong>Hash</strong>：如何新增、查詢、刪除哈希中的鍵值對，以及查看哈希的所有鍵值對和長度。</li>
+<li><strong>訂閱發布模式</strong>：如何使用 SUBSCRIBE 和 PUBLISH 進行消息的訂閱和發布。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="介紹"><a href="#介紹" class="headerlink" title="介紹"></a>介紹</h2><p>Redis(全名 Remote Dictionary Server)，為NoSQL資料庫，基於記憶體儲存系統，常見運用場景有</p>
+<ul>
+<li>DB數據緩存</li>
+<li>MQ消息隊列</li>
+</ul>
+<p>在早期大多企業使用MySQL進行資料讀寫，但由於時代演進，資料庫的負擔隨著量大而導致效能瓶頸，且硬碟IO讀寫操作相較記憶體是非常慢的，後來演進成將一部分常被讀取的數據放入記憶體中，降低資料庫負擔以及增加效能查詢，因此就有了Redis的出現<br><img src="https://hackmd.io/_uploads/HysNQ_0tA.png" alt="image"><br>來源:<a target="_blank" rel="noopener" href="https://x.com/bytebytego/status/1578259927490969600">https://x.com/bytebytego/status/1578259927490969600</a></p>
+<h2 id="數據結構與優點"><a href="#數據結構與優點" class="headerlink" title="數據結構與優點"></a>數據結構與優點</h2><p>Redis 支援多種數據結構以及高階結構</p>
+<ul>
+<li>String 字串</li>
+<li>List 列表</li>
+<li>Set 集合</li>
+<li>SortedSet 有序排列</li>
+<li>Hash 哈希</li>
+<li>Stream 流</li>
+<li>Geospatial 地理空間</li>
+<li>HyperLogLog </li>
+<li>Bitmap 位圖</li>
+<li>Bitfield 位域</li>
+</ul>
+<p>特點</p>
+<ul>
+<li>性能極高</li>
+<li>數據結構支援豐富</li>
+<li>支援各種程式語言</li>
+<li>支持多種模式(資料持久化、主從設置等高效可靠特性)<blockquote>
+<p>💡Redis鍵與值都是由二進制儲存的，因此不支援中文</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="操作方式"><a href="#操作方式" class="headerlink" title="操作方式"></a>操作方式</h2><p>操作方式可用</p>
+<ul>
+<li>CLI</li>
+<li>API</li>
+<li>GUI</li>
+</ul>
+<h2 id="Redis環境安裝"><a href="#Redis環境安裝" class="headerlink" title="Redis環境安裝"></a>Redis環境安裝</h2><p>個人喜歡用Docker所以只用docker</p>
+<p>docker compose </p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">version: <span class="string">&quot;3.3&quot;</span></span><br><span class="line">services:</span><br><span class="line">  redis:</span><br><span class="line">    image: redis:<span class="number">7.2</span>.<span class="number">5</span></span><br><span class="line">    container_name: redis</span><br><span class="line">    restart: always</span><br><span class="line">    volumes:</span><br><span class="line">      - redis_volume_data:/data</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="number">6379</span>:<span class="number">6379</span></span><br><span class="line">  redis_insight:</span><br><span class="line">    image: redislabs/redisinsight:<span class="number">1.14</span>.<span class="number">0</span></span><br><span class="line">    container_name: redis_insight</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="number">8001</span>:<span class="number">8001</span></span><br><span class="line">    volumes:</span><br><span class="line">      - redis_insight_volume_data:/db</span><br><span class="line"></span><br><span class="line">volumes:</span><br><span class="line">  redis_volume_data:</span><br><span class="line">  redis_insight_volume_data:</span><br></pre></td></tr></table></figure>
+<p>這邊要注意Host 為你的docker compose services name，這邊是redis<br><img src="https://hackmd.io/_uploads/ry19oI0Y0.png" alt="image"></p>
+<p>成功連上<br><img src="https://hackmd.io/_uploads/Hkuqj8CKR.png" alt="image"></p>
+<hr>
+<h1 id="Redis-資料結構與操作"><a href="#Redis-資料結構與操作" class="headerlink" title="Redis 資料結構與操作"></a>Redis 資料結構與操作</h1><h2 id="String"><a href="#String" class="headerlink" title="String"></a>String</h2><h3 id="SET-新增"><a href="#SET-新增" class="headerlink" title="SET(新增)"></a>SET(新增)</h3><p>透過SET來建立鍵值</p>
+<p>範例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Connecting...</span><br><span class="line"></span><br><span class="line">Pinging Redis server on redis:6379...</span><br><span class="line">Connected.</span><br><span class="line">Ready to execute commands.</span><br><span class="line">&gt;&gt; set Jed Good</span><br><span class="line"></span><br><span class="line">&quot;OK&quot;</span><br><span class="line">&gt;&gt; get Jed</span><br><span class="line"></span><br><span class="line">&quot;Good&quot;</span><br></pre></td></tr></table></figure>
+<p>另外前面所提Redis是由二進制儲存，不支援儲存中文的，不過可以透過 –raw 以原始格式（raw format）顯示 Redis 命令的輸出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli --raw </span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SET jed 是個大帥哥</span><br><span class="line"></span><br><span class="line">&quot;OK&quot;</span><br><span class="line">&gt;&gt; get jed</span><br><span class="line"></span><br><span class="line">&quot;\xe6\x98\xaf\xe5\x80\x8b\xe5\xa4\xa7\xe5\xb8\xa5\xe5\x93\xa5&quot;</span><br></pre></td></tr></table></figure>
+
+<p>這邊需要注意Redis默認為String，透過以下範例可以驗證取得的型態是String</p>
+<p>範例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; set year 2024</span><br><span class="line"></span><br><span class="line">&quot;OK&quot;</span><br><span class="line">&gt;&gt; get year</span><br><span class="line"></span><br><span class="line">&quot;2024&quot;</span><br></pre></td></tr></table></figure>
+<h3 id="DEL-刪除"><a href="#DEL-刪除" class="headerlink" title="DEL(刪除)"></a>DEL(刪除)</h3><p>如果要刪除可以使用DEL</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; del jed</span><br><span class="line"></span><br><span class="line">(integer) 0</span><br><span class="line">&gt;&gt; get jed</span><br><span class="line"></span><br><span class="line">(nil)</span><br></pre></td></tr></table></figure>
+
+<h3 id="EXISTS-是否存在"><a href="#EXISTS-是否存在" class="headerlink" title="EXISTS(是否存在)"></a>EXISTS(是否存在)</h3><p>也能透過 EXISTS來查詢鍵值是否存在，1代表存在，0代表不存在</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; exists jed</span><br><span class="line"></span><br><span class="line">(integer) 0</span><br><span class="line"></span><br><span class="line">&gt;&gt; exists year</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br></pre></td></tr></table></figure>
+<h3 id="KEYS-查詢鍵"><a href="#KEYS-查詢鍵" class="headerlink" title="KEYS(查詢鍵)"></a>KEYS(查詢鍵)</h3><p>查詢所有存在的鍵</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; KEYS *</span><br><span class="line"></span><br><span class="line">1) &quot;year&quot;</span><br><span class="line">2) &quot;Jed&quot;</span><br></pre></td></tr></table></figure>
+
+<p>還能透過*表示like來查鍵</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; KEYS ye*</span><br><span class="line">1) &quot;year&quot;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="FLUSHALL-刪除所有鍵"><a href="#FLUSHALL-刪除所有鍵" class="headerlink" title="FLUSHALL(刪除所有鍵)"></a>FLUSHALL(刪除所有鍵)</h3><p>如果要刪除全部鍵可以使用FLUSHALL，注意謹慎使用此語法，並免快取雪崩</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; FLUSHALL</span><br><span class="line"></span><br><span class="line">&quot;OK&quot;</span><br><span class="line">&gt;&gt; KEYS *</span><br><span class="line"></span><br><span class="line">(empty list or set)</span><br></pre></td></tr></table></figure>
+
+<h3 id="TTL-設置過期時間"><a href="#TTL-設置過期時間" class="headerlink" title="TTL(設置過期時間)"></a>TTL(設置過期時間)</h3><p>TTL全名 Time To Live，可設置過期時間，在後端開發上會依據需求而定過期時間，-1表示為時間永久</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; TTL jed</span><br><span class="line"></span><br><span class="line">(integer) -1</span><br></pre></td></tr></table></figure>
+
+<h4 id="EXPIRE、SETEX、SETNX-設置過期時間"><a href="#EXPIRE、SETEX、SETNX-設置過期時間" class="headerlink" title="EXPIRE、SETEX、SETNX(設置過期時間)"></a>EXPIRE、SETEX、SETNX(設置過期時間)</h4><p>也可以透過EXPIRE設置時間</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; EXPIRE jed 180</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br><span class="line">&gt;&gt; TTL jed</span><br><span class="line"></span><br><span class="line">(integer) 175</span><br></pre></td></tr></table></figure>
+
+<p>也能透過SETEX設置鍵值並給予過期時間</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SETEX jed 180 666</span><br><span class="line"></span><br><span class="line">&quot;OK&quot;</span><br><span class="line">&gt;&gt; get jed</span><br><span class="line"></span><br><span class="line">&quot;666&quot;</span><br><span class="line">&gt;&gt; ttl jed</span><br><span class="line"></span><br><span class="line">(integer) 170</span><br></pre></td></tr></table></figure>
+
+<p>如果要針對不存在的鍵在更新可以使用SETNX，如果存在鍵則不做任何動作</p>
+<p>jed-girl-firendQQ為不存在的鍵，可看到建立成功傳回1, ttl也設置為-1，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SETNX jed-girl-firendQQ -1</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br><span class="line">&gt;&gt; get jed-girl-firendQQ</span><br><span class="line"></span><br><span class="line">&quot;-1&quot;</span><br></pre></td></tr></table></figure>
+
+<p>jed為存在的鍵，可以看到結果為0也沒更新為777</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SETNX jed 777</span><br><span class="line"></span><br><span class="line">(integer) 0</span><br><span class="line">&gt;&gt; set jed</span><br><span class="line">&gt;&gt; get jed</span><br><span class="line"></span><br><span class="line">&quot;666&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="List"><a href="#List" class="headerlink" title="List"></a>List</h2><p>列表，</p>
+<h3 id="LPUSH、RPUSH-插入列表"><a href="#LPUSH、RPUSH-插入列表" class="headerlink" title="LPUSH、RPUSH(插入列表)"></a>LPUSH、RPUSH(插入列表)</h3><p>從左至右 新增element 至list</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; LPUSH queue a</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>也能一次push多個element </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; LPUSH queue p p l e</span><br><span class="line"></span><br><span class="line">(integer) 5</span><br><span class="line">&gt;&gt; LRANGE queue 0 -1</span><br><span class="line"></span><br><span class="line">1) &quot;e&quot;</span><br><span class="line">2) &quot;l&quot;</span><br><span class="line">3) &quot;p&quot;</span><br><span class="line">4) &quot;p&quot;</span><br><span class="line">5) &quot;a&quot;</span><br></pre></td></tr></table></figure>
+
+<p>可以發現順序是相反的從左至右，所以一開始輸入的a為index 4</p>
+<p>同理由右至左就使用RPUSH</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; RPUSH newqueue a</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br><span class="line">&gt;&gt; RPUSH newqueue p p l e</span><br><span class="line"></span><br><span class="line">(integer) 7</span><br><span class="line">&gt;&gt; LRANGE newqueue 0 -1</span><br><span class="line"></span><br><span class="line">1) &quot;a&quot;</span><br><span class="line">2) &quot;p&quot;</span><br><span class="line">3) &quot;p&quot;</span><br><span class="line">4) &quot;l&quot;</span><br><span class="line">5) &quot;e&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="LRANGE-讀取列表範圍"><a href="#LRANGE-讀取列表範圍" class="headerlink" title="LRANGE(讀取列表範圍)"></a>LRANGE(讀取列表範圍)</h3><p>讀取list 從index 0 到 -1(最後)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; LRANGE queue 0 -1</span><br><span class="line"></span><br><span class="line">1) &quot;a&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="LPOP、RPOP-刪除列表元素"><a href="#LPOP、RPOP-刪除列表元素" class="headerlink" title="LPOP、RPOP(刪除列表元素)"></a>LPOP、RPOP(刪除列表元素)</h3><p>刪除list中的element，LPOP由左，R由右，來回顧目前list的狀態</p>
+<blockquote>
+<p>💡注意 POP刪除多個element 只支援redis 6.2以上</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a</td>
+<td>p</td>
+<td>p</td>
+<td>l</td>
+<td>e</td>
+</tr>
+</tbody></table>
+<p>接著使用RPOP 刪除右邊兩個element</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; RPUSH queue a p p l e</span><br><span class="line"></span><br><span class="line">(integer) 5</span><br><span class="line"></span><br><span class="line">&gt;&gt; LRANGE queue 0 -1</span><br><span class="line"></span><br><span class="line">1) &quot;a&quot;</span><br><span class="line">2) &quot;p&quot;</span><br><span class="line">3) &quot;p&quot;</span><br><span class="line">4) &quot;l&quot;</span><br><span class="line">5) &quot;e&quot;</span><br><span class="line">&gt;&gt; RPOP queue 2</span><br><span class="line">1) &quot;e&quot;</span><br><span class="line">2) &quot;l&quot;</span><br><span class="line">&gt;&gt; LPOP queue 2</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>刪除list左邊前兩個element，所以是e l</p>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a</td>
+<td>p</td>
+<td>p</td>
+</tr>
+</tbody></table>
+<p>然後再使用LPOP一樣刪除兩個element</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">1) &quot;a&quot;</span><br><span class="line">2) &quot;p&quot;</span><br><span class="line">&gt;&gt; LRANGE queue 0 -1</span><br><span class="line"></span><br><span class="line">1) &quot;p&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>刪除list左邊前兩個element，所以是a p，最終只會留下 p</p>
+<table>
+<thead>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>p</td>
+</tr>
+</tbody></table>
+<h3 id="LTRIM-保留指定範圍刪除全部元素"><a href="#LTRIM-保留指定範圍刪除全部元素" class="headerlink" title="LTRIM(保留指定範圍刪除全部元素)"></a>LTRIM(保留指定範圍刪除全部元素)</h3><p>保留指定範圍的element，並刪除以外所有element</p>
+<p>我們新增一個 a p p l e與 b a r 的 list，接著把b a r刪除</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; RPUSH newqueue a p p l e b a r</span><br><span class="line"></span><br><span class="line">(integer) 8</span><br><span class="line">&gt;&gt; LRANGE newqueue 0 -1</span><br><span class="line"></span><br><span class="line">1) &quot;a&quot;</span><br><span class="line">2) &quot;p&quot;</span><br><span class="line">3) &quot;p&quot;</span><br><span class="line">4) &quot;l&quot;</span><br><span class="line">5) &quot;e&quot;</span><br><span class="line">6) &quot;b&quot;</span><br><span class="line">7) &quot;a&quot;</span><br><span class="line">8) &quot;r&quot;</span><br><span class="line">&gt;&gt; LTRIM newqueue 0 4</span><br><span class="line"></span><br><span class="line">&quot;OK&quot;</span><br><span class="line">&gt;&gt; LRANGE newqueue 0 -1</span><br><span class="line"></span><br><span class="line">1) &quot;a&quot;</span><br><span class="line">2) &quot;p&quot;</span><br><span class="line">3) &quot;p&quot;</span><br><span class="line">4) &quot;l&quot;</span><br><span class="line">5) &quot;e&quot;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="LLEN-查看列表長度"><a href="#LLEN-查看列表長度" class="headerlink" title="LLEN(查看列表長度)"></a>LLEN(查看列表長度)</h3><p>由上面例子可透過LLEN來查看目前list中的長度</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; LLEN queue</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br></pre></td></tr></table></figure>
+
+<h2 id="SET"><a href="#SET" class="headerlink" title="SET"></a>SET</h2><p>集合，特性為無序的且不能有重複的element</p>
+<h3 id="SADD-集合新增元素"><a href="#SADD-集合新增元素" class="headerlink" title="SADD(集合新增元素)"></a>SADD(集合新增元素)</h3><p>建立SET與新增element，當有重複element會return 0代表操作失敗</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SADD box apple</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br><span class="line">&gt;&gt; SMEMBERS box</span><br><span class="line"></span><br><span class="line">1) &quot;apple&quot;</span><br><span class="line">&gt;&gt; SADD box apple</span><br><span class="line">(integer) 0</span><br></pre></td></tr></table></figure>
+
+<h3 id="SMEMBERS-列出所有集合元素"><a href="#SMEMBERS-列出所有集合元素" class="headerlink" title="SMEMBERS(列出所有集合元素)"></a>SMEMBERS(列出所有集合元素)</h3><p>列出所有SET element</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SMEMBERS box</span><br><span class="line"></span><br><span class="line">1) &quot;apple&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="SISMEMBER-是否存在在集合"><a href="#SISMEMBER-是否存在在集合" class="headerlink" title="SISMEMBER(是否存在在集合)"></a>SISMEMBER(是否存在在集合)</h3><p>查詢element是否在SET裡面</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SISMEMBER box apple</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br><span class="line">&gt;&gt; SISMEMBER box bar</span><br><span class="line"></span><br><span class="line">(integer) 0</span><br></pre></td></tr></table></figure>
+
+<h3 id="SREM-刪除集和元素"><a href="#SREM-刪除集和元素" class="headerlink" title="SREM(刪除集和元素)"></a>SREM(刪除集和元素)</h3><p>刪除SET中element</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SREM box apple</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br><span class="line">&gt;&gt; SMEMBERS box</span><br><span class="line"></span><br><span class="line">(empty list or set)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="SINTER、SUNION、SDIFF-交集、聯集、差集"><a href="#SINTER、SUNION、SDIFF-交集、聯集、差集" class="headerlink" title="SINTER、SUNION、SDIFF(交集、聯集、差集)"></a>SINTER、SUNION、SDIFF(交集、聯集、差集)</h3><p>交集、聯集、差集，透過以下兩個SET操作</p>
+<p>set1</p>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a</td>
+<td>b</td>
+<td>c</td>
+</tr>
+</tbody></table>
+<p>set2</p>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>b</td>
+<td>c</td>
+<td>d</td>
+</tr>
+</tbody></table>
+<p>建立SET</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SADD set1 a b c</span><br><span class="line"></span><br><span class="line">(integer) 3</span><br><span class="line">&gt;&gt; SADD set2 b c d</span><br></pre></td></tr></table></figure>
+<p>SINTER 集合</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(integer) 3</span><br><span class="line">&gt;&gt; SINTER set1 set2</span><br><span class="line">1) &quot;b&quot;</span><br><span class="line">2) &quot;c&quot;</span><br></pre></td></tr></table></figure>
+<p>SUNION 聯集</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SUNION set1 set2</span><br><span class="line">1) &quot;a&quot;</span><br><span class="line">2) &quot;b&quot;</span><br><span class="line">3) &quot;c&quot;</span><br><span class="line">4) &quot;d&quot;</span><br></pre></td></tr></table></figure>
+
+<p>SDIFF 差集</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; SDIFF set1 set2</span><br><span class="line"></span><br><span class="line">1) &quot;a&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="SortedSets"><a href="#SortedSets" class="headerlink" title="SortedSets"></a>SortedSets</h2><p>有序SET一樣不可重複，且每個element都會對應一個double score，score是可以重複的，當分數重複時會取字符字串順序</p>
+<h3 id="字符串排序規則"><a href="#字符串排序規則" class="headerlink" title="字符串排序規則"></a>字符串排序規則</h3><p>當多個字符串具有相同的分數時，可以按詞典順序（字典順序 lexicographical order））對這些字符串進行排序。詞典順序類似於字典中的單詞排序規則，即先比較字符串的第一個字符，如果相同則比較第二個字符，以此類推。</p>
+<p>假設我們有以下字符串及其分數：</p>
+<ul>
+<li><code>&quot;apple&quot;</code>: 5 分</li>
+<li><code>&quot;banana&quot;</code>: 3 分</li>
+<li><code>&quot;cherry&quot;</code>: 5 分</li>
+<li><code>&quot;date&quot;</code>: 3 分</li>
+<li><code>&quot;elderberry&quot;</code>: 5 分</li>
+</ul>
+<ol>
+<li><strong>按分數排序</strong>：<br>先按分數從低到高進行排序：<ul>
+<li><code>&quot;banana&quot;</code>: 3 分</li>
+<li><code>&quot;date&quot;</code>: 3 分</li>
+<li><code>&quot;apple&quot;</code>: 5 分</li>
+<li><code>&quot;cherry&quot;</code>: 5 分</li>
+<li><code>&quot;elderberry&quot;</code>: 5 分</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>💡SortedSets排序是由小到大</p>
+</blockquote>
+<ol start="2">
+<li><strong>按詞典順序排序</strong>：<br>在分數相同的情況下，按詞典順序進行排序：<ul>
+<li><code>&quot;apple&quot;</code>: 5 分</li>
+<li><code>&quot;cherry&quot;</code>: 5 分</li>
+<li><code>&quot;elderberry&quot;</code>: 5 分</li>
+</ul>
+</li>
+</ol>
+<h3 id="ZADD"><a href="#ZADD" class="headerlink" title="ZADD"></a>ZADD</h3><p>常見情境為排行榜，舉成績單排行榜例子，先新增所有學生成績</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ZADD transcript 100 Jed 95 Jack 99 Maggie 100 Jason 94 Tom</span><br><span class="line"></span><br><span class="line">(integer) 5</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="ZRANGE"><a href="#ZRANGE" class="headerlink" title="ZRANGE"></a>ZRANGE</h3><p>查看element</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ZRANGE transcript 0 -1</span><br><span class="line"></span><br><span class="line">1) &quot;Tom&quot;</span><br><span class="line">2) &quot;Jack&quot;</span><br><span class="line">3) &quot;Maggie&quot;</span><br><span class="line">4) &quot;Jason&quot;</span><br><span class="line">5) &quot;Jed&quot;</span><br></pre></td></tr></table></figure>
+
+<p>如果要看分數可以加上 WITHSCORES</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ZRANGE transcript 0 -1 WITHSCORES</span><br><span class="line"></span><br><span class="line"> 1) &quot;Tom&quot;</span><br><span class="line"> 2) &quot;94&quot;</span><br><span class="line"> 3) &quot;Jack&quot;</span><br><span class="line"> 4) &quot;95&quot;</span><br><span class="line"> 5) &quot;Maggie&quot;</span><br><span class="line"> 6) &quot;99&quot;</span><br><span class="line"> 7) &quot;Jason&quot;</span><br><span class="line"> 8) &quot;100&quot;</span><br><span class="line"> 9) &quot;Jed&quot;</span><br><span class="line">10) &quot;100&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ZSCORE"><a href="#ZSCORE" class="headerlink" title="ZSCORE"></a>ZSCORE</h3><p>查看element 分數</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ZSCORE transcript Jed</span><br><span class="line"></span><br><span class="line">&quot;100&quot;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="ZRANK、ZREVRANK"><a href="#ZRANK、ZREVRANK" class="headerlink" title="ZRANK、ZREVRANK"></a>ZRANK、ZREVRANK</h3><p>查看element 排名，分別由小到大與由大到小</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; ZRANK transcript Jed</span><br><span class="line"></span><br><span class="line">(integer) 4</span><br><span class="line">&gt;&gt; ZREVRANK transcript Jed</span><br><span class="line"></span><br><span class="line">(integer) 0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="Hash"><a href="#Hash" class="headerlink" title="Hash"></a>Hash</h2><p>鍵與值的集合</p>
+<h3 id="HSET"><a href="#HSET" class="headerlink" title="HSET"></a>HSET</h3><p>新增鍵與值 name 與 age</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; HSET person name Jed</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br><span class="line">&gt;&gt; HSET person age 26</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="HGET"><a href="#HGET" class="headerlink" title="HGET"></a>HGET</h3><p>獲取鍵的值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">(integer) 1</span><br><span class="line">&gt;&gt; HGET person name</span><br><span class="line"></span><br><span class="line">&quot;Jed&quot;</span><br><span class="line">&gt;&gt; HGET person age</span><br><span class="line"></span><br><span class="line">&quot;26&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="HGETALL"><a href="#HGETALL" class="headerlink" title="HGETALL"></a>HGETALL</h3><p>獲取所有Hash key value</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">&gt;&gt; HGETALL person</span><br><span class="line"></span><br><span class="line">1) &quot;name&quot;</span><br><span class="line">2) &quot;Jed&quot;</span><br><span class="line">3) &quot;age&quot;</span><br><span class="line">4) &quot;26&quot;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="HDEL"><a href="#HDEL" class="headerlink" title="HDEL"></a>HDEL</h3><p>刪除key value</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; HDEL person age</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br><span class="line">&gt;&gt; HGETALL person</span><br><span class="line"></span><br><span class="line">1) &quot;name&quot;</span><br><span class="line">2) &quot;Jed&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="HEXISTS"><a href="#HEXISTS" class="headerlink" title="HEXISTS"></a>HEXISTS</h3><p>查看key是否存在</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; HEXISTS person age</span><br><span class="line"></span><br><span class="line">(integer) 0</span><br></pre></td></tr></table></figure>
+
+<h3 id="HKEYS"><a href="#HKEYS" class="headerlink" title="HKEYS"></a>HKEYS</h3><p>列出所有key </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; HKEYS person</span><br><span class="line"></span><br><span class="line">1) &quot;name&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="HLEN"><a href="#HLEN" class="headerlink" title="HLEN"></a>HLEN</h3><p>查看Hash長度</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; HLEN person</span><br><span class="line"></span><br><span class="line">(integer) 1</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="訂閱發布模式"><a href="#訂閱發布模式" class="headerlink" title="訂閱發布模式"></a>訂閱發布模式</h1><p>有使用MQTT的人一定很熟悉 Subscribe與Publish，其實不難理解</p>
+<p>以youtube為例，你訂閱了Youtube官方頻道就相對於Subscrib，當官方頻道上傳新影片時你會收到消息，官方上傳並發布訊息給你就相對於Publish</p>
+<h3 id="SUBSCRIBE、PUBLISH"><a href="#SUBSCRIBE、PUBLISH" class="headerlink" title="SUBSCRIBE、PUBLISH"></a>SUBSCRIBE、PUBLISH</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SUBSCRIBE mychannel</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">publish mychannel 海嘯警報</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hackmd.io/_uploads/B1_cgUz90.png" alt="image"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2025/01/19/Redis%E5%9F%BA%E7%A4%8E%E6%A6%82%E5%BF%B5%E8%88%87%E6%93%8D%E4%BD%9C/">https://jed-4a6g0109.github.io/Software-Jed/2025/01/19/Redis%E5%9F%BA%E7%A4%8E%E6%A6%82%E5%BF%B5%E8%88%87%E6%93%8D%E4%BD%9C/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/Redis/">Redis</a><a class="post-meta__tags" href="/Software-Jed/tags/NoSQL/">NoSQL</a></div><div class="post-share"><div class="social-share" data-image="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Software-Jed/2025/01/19/Python-Clean-Code-%E6%A6%82%E5%BF%B5%E4%BB%A5%E5%8F%8A%E6%B7%BA%E8%AB%87/" title="Python Clean Code"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/XWU53IIYXCG7KEQ4F4591FESDS5YH0LC.jpg" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Python Clean Code</div></div><div class="info-2"><div class="info-item-1">Python Clean Code 概念以及淺談(1)此文章主要講述  何謂 Clean Code? Python 結構化、格式化、統一程式碼與該如何落實Code style規範與工具  何謂Clean Code?何謂Clean Code? 其實沒有一定的答案也沒有絕對，但Clean Code不限語言有這幾種常見特性  簡潔明瞭：程式碼應該易於理解，避免不必要的複雜性。 可讀性：良好的命名、適當的註解和結構化的代碼有助於其他開發者快速理解程式碼的功能。 可維護性：程式碼應該易於修改和擴展，能夠適應未來的需求變更。 一致性：遵循一致的編碼風格和規範，保持程式碼的一致性。  專業的軟體工程師寫程式不是寫給機器的，目的除了給機器跑能動以外還要人能看的懂才是好Code  Clean Code重要性可維護性和可閱讀性直接影響開發速度和專案的可行性。如果收到需求後需要花時間進行重構，並且每次收到新需求時都要重構，不僅會浪費時間，還可能導致重構的成本超過重新設計的成本。更糟的是，如果在重構過程中引發了錯誤，可能會導致服務中斷或產品無法使用。這些情況是軟體工程師最不希望遇到的。這樣的情況充分說明...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2025/01/19/Python-Anti-pattern/" title="Python Anti-pattern"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Python Anti-pattern</div></div><div class="info-2"><div class="info-item-1">Anti-pattern指在軟體開發中，看似合理的解決方案，但實際上會導致更多問題且難以維護的設計，從設計中可以看到這些常見特性 :  難以維護  難以閱讀  難以擴展  性能問題  漏洞  副作用多  短期開發速成，長期有害(技術債)   Anti-pattern反設計可以指任何的設計而非只有code的設計，例如:資料庫Schema設計，系統設計等等。本篇是針對code的設計去探討  常見的Anti-pattern God Object（上帝物件）描述：一個物件負責過多的功能，導致高度耦合，缺乏單一責任性。問題：難以測試和維護，修改一個功能可能壞多個功能。 Spaghetti Code（意大利麵條代碼）描述：結構混亂，通常是因為過度使用全局變量或缺乏清晰的模塊劃分。問題：難以理解和修改，任何變動都可能導致不可預見的錯誤。 Cargo Cult Programming描述：盲目地模仿設計模式或是方法，而不理解其內在的原理和適用範圍。問題：通常會在錯誤的上下文中使用，導致不合適的解決方案。 假設開發者看到某個項目中使用了多重繼承，便在自己的代碼中也使用這種模式，儘管實際上不需要。 ...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">42</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">32</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">這裡記錄工程實務、踩坑筆記、系統設計思考與職涯觀察。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis"><span class="toc-number">1.</span> <span class="toc-text">Redis</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8B%E7%B4%B9"><span class="toc-number">1.1.</span> <span class="toc-text">介紹</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B8%E6%93%9A%E7%B5%90%E6%A7%8B%E8%88%87%E5%84%AA%E9%BB%9E"><span class="toc-number">1.2.</span> <span class="toc-text">數據結構與優點</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F"><span class="toc-number">1.3.</span> <span class="toc-text">操作方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis%E7%92%B0%E5%A2%83%E5%AE%89%E8%A3%9D"><span class="toc-number">1.4.</span> <span class="toc-text">Redis環境安裝</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis-%E8%B3%87%E6%96%99%E7%B5%90%E6%A7%8B%E8%88%87%E6%93%8D%E4%BD%9C"><span class="toc-number">2.</span> <span class="toc-text">Redis 資料結構與操作</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#String"><span class="toc-number">2.1.</span> <span class="toc-text">String</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SET-%E6%96%B0%E5%A2%9E"><span class="toc-number">2.1.1.</span> <span class="toc-text">SET(新增)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DEL-%E5%88%AA%E9%99%A4"><span class="toc-number">2.1.2.</span> <span class="toc-text">DEL(刪除)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#EXISTS-%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8"><span class="toc-number">2.1.3.</span> <span class="toc-text">EXISTS(是否存在)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#KEYS-%E6%9F%A5%E8%A9%A2%E9%8D%B5"><span class="toc-number">2.1.4.</span> <span class="toc-text">KEYS(查詢鍵)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#FLUSHALL-%E5%88%AA%E9%99%A4%E6%89%80%E6%9C%89%E9%8D%B5"><span class="toc-number">2.1.5.</span> <span class="toc-text">FLUSHALL(刪除所有鍵)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TTL-%E8%A8%AD%E7%BD%AE%E9%81%8E%E6%9C%9F%E6%99%82%E9%96%93"><span class="toc-number">2.1.6.</span> <span class="toc-text">TTL(設置過期時間)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#EXPIRE%E3%80%81SETEX%E3%80%81SETNX-%E8%A8%AD%E7%BD%AE%E9%81%8E%E6%9C%9F%E6%99%82%E9%96%93"><span class="toc-number">2.1.6.1.</span> <span class="toc-text">EXPIRE、SETEX、SETNX(設置過期時間)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#List"><span class="toc-number">2.2.</span> <span class="toc-text">List</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#LPUSH%E3%80%81RPUSH-%E6%8F%92%E5%85%A5%E5%88%97%E8%A1%A8"><span class="toc-number">2.2.1.</span> <span class="toc-text">LPUSH、RPUSH(插入列表)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LRANGE-%E8%AE%80%E5%8F%96%E5%88%97%E8%A1%A8%E7%AF%84%E5%9C%8D"><span class="toc-number">2.2.2.</span> <span class="toc-text">LRANGE(讀取列表範圍)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LPOP%E3%80%81RPOP-%E5%88%AA%E9%99%A4%E5%88%97%E8%A1%A8%E5%85%83%E7%B4%A0"><span class="toc-number">2.2.3.</span> <span class="toc-text">LPOP、RPOP(刪除列表元素)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LTRIM-%E4%BF%9D%E7%95%99%E6%8C%87%E5%AE%9A%E7%AF%84%E5%9C%8D%E5%88%AA%E9%99%A4%E5%85%A8%E9%83%A8%E5%85%83%E7%B4%A0"><span class="toc-number">2.2.4.</span> <span class="toc-text">LTRIM(保留指定範圍刪除全部元素)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LLEN-%E6%9F%A5%E7%9C%8B%E5%88%97%E8%A1%A8%E9%95%B7%E5%BA%A6"><span class="toc-number">2.2.5.</span> <span class="toc-text">LLEN(查看列表長度)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SET"><span class="toc-number">2.3.</span> <span class="toc-text">SET</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SADD-%E9%9B%86%E5%90%88%E6%96%B0%E5%A2%9E%E5%85%83%E7%B4%A0"><span class="toc-number">2.3.1.</span> <span class="toc-text">SADD(集合新增元素)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SMEMBERS-%E5%88%97%E5%87%BA%E6%89%80%E6%9C%89%E9%9B%86%E5%90%88%E5%85%83%E7%B4%A0"><span class="toc-number">2.3.2.</span> <span class="toc-text">SMEMBERS(列出所有集合元素)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SISMEMBER-%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8%E5%9C%A8%E9%9B%86%E5%90%88"><span class="toc-number">2.3.3.</span> <span class="toc-text">SISMEMBER(是否存在在集合)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SREM-%E5%88%AA%E9%99%A4%E9%9B%86%E5%92%8C%E5%85%83%E7%B4%A0"><span class="toc-number">2.3.4.</span> <span class="toc-text">SREM(刪除集和元素)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SINTER%E3%80%81SUNION%E3%80%81SDIFF-%E4%BA%A4%E9%9B%86%E3%80%81%E8%81%AF%E9%9B%86%E3%80%81%E5%B7%AE%E9%9B%86"><span class="toc-number">2.3.5.</span> <span class="toc-text">SINTER、SUNION、SDIFF(交集、聯集、差集)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SortedSets"><span class="toc-number">2.4.</span> <span class="toc-text">SortedSets</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%8E%92%E5%BA%8F%E8%A6%8F%E5%89%87"><span class="toc-number">2.4.1.</span> <span class="toc-text">字符串排序規則</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ZADD"><span class="toc-number">2.4.2.</span> <span class="toc-text">ZADD</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ZRANGE"><span class="toc-number">2.4.3.</span> <span class="toc-text">ZRANGE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ZSCORE"><span class="toc-number">2.4.4.</span> <span class="toc-text">ZSCORE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ZRANK%E3%80%81ZREVRANK"><span class="toc-number">2.4.5.</span> <span class="toc-text">ZRANK、ZREVRANK</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hash"><span class="toc-number">2.5.</span> <span class="toc-text">Hash</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#HSET"><span class="toc-number">2.5.1.</span> <span class="toc-text">HSET</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HGET"><span class="toc-number">2.5.2.</span> <span class="toc-text">HGET</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HGETALL"><span class="toc-number">2.5.3.</span> <span class="toc-text">HGETALL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HDEL"><span class="toc-number">2.5.4.</span> <span class="toc-text">HDEL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HEXISTS"><span class="toc-number">2.5.5.</span> <span class="toc-text">HEXISTS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HKEYS"><span class="toc-number">2.5.6.</span> <span class="toc-text">HKEYS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HLEN"><span class="toc-number">2.5.7.</span> <span class="toc-text">HLEN</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%A8%82%E9%96%B1%E7%99%BC%E5%B8%83%E6%A8%A1%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">訂閱發布模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SUBSCRIBE%E3%80%81PUBLISH"><span class="toc-number">3.1.</span> <span class="toc-text">SUBSCRIBE、PUBLISH</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Log 別亂寫：結構化 Log 如何救除錯與分析"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析">Log 別亂寫：結構化 Log 如何救除錯與分析</a><time datetime="2026-05-22T12:24:00.000Z" title="發表於 2026-05-22 20:24:00">2026-05-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型">Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型</a><time datetime="2026-05-20T12:24:00.000Z" title="發表於 2026-05-20 20:24:00">2026-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="工程師做 Survey 時，老闆真正想聽的是什麼？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？">工程師做 Survey 時，老闆真正想聽的是什麼？</a><time datetime="2026-05-19T15:24:00.000Z" title="發表於 2026-05-19 23:24:00">2026-05-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？">JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？</a><time datetime="2026-05-18T11:24:00.000Z" title="發表於 2026-05-18 19:24:00">2026-05-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）">你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）</a><time datetime="2026-05-15T14:24:00.000Z" title="發表於 2026-05-15 22:24:00">2026-05-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

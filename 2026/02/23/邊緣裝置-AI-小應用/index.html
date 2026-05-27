@@ -1,0 +1,335 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>邊緣裝置 AI 小應用 | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="基於Raspberry 實作簡易的AI Agent，影像辨識與語音辨識來做個簡單小應用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="邊緣裝置 AI 小應用">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="基於Raspberry 實作簡易的AI Agent，影像辨識與語音辨識來做個簡單小應用">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg">
+<meta property="article:published_time" content="2026-02-23T12:44:56.000Z">
+<meta property="article:modified_time" content="2026-05-18T16:10:29.492Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="AI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "邊緣裝置 AI 小應用",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/",
+  "image": "https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg",
+  "datePublished": "2026-02-23T12:44:56.000Z",
+  "dateModified": "2026-05-18T16:10:29.492Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '邊緣裝置 AI 小應用',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">42</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">32</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">邊緣裝置 AI 小應用</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">邊緣裝置 AI 小應用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-02-23T12:44:56.000Z" title="發表於 2026-02-23 20:44:56">2026-02-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-05-18T16:10:29.492Z" title="更新於 2026-05-19 00:10:29">2026-05-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/AI/">AI</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/AI/AI-Agent/">AI Agent</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/AI/AI-Agent/NLP/">NLP</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/AI/AI-Agent/NLP/Raspberry/">Raspberry</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="邊緣裝置-AI-設置與驗證"><a href="#邊緣裝置-AI-設置與驗證" class="headerlink" title="邊緣裝置 AI 設置與驗證"></a>邊緣裝置 AI 設置與驗證</h1><h2 id="NLP、STT-與影像處理技術"><a href="#NLP、STT-與影像處理技術" class="headerlink" title="NLP、STT 與影像處理技術"></a>NLP、STT 與影像處理技術</h2><ul>
+<li><strong>NLP 技術</strong>: <code>paraphrase-multilingual-MiniLM-L12-v2</code></li>
+<li><strong>STT 技術</strong>: <code>Google Web Speech API</code></li>
+<li><strong>影像人數偵測</strong>: <code>yolov8n</code></li>
+</ul>
+<hr>
+<h2 id="Windows-11-環境建置"><a href="#Windows-11-環境建置" class="headerlink" title="Windows 11 環境建置"></a>Windows 11 環境建置</h2><h3 id="系統規格"><a href="#系統規格" class="headerlink" title="系統規格"></a>系統規格</h3><ul>
+<li><strong>CPU</strong>: 12th Gen Intel(R) Core(TM) i7-12700H</li>
+<li><strong>RAM</strong>: 48GB</li>
+<li><strong>GPU</strong>: NVIDIA GeForce RTX 3060 Laptop GPU</li>
+</ul>
+<h3 id="環境建置"><a href="#環境建置" class="headerlink" title="環境建置"></a>環境建置</h3><ol>
+<li><p>安裝 Python 3.11</p>
+</li>
+<li><p>安裝 Poetry</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pip install poetry</span><br><span class="line">poetry install</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>執行 <code>main.py</code></p>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> audio_processor <span class="keyword">import</span> recognize_speech, play_sound</span><br><span class="line"><span class="keyword">from</span> camera_processor <span class="keyword">import</span> count_people_in_camera</span><br><span class="line"><span class="keyword">from</span> utils <span class="keyword">import</span> match_command</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        user_input = recognize_speech()</span><br><span class="line">        command = match_command(user_input)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> command == <span class="string">&quot;play_sound&quot;</span>:</span><br><span class="line">            play_sound()</span><br><span class="line">        <span class="keyword">elif</span> command == <span class="string">&quot;count_people&quot;</span>:</span><br><span class="line">            count_people_in_camera()</span><br><span class="line">        <span class="keyword">elif</span> command <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;請再試一次或說得更清楚！&quot;</span>)</span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="執行結果"><a href="#執行結果" class="headerlink" title="執行結果"></a>執行結果</h3><ul>
+<li><strong>播放音樂</strong></li>
+</ul>
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/windows-play-music.png" class="" title="播放音樂">
+
+<ul>
+<li><strong>鏡頭人數計算</strong></li>
+</ul>
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/windows-count-people.png" class="" title="鏡頭人數計算">
+
+<hr>
+<h2 id="Raspberry-Pi-環境建置"><a href="#Raspberry-Pi-環境建置" class="headerlink" title="Raspberry Pi 環境建置"></a>Raspberry Pi 環境建置</h2><h3 id="系統規格-1"><a href="#系統規格-1" class="headerlink" title="系統規格"></a>系統規格</h3><ul>
+<li><strong>裝置</strong>: Raspberry Pi 3 Model B Plus Rev 1.3</li>
+<li><strong>相機</strong>: 原廠 Camera</li>
+<li><strong>作業系統</strong>: Debian GNU&#x2F;Linux 12 (Bookworm)</li>
+</ul>
+<h3 id="Python-3-11-環境建置"><a href="#Python-3-11-環境建置" class="headerlink" title="Python 3.11 環境建置"></a>Python 3.11 環境建置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O miniconda.sh</span><br><span class="line">bash miniconda.sh</span><br><span class="line"><span class="built_in">source</span> ~/.bashrc</span><br><span class="line">conda create -n py311-new python=3.11</span><br><span class="line"><span class="built_in">source</span> ~/miniconda3/bin/activate</span><br><span class="line">conda activate py311-new</span><br></pre></td></tr></table></figure>
+
+<h3 id="安裝相依套件"><a href="#安裝相依套件" class="headerlink" title="安裝相依套件"></a>安裝相依套件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install -y portaudio19-dev flac libcap-dev</span><br><span class="line">pip install poetry</span><br><span class="line">poetry install</span><br></pre></td></tr></table></figure>
+
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/raspberry-install-packages.png" class="" title="Raspberry Pi 安裝相依套件">
+
+<h3 id="執行-main-py"><a href="#執行-main-py" class="headerlink" title="執行 main.py"></a>執行 <code>main.py</code></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python main.py</span><br></pre></td></tr></table></figure>
+
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/raspberry-run-main.png" class="" title="Raspberry Pi 執行 main.py">
+
+<h3 id="運行與驗證"><a href="#運行與驗證" class="headerlink" title="運行與驗證"></a>運行與驗證</h3><ul>
+<li><p><strong>使用 mock 方式測試麥克風輸入</strong></p>
+  <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">recognize_speech(mock_data=<span class="string">&quot;say_music.wav&quot;</span>)</span><br></pre></td></tr></table></figure>
+  <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> audio_processor <span class="keyword">import</span> recognize_speech, play_sound</span><br><span class="line"><span class="keyword">from</span> camera_processor <span class="keyword">import</span> count_people_in_camera, count_people_in_camera_rpi</span><br><span class="line"><span class="keyword">from</span> utils <span class="keyword">import</span> match_command</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        user_input = recognize_speech(mock_data=<span class="string">&quot;say_music.wav&quot;</span>)</span><br><span class="line">        command = match_command(user_input)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> command == <span class="string">&quot;play_sound&quot;</span>:</span><br><span class="line">            play_sound()</span><br><span class="line">        <span class="keyword">elif</span> command == <span class="string">&quot;count_people&quot;</span>:</span><br><span class="line">            <span class="keyword">if</span> os.name == <span class="string">&quot;posix&quot;</span>:</span><br><span class="line">                count_people_in_camera_rpi()</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                count_people_in_camera()</span><br><span class="line">        <span class="keyword">elif</span> command <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;請再試一次或說得更清楚！&quot;</span>)</span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure></li>
+</ul>
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/raspberry-mock-speech.png" class="" title="mock 語音輸入測試">
+
+<h3 id="人數偵測與-YOLOv8"><a href="#人數偵測與-YOLOv8" class="headerlink" title="人數偵測與 YOLOv8"></a>人數偵測與 YOLOv8</h3><p>鏡頭部分是使用原廠樹梅派鏡頭，yolov8n是可以跑得，因為以前研究3B+是跑不了yolov4的，但經驗證確定可行，模型也採用較輕量，只是花費時間約10幾秒</p>
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/raspberry-yolov8-result.png" class="" title="YOLOv8 人數偵測結果">
+
+<hr>
+<h2 id="定時上傳-S3-設置"><a href="#定時上傳-S3-設置" class="headerlink" title="定時上傳 S3 設置"></a>定時上傳 S3 設置</h2><h3 id="設定-Cron-Job（每10分鐘執行一次）"><a href="#設定-Cron-Job（每10分鐘執行一次）" class="headerlink" title="設定 Cron Job（每10分鐘執行一次）"></a>設定 Cron Job（每10分鐘執行一次）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*/10 * * * * <span class="built_in">cd</span> /home/jed/IoT-AI &amp;&amp; /home/jed/miniconda3/envs/py311-new/bin/python s3_uploader.py &gt;&gt; upload.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+<h3 id="驗證上傳結果"><a href="#驗證上傳結果" class="headerlink" title="驗證上傳結果"></a>驗證上傳結果</h3><ul>
+<li><strong>確認 S3 上傳成功</strong></li>
+</ul>
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/s3-upload-success-1.png" class="" title="S3 上傳成功畫面一">
+
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/s3-upload-success-2.png" class="" title="S3 上傳成功畫面二">
+
+<hr>
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/s3-result-1.png" class="" title="S3 驗證結果一">
+
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/s3-result-2.png" class="" title="S3 驗證結果二">
+
+<img src="/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/s3-result-3.png" class="" title="S3 驗證結果三">
+
+<h2 id="其他需安裝或者調整-Raspberry-Pi-非Raspberry可跳過"><a href="#其他需安裝或者調整-Raspberry-Pi-非Raspberry可跳過" class="headerlink" title="其他需安裝或者調整-Raspberry Pi(非Raspberry可跳過)"></a>其他需安裝或者調整-Raspberry Pi(非Raspberry可跳過)</h2><h3 id="修正-GLIBCXX-3-4-30-問題"><a href="#修正-GLIBCXX-3-4-30-問題" class="headerlink" title="修正 GLIBCXX_3.4.30 問題"></a>修正 <code>GLIBCXX_3.4.30</code> 問題</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda install -c conda-forge libstdcxx-ng=13</span><br></pre></td></tr></table></figure>
+
+<h3 id="檢查-libcamera-與-pykms"><a href="#檢查-libcamera-與-pykms" class="headerlink" title="檢查 libcamera 與 pykms"></a>檢查 <code>libcamera</code> 與 <code>pykms</code></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /usr/lib/python3/dist-packages/libcamera</span><br><span class="line"><span class="built_in">ls</span> /usr/lib/python3/dist-packages/pykms</span><br></pre></td></tr></table></figure>
+
+<p>若缺少，請安裝並建立映射：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt install -y python3-libcamera python3-pykms</span><br><span class="line"><span class="built_in">ln</span> -s /usr/lib/python3/dist-packages/libcamera /home/jed/miniconda3/envs/py311-new/lib/python3.11/site-packages/libcamera</span><br><span class="line"><span class="built_in">ln</span> -s /usr/lib/python3/dist-packages/pykms /home/jed/miniconda3/envs/py311-new/lib/python3.11/site-packages/pykms</span><br></pre></td></tr></table></figure>
+
+<h1 id="優化與設計部分"><a href="#優化與設計部分" class="headerlink" title="優化與設計部分"></a>優化與設計部分</h1><h2 id="上傳文字檔案與語音檔案至-S3"><a href="#上傳文字檔案與語音檔案至-S3" class="headerlink" title="上傳文字檔案與語音檔案至 S3"></a>上傳文字檔案與語音檔案至 S3</h2><h3 id="現有作法"><a href="#現有作法" class="headerlink" title="現有作法"></a>現有作法</h3><p>目前使用 Crontab 進行每五分鐘上傳。但在多個邊緣裝置上更新時間或程式邏輯時，會增加維護成本，且人工更新可能產生 Bug。</p>
+<h3 id="方案一：使用-AWS-IoT-Core"><a href="#方案一：使用-AWS-IoT-Core" class="headerlink" title="方案一：使用 AWS IoT Core"></a>方案一：使用 AWS IoT Core</h3><h3 id="優勢"><a href="#優勢" class="headerlink" title="優勢"></a><strong>優勢</strong></h3><ul>
+<li>透過 MQTT 協議，適合邊緣裝置使用。</li>
+<li>邊緣裝置資料可傳至 AWS IoT，再由 Lambda 處理，統一管理邏輯。</li>
+<li>無須在每個邊緣裝置更新程式邏輯，減少維護成本。</li>
+</ul>
+<h3 id="考量點"><a href="#考量點" class="headerlink" title="考量點"></a><strong>考量點</strong></h3><ul>
+<li>需考慮檔案大小的壓縮，MQTT 不適合傳輸過大檔案。</li>
+<li>AWS IoT 無 QoS 3，無法完全保證交付，可能導致重複上傳。</li>
+</ul>
+<hr>
+<h2 id="語音辨識處理"><a href="#語音辨識處理" class="headerlink" title="語音辨識處理"></a>語音辨識處理</h2><h3 id="現有作法-1"><a href="#現有作法-1" class="headerlink" title="現有作法"></a>現有作法</h3><p>目前使用 Google API 進行 STT（語音轉文字），但若網路環境不佳，將無法正常運行。</p>
+<h3 id="方案一：在網路不佳時使用本地-STT-模型"><a href="#方案一：在網路不佳時使用本地-STT-模型" class="headerlink" title="方案一：在網路不佳時使用本地 STT 模型"></a>方案一：在網路不佳時使用本地 STT 模型</h3><h3 id="優勢-1"><a href="#優勢-1" class="headerlink" title="優勢"></a><strong>優勢</strong></h3><ul>
+<li>程式可監控網路品質，自動選擇使用 Google API 或本地模型處理 STT。</li>
+</ul>
+<h3 id="考量點-1"><a href="#考量點-1" class="headerlink" title="考量點"></a><strong>考量點</strong></h3><ul>
+<li>測試過 Vosk 及其他語音辨識模型，辨識精準度仍有待提升。</li>
+<li>需要時間測試與驗證，確保在邊緣裝置上能順暢運行模型。</li>
+</ul>
+<hr>
+<h2 id="模型整合與-Tools-維護"><a href="#模型整合與-Tools-維護" class="headerlink" title="模型整合與 Tools 維護"></a>模型整合與 Tools 維護</h2><h3 id="為何選擇-NLP-而非-LLM？"><a href="#為何選擇-NLP-而非-LLM？" class="headerlink" title="為何選擇 NLP 而非 LLM？"></a>為何選擇 NLP 而非 LLM？</h3><h3 id="選擇-NLP-的理由"><a href="#選擇-NLP-的理由" class="headerlink" title="選擇 NLP 的理由"></a><strong>選擇 NLP 的理由</strong></h3><ul>
+<li>適合邊緣裝置運行，輕量化，效能需求較低。</li>
+<li>符合環境限制，降低資源消耗。</li>
+</ul>
+<h3 id="何時考慮-LLM？"><a href="#何時考慮-LLM？" class="headerlink" title="何時考慮 LLM？"></a><strong>何時考慮 LLM？</strong></h3><ul>
+<li>當應用需求擴展，例如：<ul>
+<li>新增其他 Tools</li>
+<li>需要記憶功能或向量資料庫應用</li>
+</ul>
+</li>
+<li>可使用 LLM API，並結合 LangChain 進行開發，以提升靈活性與可擴展性。</li>
+</ul>
+<h3 id="可改進部分"><a href="#可改進部分" class="headerlink" title="可改進部分"></a>可改進部分</h3><p>上傳文字檔案與語音檔案至S3</p>
+<p>考量部分:</p>
+<p>目前作法是使用Crontab 進行每五分鐘上傳，但考量維護部分如果在多個邊緣裝置上要更新時間，或者程式邏輯會相當耗時且人工更新也有可能產生bug</p>
+<p>解決方案</p>
+<p>使用AWS IoT core</p>
+<p>好處:可以透過MQTT協議適合在邊緣裝置上，且可以將邊緣裝置資料送達至AWS IoT然後將邏輯寫在Lambda，好處是可以即時處理且邏輯統一由lambda管理，無須邊緣裝置每個設備都要更新程式邏輯</p>
+<p>考量部分:</p>
+<p>需要考慮檔案大小的壓縮以及</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/">https://jed-4a6g0109.github.io/Software-Jed/2026/02/23/%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E5%B0%8F%E6%87%89%E7%94%A8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/AI/">AI</a></div><div class="post-share"><div class="social-share" data-image="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Software-Jed/2026/04/29/%E5%BE%9E%20Junior%20%E5%88%B0%20Senior%EF%BC%9A%E5%B1%A5%E6%AD%B7%E8%88%87%E6%8A%80%E8%A1%93%E8%A1%A8%E9%81%94%E8%A9%B2%E5%A6%82%E4%BD%95%E5%8D%87%E7%B4%9A%EF%BC%9F/" title="從 Junior 到 Senior：履歷與技術表達該如何升級？"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">從 Junior 到 Senior：履歷與技術表達該如何升級？</div></div><div class="info-2"><div class="info-item-1">這份筆記整理了我在整理履歷時，回顧以往面試多間公司時，主管的關注點，以及網路上資深工程師表達特性的思考。目標在於提升履歷的「客觀性」、「精準度」與「職涯高度」。  專業技能的「客觀性」在資深履歷中，形容詞是廉價的，數據才是真實的。請避免以下這些主觀詞彙  熟練 一般 精通 海量 高效 完美  認知落差 你的熟練： Python 能靈活運用語法糖、撰寫 CRUD。 大神面試官的熟練： 深入了解 CPython 底層原理，並具備修改核心代碼的能力。  具體說法：為了避免主觀誤判，建議直接標註使用年資，並讓技術與下方的「工作經歷」掛鉤：  Python (4~5 years) Java (2 years)  這種表達方式更為客觀，能引導面試官根據具體經驗來提問，而非糾結於「精通」的定義。 數據方面也請具體說明數據量  蒐集每日核心業務微服務 Log，並透過 Python 實作 ETL，每日約 200GB批次數據分析與彙整至BigQuery保存   工作經歷的「精準表達」與「量化價值」履歷不是寫論文，不需要詳述每個步驟，而是要呈現價值與實現手段。 Bad： 「使用 Python 與 Ex...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2025/02/10/Hash-%E5%93%88%E5%B8%8C%E3%80%81%E9%9B%9C%E6%B9%8A/" title="Hash(哈希、雜湊)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/xa6tpsoqTQDyslzqHusztEOiZ4YAYB05.png" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Hash(哈希、雜湊)</div></div><div class="info-2"><div class="info-item-1">哈希表(Hash Table)哈希也稱雜湊，是一種 基於Key-Value（鍵值對） 的數據結構，通過哈希函數（Hash Function）將鍵映射到特定的存儲位置，以實現高效的數據查找、插入和刪除。 為了讓文章好閱讀後續都已Hash來呈現，中文太多意思怕混亂。 在現實生活中舉例就像英文與中文對應關係。    英文 中文    cat 貓   dog 狗   fish 魚   轉換成程式的話就會像這樣，有key與value對應關係，因此也稱為Hash Table(哈希表)。    key value    cat 貓   dog 狗   fish 魚   在查詢時只需要輸入key就能找到對應的value，例如轉換成python dict就會是 1language_mapping = &#123;&#x27;cat&#x27; &#x27;貓&#x27;,&#x27;dog&#x27;:&#x27;狗&#x27;,&#x27;fish&#x27;:&#x27;魚&#x27;&#125;   💡  如果要在python 使用Hash其實就直接用dict就好，因為dict是基於Has...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/Software-Jed/2026/05/13/AI-%E6%99%82%E4%BB%A3%E4%B8%8B%EF%BC%8C%E5%88%9D%E9%9A%8E%E5%B7%A5%E7%A8%8B%E5%B8%AB%E6%AD%A3%E5%9C%A8%E6%B6%88%E5%A4%B1%E5%97%8E%EF%BC%9F%E4%B8%80%E8%88%AC%E5%B7%A5%E7%A8%8B%E5%B8%AB%E7%9A%84%E7%94%9F%E5%AD%98%E6%80%9D%E8%80%83%E4%BB%A5%E5%8F%8A%E8%A7%80%E6%B8%AC%E5%88%B0%E5%8F%B0%E7%81%A3%E8%81%B7%E5%A0%B4%E6%AD%A3%E5%9C%A8%E6%94%B9%E8%AE%8A/" title="AI 時代下，初階工程師正在消失嗎？一般工程師的生存思考以及觀測到台灣職場正在改變"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-13</div><div class="info-item-2">AI 時代下，初階工程師正在消失嗎？一般工程師的生存思考以及觀測到台灣職場正在改變</div></div><div class="info-2"><div class="info-item-1">2026 軟體市場轉折點：AI 浪潮下的生存法則與職涯重塑最近因為工作合約關係，開始準備履歷尋找新的工作機會。觀察了一個多月後，我發現 2026 年的台灣軟體市場與幾年前相比，有了幾項非常顯著的變化：  一、台灣軟體市場的四大觀察1. 工作經驗要求門檻大幅提升我大約在 2021 年畢業，當時適逢台積電大量吸納人才，工作機會遍地開花，幾乎是「隨便投隨便有」。那時企業願意接受 0 經驗的菜鳥，讓老闆進公司慢慢培養。 但現在回頭看 104，多數職缺要求都是 3 年起跳，有些甚至要 5 年。企業發現：「與其培養新人，不如用 AI 搭配 2~5 年經驗的人才」，效率與產出更划算。  在國外也有博主發現這個現象，並分享這現象對於公司是不利的看法。文章：Your company needs Junior devs  2. 技能樹的要求變廣（全端化）GPT 出現後，單純撰寫程式碼的價值正在「貶值」（指的是基礎知識靠 AI 都能補足）。我本身深耕後端，但在 2026 年的現在，市場上充斥著全端 (全知全能) 工程師的職缺。 技術棧的要求越來越高，雖然有 AI 輔助可以無痛銜接，但公司是否提供充足的...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-20</div><div class="info-item-2">Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型</div></div><div class="info-2"><div class="info-item-1">科技趣事只需要查看你的點讚就能分析出你這人，有大神將自己的貼文給了 AI，最終 AI 分析出他是怎樣的人，結果卻很精確。   文章來源 前言大約在六年前（2020 年左右），我第一次接觸了影像處理課程。那時候玩的是傳統的機器學習與深度學習，每天都在大費周章地自己用爬蟲圈資料、動手 Label。 從跑自己的貓狗辨識、手勢辨識，到後來的蔬菜辨識模型，後來出現遷移式學習 (Transfer Learning) 來訓練模型，當時最火紅的 Mask-RCNN 和 YOLOv4 影像物件辨識模型做 Fine-tuning。 到了 2024 年，我開始接觸 Stable Diffusion，轉向生成式 AI 的領域，用它來生成動漫圖片與插圖。不得不吐槽，Stable Diffusion 的 WebUI 介面的參數調校和設定常常讓人眼花撩亂。直到 2026 年初，我全面轉用節點式的 ComfyUI，一整個超舒爽… 不過，無論是 WebUI 還是 ComfyUI，最讓新手卡關的往往是：  ❓ 「為什麼有這麼多種 Model 節點？Checkpoint、LoRA、VAE 到底是幹嘛的？」  本篇筆記...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">42</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">32</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">這裡記錄工程實務、踩坑筆記、系統設計思考與職涯觀察。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%82%8A%E7%B7%A3%E8%A3%9D%E7%BD%AE-AI-%E8%A8%AD%E7%BD%AE%E8%88%87%E9%A9%97%E8%AD%89"><span class="toc-number">1.</span> <span class="toc-text">邊緣裝置 AI 設置與驗證</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#NLP%E3%80%81STT-%E8%88%87%E5%BD%B1%E5%83%8F%E8%99%95%E7%90%86%E6%8A%80%E8%A1%93"><span class="toc-number">1.1.</span> <span class="toc-text">NLP、STT 與影像處理技術</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Windows-11-%E7%92%B0%E5%A2%83%E5%BB%BA%E7%BD%AE"><span class="toc-number">1.2.</span> <span class="toc-text">Windows 11 環境建置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B3%BB%E7%B5%B1%E8%A6%8F%E6%A0%BC"><span class="toc-number">1.2.1.</span> <span class="toc-text">系統規格</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%92%B0%E5%A2%83%E5%BB%BA%E7%BD%AE"><span class="toc-number">1.2.2.</span> <span class="toc-text">環境建置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%B7%E8%A1%8C%E7%B5%90%E6%9E%9C"><span class="toc-number">1.2.3.</span> <span class="toc-text">執行結果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Raspberry-Pi-%E7%92%B0%E5%A2%83%E5%BB%BA%E7%BD%AE"><span class="toc-number">1.3.</span> <span class="toc-text">Raspberry Pi 環境建置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B3%BB%E7%B5%B1%E8%A6%8F%E6%A0%BC-1"><span class="toc-number">1.3.1.</span> <span class="toc-text">系統規格</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Python-3-11-%E7%92%B0%E5%A2%83%E5%BB%BA%E7%BD%AE"><span class="toc-number">1.3.2.</span> <span class="toc-text">Python 3.11 環境建置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%9D%E7%9B%B8%E4%BE%9D%E5%A5%97%E4%BB%B6"><span class="toc-number">1.3.3.</span> <span class="toc-text">安裝相依套件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%B7%E8%A1%8C-main-py"><span class="toc-number">1.3.4.</span> <span class="toc-text">執行 main.py</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%81%8B%E8%A1%8C%E8%88%87%E9%A9%97%E8%AD%89"><span class="toc-number">1.3.5.</span> <span class="toc-text">運行與驗證</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%BA%E6%95%B8%E5%81%B5%E6%B8%AC%E8%88%87-YOLOv8"><span class="toc-number">1.3.6.</span> <span class="toc-text">人數偵測與 YOLOv8</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E6%99%82%E4%B8%8A%E5%82%B3-S3-%E8%A8%AD%E7%BD%AE"><span class="toc-number">1.4.</span> <span class="toc-text">定時上傳 S3 設置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A8%AD%E5%AE%9A-Cron-Job%EF%BC%88%E6%AF%8F10%E5%88%86%E9%90%98%E5%9F%B7%E8%A1%8C%E4%B8%80%E6%AC%A1%EF%BC%89"><span class="toc-number">1.4.1.</span> <span class="toc-text">設定 Cron Job（每10分鐘執行一次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A9%97%E8%AD%89%E4%B8%8A%E5%82%B3%E7%B5%90%E6%9E%9C"><span class="toc-number">1.4.2.</span> <span class="toc-text">驗證上傳結果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E9%9C%80%E5%AE%89%E8%A3%9D%E6%88%96%E8%80%85%E8%AA%BF%E6%95%B4-Raspberry-Pi-%E9%9D%9ERaspberry%E5%8F%AF%E8%B7%B3%E9%81%8E"><span class="toc-number">1.5.</span> <span class="toc-text">其他需安裝或者調整-Raspberry Pi(非Raspberry可跳過)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%AD%A3-GLIBCXX-3-4-30-%E5%95%8F%E9%A1%8C"><span class="toc-number">1.5.1.</span> <span class="toc-text">修正 GLIBCXX_3.4.30 問題</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AA%A2%E6%9F%A5-libcamera-%E8%88%87-pykms"><span class="toc-number">1.5.2.</span> <span class="toc-text">檢查 libcamera 與 pykms</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%84%AA%E5%8C%96%E8%88%87%E8%A8%AD%E8%A8%88%E9%83%A8%E5%88%86"><span class="toc-number">2.</span> <span class="toc-text">優化與設計部分</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8A%E5%82%B3%E6%96%87%E5%AD%97%E6%AA%94%E6%A1%88%E8%88%87%E8%AA%9E%E9%9F%B3%E6%AA%94%E6%A1%88%E8%87%B3-S3"><span class="toc-number">2.1.</span> <span class="toc-text">上傳文字檔案與語音檔案至 S3</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8F%BE%E6%9C%89%E4%BD%9C%E6%B3%95"><span class="toc-number">2.1.1.</span> <span class="toc-text">現有作法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E4%BD%BF%E7%94%A8-AWS-IoT-Core"><span class="toc-number">2.1.2.</span> <span class="toc-text">方案一：使用 AWS IoT Core</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%84%AA%E5%8B%A2"><span class="toc-number">2.1.3.</span> <span class="toc-text">優勢</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%80%83%E9%87%8F%E9%BB%9E"><span class="toc-number">2.1.4.</span> <span class="toc-text">考量點</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AA%9E%E9%9F%B3%E8%BE%A8%E8%AD%98%E8%99%95%E7%90%86"><span class="toc-number">2.2.</span> <span class="toc-text">語音辨識處理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8F%BE%E6%9C%89%E4%BD%9C%E6%B3%95-1"><span class="toc-number">2.2.1.</span> <span class="toc-text">現有作法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E5%9C%A8%E7%B6%B2%E8%B7%AF%E4%B8%8D%E4%BD%B3%E6%99%82%E4%BD%BF%E7%94%A8%E6%9C%AC%E5%9C%B0-STT-%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.2.2.</span> <span class="toc-text">方案一：在網路不佳時使用本地 STT 模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%84%AA%E5%8B%A2-1"><span class="toc-number">2.2.3.</span> <span class="toc-text">優勢</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%80%83%E9%87%8F%E9%BB%9E-1"><span class="toc-number">2.2.4.</span> <span class="toc-text">考量點</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%A1%E5%9E%8B%E6%95%B4%E5%90%88%E8%88%87-Tools-%E7%B6%AD%E8%AD%B7"><span class="toc-number">2.3.</span> <span class="toc-text">模型整合與 Tools 維護</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%82%BA%E4%BD%95%E9%81%B8%E6%93%87-NLP-%E8%80%8C%E9%9D%9E-LLM%EF%BC%9F"><span class="toc-number">2.3.1.</span> <span class="toc-text">為何選擇 NLP 而非 LLM？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%81%B8%E6%93%87-NLP-%E7%9A%84%E7%90%86%E7%94%B1"><span class="toc-number">2.3.2.</span> <span class="toc-text">選擇 NLP 的理由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%95%E6%99%82%E8%80%83%E6%85%AE-LLM%EF%BC%9F"><span class="toc-number">2.3.3.</span> <span class="toc-text">何時考慮 LLM？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E6%94%B9%E9%80%B2%E9%83%A8%E5%88%86"><span class="toc-number">2.3.4.</span> <span class="toc-text">可改進部分</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Log 別亂寫：結構化 Log 如何救除錯與分析"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析">Log 別亂寫：結構化 Log 如何救除錯與分析</a><time datetime="2026-05-22T12:24:00.000Z" title="發表於 2026-05-22 20:24:00">2026-05-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型">Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型</a><time datetime="2026-05-20T12:24:00.000Z" title="發表於 2026-05-20 20:24:00">2026-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="工程師做 Survey 時，老闆真正想聽的是什麼？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？">工程師做 Survey 時，老闆真正想聽的是什麼？</a><time datetime="2026-05-19T15:24:00.000Z" title="發表於 2026-05-19 23:24:00">2026-05-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？">JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？</a><time datetime="2026-05-18T11:24:00.000Z" title="發表於 2026-05-18 19:24:00">2026-05-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）">你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）</a><time datetime="2026-05-15T14:24:00.000Z" title="發表於 2026-05-15 22:24:00">2026-05-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

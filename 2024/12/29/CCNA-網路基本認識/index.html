@@ -1,0 +1,541 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CCNA-網路基本認識 | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CCNA網路基本認識">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CCNA-網路基本認識">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2024/12/29/CCNA-%E7%B6%B2%E8%B7%AF%E5%9F%BA%E6%9C%AC%E8%AA%8D%E8%AD%98/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="CCNA網路基本認識">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg">
+<meta property="article:published_time" content="2024-12-29T04:23:41.000Z">
+<meta property="article:modified_time" content="2026-05-18T16:11:01.045Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="CCNA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CCNA-網路基本認識",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2024/12/29/CCNA-%E7%B6%B2%E8%B7%AF%E5%9F%BA%E6%9C%AC%E8%AA%8D%E8%AD%98/",
+  "image": "https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg",
+  "datePublished": "2024-12-29T04:23:41.000Z",
+  "dateModified": "2026-05-18T16:11:01.045Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2024/12/29/CCNA-%E7%B6%B2%E8%B7%AF%E5%9F%BA%E6%9C%AC%E8%AA%8D%E8%AD%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CCNA-網路基本認識',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">42</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">32</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">CCNA-網路基本認識</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CCNA-網路基本認識</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2024-12-29T04:23:41.000Z" title="發表於 2024-12-29 12:23:41">2024-12-29</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-05-18T16:11:01.045Z" title="更新於 2026-05-19 00:11:01">2026-05-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/CCNA/">CCNA</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="CCNA"><a href="#CCNA" class="headerlink" title="CCNA"></a>CCNA</h1><hr>
+<h2 id="網路基本認識"><a href="#網路基本認識" class="headerlink" title="網路基本認識"></a>網路基本認識</h2><h3 id="網路設備（Networking-Devices）"><a href="#網路設備（Networking-Devices）" class="headerlink" title="網路設備（Networking Devices）"></a>網路設備（Networking Devices）</h3><p>用於連接和管理網路中的數據流量。</p>
+<p>常見設備：</p>
+<ul>
+<li><p><strong>交換機（Switch）</strong>：<br>在局域網內轉發數據，使用MAC地址確保數據到達正確的設備。</p>
+</li>
+<li><p><strong>路由器（Router）</strong>：<br>連接不同網路，使用IP地址選擇最佳路徑轉發數據。</p>
+</li>
+<li><p><strong>集線器（Hub）（現已少用）</strong>：<br>Hub實體圖<br>  <img src="https://hackmd.io/_uploads/HkCQvvCHkl.png" alt="image"></p>
+<ul>
+<li>用於將多台設備連接到同一個網路內</li>
+<li>Hub提供較多的Port供給電腦，用RJ45連接</li>
+<li>傳遞資料方式將資料全部送出，且有共同存取特性，無權限授權問題</li>
+<li>效能差(請參考補充3.)，因此慢慢被淘汰</li>
+<li>由於共享存取特性關係，在資訊安全部分是最差的，不像Switch沒MAC檢查來驗證原來與目的MAC</li>
+</ul>
+<p>  <img src="https://hackmd.io/_uploads/S11L_uCByx.png" alt="image"></p>
+</li>
+<li><p><strong>防火牆（Firewall）</strong>：<br>監控和控制進出網路的流量，保護網路安全。</p>
+</li>
+<li><p><strong>無線AP</strong> (Wireless Access Point)：<br>提供無線連接，延伸網路覆蓋範圍</p>
+<blockquote>
+</blockquote>
+</li>
+</ul>
+<hr>
+<h3 id="網路媒介（Network-Media）"><a href="#網路媒介（Network-Media）" class="headerlink" title="網路媒介（Network Media）"></a>網路媒介（Network Media）</h3><p>用於傳輸數據的物理或無線介質。</p>
+<h4 id="類型："><a href="#類型：" class="headerlink" title="類型："></a>類型：</h4><ul>
+<li><strong>有線介質</strong>：<br>雙絞線、同軸電纜、光纖。</li>
+<li><strong>無線介質</strong>：<br>Wi-Fi、藍牙、衛星、射頻。</li>
+</ul>
+<h3 id="實體位址（MAC）介紹"><a href="#實體位址（MAC）介紹" class="headerlink" title="實體位址（MAC）介紹"></a>實體位址（MAC）介紹</h3><p>MAC（Media Access Control）位址是網路設備在物理層上的唯一識別碼。它通常由網路卡（例如乙太網卡）或其他網路設備的硬體提供。MAC位址在OSI模型的第二層（資料鏈路層）中使用，用於在同一網路中的設備之間進行通信。</p>
+<h4 id="1-MAC-位址的結構"><a href="#1-MAC-位址的結構" class="headerlink" title="1. MAC 位址的結構"></a>1. <strong>MAC 位址的結構</strong></h4><ul>
+<li>MAC 位址由 6 個byte（48 位元）組成，通常表示為 12 個十六進位數字，並且每兩個數字之間用冒號（<code>:</code>）或破折號（<code>-</code>）分隔。例如：<ul>
+<li><code>00:1A:2B:3C:4D:5E</code></li>
+<li><code>00-1A-2B-3C-4D-5E</code></li>
+</ul>
+</li>
+<li>這 12 個十六進位數字的結構如下：<ul>
+<li><strong>前 3 個byte（OUI）</strong>：由 IEEE 分配，代表網路卡製造商的唯一識別碼（Organizationally Unique Identifier）。</li>
+<li><strong>後 3 個byte</strong>：由製造商分配，用來唯一標識該製造商生產的每個設備。</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://hackmd.io/_uploads/HklAEOCByx.png" alt="image"></p>
+<p>MAC 地址的第七和第八個bit的特別意義</p>
+<ul>
+<li><p><strong>第七個bit的最低位（U&#x2F;L bit）</strong>：</p>
+<ul>
+<li>U (Universal) &#x2F; L (Local)：第七個bit的最低位（即第 7 位）用來指示該 MAC 地址是由全球唯一的組織（如 IEEE）分配的，還是由本地網路管理員自定義的。</li>
+<li>U bit &#x3D; 1：表示 MAC 地址是本地分配的，即是由設備或網路管理員自定義的。</li>
+<li>U bit &#x3D; 0：表示 MAC 地址是全球唯一的，由 IEEE 分配的。</li>
+</ul>
+</li>
+<li><p><strong>第八個bit的最低位（I&#x2F;G bit）</strong>：</p>
+<ul>
+<li>I (Individual) &#x2F; G (Group)：第八個bit的最低位（即第 8 位）用來指示 MAC 地址是單播地址還是組播地址。</li>
+<li>I bit &#x3D; 0：表示該地址是單播地址（Unicast），即指向一個唯一的設備。</li>
+<li>I bit &#x3D; 1：表示該地址是組播地址（Multicast），即指向多個設備。</li>
+</ul>
+</li>
+</ul>
+<p>範例 1: 全球唯一單播地址<br>假設有一個 MAC 地址 <code>00:1A:2B:3C:4D:5E</code>：</p>
+<ol>
+<li>取前1個字節（<code>00</code>），轉換為二進制：<code>00000000</code></li>
+<li>觀察第七與第八個bit：<ul>
+<li>第七個bit &#x3D; <code>0</code>（全球唯一）</li>
+<li>第八個bit &#x3D; <code>0</code>（單播）</li>
+</ul>
+</li>
+</ol>
+<p>因此，<code>00:1A:2B:3C:4D:5E</code> 是 <strong>全球唯一單播地址</strong>。<br><img src="https://hackmd.io/_uploads/rkTBUORrJe.png" alt="image"></p>
+<p>範例 2: 本地分配單播地址<br>假設有一個 MAC 地址 <code>5E:1A:2B:3C:4D:5E</code>：</p>
+<ol>
+<li>取前1個字節（<code>5E</code>），轉換為二進制：<code>01011110</code></li>
+<li>觀察第七與第八個bit：<ul>
+<li>第七個bit &#x3D; <code>1</code>（本地分配）</li>
+<li>第八個bit &#x3D; <code>0</code>（單播）</li>
+</ul>
+</li>
+</ol>
+<p>因此，<code>5E:1A:2B:3C:4D:5E</code> 是 <strong>本地分配單播地址</strong>。<br><img src="https://hackmd.io/_uploads/rkhtLuAryl.png" alt="image"></p>
+<p>查看 MAC 地址</p>
+<ul>
+<li>在 <strong>Windows</strong> 上，使用 <code>ipconfig /all</code> 命令查看 MAC 地址。</li>
+<li>在 <strong>Linux</strong> 或 <strong>MacOS</strong> 上，使用 <code>ifconfig</code> 命令查看。</li>
+</ul>
+<p><img src="https://hackmd.io/_uploads/S12VBORSJe.png" alt="image"></p>
+<p><img src="https://hackmd.io/_uploads/BJj2SuRrkl.png" alt="image"></p>
+<pre><code>**十六進制對照表**
+
+| 十六進制 | 十進制 | 二進制   |
+| -------- | ------ | -------- |
+| 0        | 0      | 0000     |
+| 1        | 1      | 0001     |
+| 2        | 2      | 0010     |
+| 3        | 3      | 0011     |
+| 4        | 4      | 0100     |
+| 5        | 5      | 0101     |
+| 6        | 6      | 0110     |
+| 7        | 7      | 0111     |
+| 8        | 8      | 1000     |
+| 9        | 9      | 1001     |
+| A        | 10     | 1010     |
+| B        | 11     | 1011     |
+| C        | 12     | 1100     |
+| D        | 13     | 1101     |
+| E        | 14     | 1110     |
+| F        | 15     | 1111     |
+</code></pre>
+<pre><code class="highlight mermaid">graph TD 
+    A[MAC 地址] --&gt; B[OUI 組織唯一識別碼]
+    A[MAC 地址] --&gt; C[NIC 網路介面卡唯一識別碼]
+    B --&gt; D[IEEE 分配]
+    C --&gt; E[製造商分配]
+    範例1.
+    graph TD
+    A[MAC 地址: 00:1A:2B:3C:4D:5E] --&gt; B[前1個字節: 00]
+    B --&gt; C[二進制: 00000000]
+    C --&gt; D[第7位 (U/L bit): 0]
+    C --&gt; E[第8位 (I/G bit): 0]
+    D --&gt; F[全球唯一]
+    E --&gt; G[單播地址]
+    F --&gt; H[結果: 全球唯一單播地址]
+
+    範例2. 
+    graph TD
+    A[MAC 地址: 5E:1A:2B:3C:4D:5E] --&gt; B[前1個字節: 5E]
+    B --&gt; C[二進制: 01011110]
+    C --&gt; D[第7位 (U/L bit): 1]
+    C --&gt; E[第8位 (I/G bit): 0]
+    D --&gt; F[本地分配]
+    E --&gt; G[單播地址]
+    F --&gt; H[結果: 本地分配單播地址]
+</code></pre>
+<h4 id="2-MAC位址的功能"><a href="#2-MAC位址的功能" class="headerlink" title="2. MAC位址的功能"></a>2. <strong>MAC位址的功能</strong></h4><ul>
+<li><strong>唯一識別</strong>：每個網路設備（如電腦、路由器、交換機等）都有一個唯一的MAC位址，用於區分不同的設備。</li>
+<li><strong>資料傳送</strong>：在局域網（LAN）中，當一台設備想要與另一台設備通信時，它會使用對方的MAC位址來將資料傳送到正確的目的地。</li>
+<li><strong>網路層次</strong>：MAC位址主要用於資料鏈路層，協助設備在同一網路內進行點對點的通信。不同於IP位址，MAC位址不會跨越路由器來進行遠端通信。</li>
+</ul>
+<h4 id="3-網路傳送方式與-MAC-地址"><a href="#3-網路傳送方式與-MAC-地址" class="headerlink" title="3. 網路傳送方式與 MAC 地址"></a>3. <strong>網路傳送方式與 MAC 地址</strong></h4><p>在網路中，資料傳送的方式有三種：單播（Unicast）、廣播（Broadcast）和組播（Multicast）。每種方式的傳送機制與 MAC 地址的關係如下：<br><img src="https://hackmd.io/_uploads/rkSKauCBkl.png" alt="image"></p>
+<ol>
+<li>單播 (Unicast)</li>
+</ol>
+<ul>
+<li><strong>定義</strong>：單播是指資料從一個源設備傳送到一個特定的目的設備。</li>
+<li><strong>MAC 地址</strong>：使用唯一的 MAC 地址，源設備發送資料到目的設備的 MAC 地址。</li>
+<li><strong>特點</strong>：<ul>
+<li>只有指定的目的設備會接收到該資料。</li>
+<li>其他設備會忽略該資料。</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>廣播 (Broadcast)</li>
+</ol>
+<ul>
+<li><strong>定義</strong>：廣播是指資料從一個源設備傳送到網路上所有設備。</li>
+<li><strong>MAC 地址</strong>：使用特殊的廣播 MAC 地址 <code>FF:FF:FF:FF:FF:FF</code>，該地址會被網路中的所有設備接收。</li>
+<li><strong>特點</strong>：<ul>
+<li>所有設備都會接收到資料，無論其是否需要該資料。</li>
+<li>用於網路中的廣播訊息，如 ARP 請求。</li>
+</ul>
+</li>
+</ul>
+<ol start="3">
+<li>組播 (Multicast)</li>
+</ol>
+<ul>
+<li><strong>定義</strong>：組播是指資料從一個源設備傳送到一組特定的設備。</li>
+<li><strong>MAC 地址</strong>：使用特定的組播 MAC 地址，這些地址通常是以 <code>01:00:5E</code> 開頭的地址範圍。</li>
+<li><strong>特點</strong>：<ul>
+<li>只有加入組播群組的設備會接收到資料。</li>
+<li>用於視頻會議、流媒體等應用。</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://hackmd.io/_uploads/B1X7QY0Hyg.png" alt="image"></p>
+<p><strong>單播</strong>：資料只傳送到一個特定的設備。<br><strong>廣播</strong>：資料傳送到所有設備，所有設備都會接收。<br><strong>組播</strong>：資料傳送到一組特定的設備，只有這些設備會接收。<br><img src="https://hackmd.io/_uploads/HJUFfY0Bkl.png" alt="image"></p>
+<h4 id="4-MAC位址與IP位址的區別"><a href="#4-MAC位址與IP位址的區別" class="headerlink" title="4. MAC位址與IP位址的區別"></a>4. <strong>MAC位址與IP位址的區別</strong></h4><ul>
+<li><strong>MAC位址</strong>是硬體層的地址，通常是固定的，不會改變（除非手動更改）。它的作用是確保在同一網路內的設備能夠彼此識別。</li>
+<li><strong>IP位址</strong>則是網路層的地址，通常會根據網路配置或設備的變動而變化。IP位址允許設備跨越不同的網路進行通信。</li>
+</ul>
+<h4 id="5-MAC位址的用途"><a href="#5-MAC位址的用途" class="headerlink" title="5. MAC位址的用途"></a>5. <strong>MAC位址的用途</strong></h4><ul>
+<li><strong>局域網內的設備識別</strong>：當設備發送資料時，它會使用MAC位址來確保資料能夠送達正確的接收端設備。交換機（Switch）會根據MAC位址來轉發資料包。</li>
+<li><strong>ARP協議</strong>：在IP位址和MAC位址之間建立映射的協議。當設備需要知道某個IP位址對應的MAC位址時，它會發送ARP請求，並通過MAC位址來確定資料的目的地。</li>
+</ul>
+<h4 id="6-MAC位址的安全性問題"><a href="#6-MAC位址的安全性問題" class="headerlink" title="6. MAC位址的安全性問題"></a>6. <strong>MAC位址的安全性問題</strong></h4><ul>
+<li><strong>MAC地址欺騙</strong>：一些惡意用戶可能會修改自己的MAC位址，這樣他們就可以冒充其他設備進行攻擊或繞過網路過濾。這種技術被稱為MAC地址欺騙（MAC Spoofing）。</li>
+<li><strong>隱私問題</strong>：在某些情況下，設備的MAC位址可能會被用來追蹤用戶的活動，尤其是在Wi-Fi網路中。</li>
+</ul>
+<h2 id="補充"><a href="#補充" class="headerlink" title="補充"></a>補充</h2><h3 id="補充1-接口類型"><a href="#補充1-接口類型" class="headerlink" title="補充1: 接口類型"></a>補充1: 接口類型</h3><table>
+<thead>
+<tr>
+<th><strong>接口類型</strong></th>
+<th><strong>名稱格式</strong></th>
+<th><strong>範例</strong></th>
+<th><strong>速度</strong></th>
+<th><strong>應用場景</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Fast Ethernet</strong></td>
+<td><code>fa[槽位號]/[端口號]</code></td>
+<td><code>fa0/1</code>, <code>fa0/24</code></td>
+<td>100 Mbps</td>
+<td>舊式設備，低帶寬需求的網路環境</td>
+</tr>
+<tr>
+<td><strong>Gigabit Ethernet</strong></td>
+<td><code>gi[槽位號]/[端口號]</code></td>
+<td><code>gi0/1</code>, <code>gi1/1</code></td>
+<td>1 Gbps</td>
+<td>現代設備，常見於高速數據傳輸環境</td>
+</tr>
+<tr>
+<td><strong>Ten-Gigabit Ethernet</strong></td>
+<td><code>te[槽位號]/[端口號]</code></td>
+<td><code>te1/1</code>, <code>te0/2</code></td>
+<td>10 Gbps</td>
+<td>高效能數據中心，交換機間的高速連接</td>
+</tr>
+<tr>
+<td><strong>Serial</strong></td>
+<td><code>s[槽位號]/[端口號]</code></td>
+<td><code>s0/0</code>, <code>s1/1</code></td>
+<td>串行連接</td>
+<td>WAN 連接，路由器間的長距離連接</td>
+</tr>
+<tr>
+<td><strong>VLAN</strong></td>
+<td><code>Vlan[編號]</code></td>
+<td><code>Vlan1</code>, <code>Vlan10</code></td>
+<td>虛擬網路接口</td>
+<td>配置 VLAN，進行網路分段</td>
+</tr>
+<tr>
+<td><strong>Loopback</strong></td>
+<td><code>lo[編號]</code></td>
+<td><code>lo0</code>, <code>lo1</code></td>
+<td>虛擬接口</td>
+<td>診斷和測試接口，自我測試功能</td>
+</tr>
+<tr>
+<td><strong>Ethernet</strong></td>
+<td><code>eth[槽位號]/[端口號]</code></td>
+<td><code>eth0/1</code>, <code>eth1/0</code></td>
+<td>10&#x2F;100 Mbps 或更高</td>
+<td>較舊設備或特定應用中的以太網接口</td>
+</tr>
+</tbody></table>
+<h3 id="補充2-路由器與無線AP比較"><a href="#補充2-路由器與無線AP比較" class="headerlink" title="補充2:路由器與無線AP比較"></a>補充2:路由器與無線AP比較</h3><table>
+<thead>
+<tr>
+<th><strong>功能&#x2F;特性</strong></th>
+<th><strong>無線 AP</strong></th>
+<th><strong>路由器</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>核心功能</strong></td>
+<td>提供無線連接，延伸網路覆蓋範圍</td>
+<td>連接網路，進行數據路由與轉發</td>
+</tr>
+<tr>
+<td><strong>是否具備路由功能</strong></td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td><strong>是否可直接上網</strong></td>
+<td>否，需要連接路由器</td>
+<td>是，可直接連接到網路供應商</td>
+</tr>
+<tr>
+<td><strong>適用場合</strong></td>
+<td>擴展無線信號覆蓋範圍</td>
+<td>建立完整的網路環境</td>
+</tr>
+</tbody></table>
+<p>現在市面上的路由器都與無線AP做合併了</p>
+<h3 id="補充3-集線器（Hub）效能差的原因"><a href="#補充3-集線器（Hub）效能差的原因" class="headerlink" title="補充3. 集線器（Hub）效能差的原因"></a>補充3. 集線器（Hub）效能差的原因</h3><ol>
+<li><p><strong>廣播式傳輸</strong>：<br>集線器在傳輸資料時，會將收到的資料包廣播到所有連接的設備，而不會區分目標設備是誰。這意味著即使資料包只應該發送到一台設備，集線器也會將資料發送到所有設備。這會導致不必要的資料傳輸，增加網路流量，並且其他設備無法有效利用這些資料，造成網路效能下降。</p>
+</li>
+<li><p><strong>共享帶寬</strong>：<br>在集線器中，所有連接的設備共享相同的帶寬。假如有多台設備同時發送資料，集線器會將所有的資料合併在同一條線上傳輸，這會造成帶寬擁塞，尤其在高流量環境下，會顯著降低網路效能。</p>
+</li>
+<li><p><strong>碰撞域（Collision Domain）</strong>：<br>集線器的所有端口都位於同一個碰撞域內。當兩台設備同時發送資料時，會發生資料碰撞，這會導致資料丟失，需要重新傳送，進一步降低網路效能。在大量設備連接的情況下，碰撞的機會更大，效能會更差。</p>
+</li>
+<li><p><strong>無法管理流量</strong>：<br>集線器沒有智能流量管理功能，它不能區分不同設備之間的流量，也無法根據設備的需求分配帶寬。這使得集線器在多設備同時運行時無法有效地控制網路流量，進一步影響網路的穩定性和效能。</p>
+</li>
+</ol>
+<p>因此，集線器的這些限制使得它在現代網路中逐漸被交換機（Switch）所取代，後者能夠根據設備的MAC地址進行資料包的定向轉發，避免廣播和碰撞，提升網路效能。</p>
+<p>補充 Hub流程</p>
+<pre><code class="highlight mermaid">
+graph TD
+    A[設備 A MAC: 00:1A:2B:3C:4D:5E] --&gt;|發送資料| B[Hub]
+    C[設備 B MAC: 00:1A:2B:3C:4D:6F] --&gt;|發送資料| B[Hub]
+    D[設備 C MAC: 00:1A:2B:3C:4D:7A] --&gt;|發送資料| B[Hub]
+    
+    B[Hub] --&gt;|廣播資料| E[所有設備收到資料]
+    
+    E[所有設備收到資料] --&gt;|無法過濾| F[資料被其他設備接收]
+    
+    F[資料被其他設備接收] --&gt;|安全性差| G[容易遭受攻擊]
+    
+    G[容易遭受攻擊] --&gt;|例如| H[中間人攻擊、資料竊聽]
+
+
+graph LR
+    A[Source Device] --&gt;|Unicast| B[Specific Device]  
+    A[Source Device] --&gt;|Broadcast| C[All Devices]  
+    A[Source Device] --&gt;|Multicast| D[Group of Devices]
+
+
+graph LR
+    A[主電腦 MAC: 00:1A:2B:3C:4D:5E] --&gt; B[單播: 00:1A:2B:3C:4D:6A]
+    A --&gt; C[廣播: FF:FF:FF:FF:FF:FF]
+    A --&gt; D[組播: 01:00:5E:00:00:01]
+    B --&gt; E[接收設備 MAC: 00:1A:2B:3C:4D:6A]
+    C --&gt; F[接收設備1 MAC: 00:1A:2B:3C:4D:6A]
+    C --&gt; G[接收設備2 MAC: 00:1A:2B:3C:4D:6B]
+    C --&gt; H[接收設備3 MAC: 00:1A:2B:3C:4D:6C]
+    D --&gt; I[接收設備1 MAC: 00:1A:2B:3C:4D:6A]
+    D --&gt; J[接收設備2 MAC: 00:1A:2B:3C:4D:6B]
+    D --&gt; K[接收設備3 MAC: 00:1A:2B:3C:4D:6C]
+
+</code></pre></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2024/12/29/CCNA-%E7%B6%B2%E8%B7%AF%E5%9F%BA%E6%9C%AC%E8%AA%8D%E8%AD%98/">https://jed-4a6g0109.github.io/Software-Jed/2024/12/29/CCNA-%E7%B6%B2%E8%B7%AF%E5%9F%BA%E6%9C%AC%E8%AA%8D%E8%AD%98/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/CCNA/">CCNA</a></div><div class="post-share"><div class="social-share" data-image="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Software-Jed/2025/01/19/BigQuery-%E5%9F%BA%E7%A4%8E%E8%AA%9E%E6%B3%95%E7%AF%87/" title="BigQuery - 基礎語法篇"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">BigQuery - 基礎語法篇</div></div><div class="info-2"><div class="info-item-1">BigQuery - 基礎語法篇Select用法 * expression expression.*  SELECT * REPLACE符合條件並replace  不能replace 未定義的column  12345678910111213141516171819202122232425WITH orders AS  (SELECT 5 as order_id,  &quot;sprocket&quot; as item_name,  200 as quantity)SELECT * REPLACE (&quot;widget&quot; AS item_name)FROM orders;/*----------+-----------+----------* | order_id | item_name | quantity | +----------+-----------+----------+ | 5        | widget    | 200      | *----------+-----------+----------*/WITH orders AS  (...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2024/08/12/%E4%BD%95%E8%AC%82JWT/" title="何謂JWT?"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">何謂JWT?</div></div><div class="info-2"><div class="info-item-1">何謂JWT?JWT 基於 JOSE 標準，以下技術來處理Token的簽名和加密，因為stateless特性，常出現 Web應用的用戶身份驗證與微服務之間的認證場景使用。 JOSE（JSON Object Signing and Encryption）  JWS(JSON Web Signature) RFC 7515 JWE(JSON Web Encryption) RFC 7516 JWK(JSON Web Key) RFC 7517 JWA(JSON Web Algorithms) RFC 751  JWT(Json Web Token)主要由三個部分組成，並用(.逗點)區隔這三個部分  Header Payload Verify Signature  HeaderHeader又分為兩個部分組成  Token Typeex: jwt Algorithmex: HMAC SHA256、RSA  1234&#123;  &quot;alg&quot;: &quot;RSA&quot;,  &quot;typ&quot;: &quot;JWT&quot;&#125; JSON透過會...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">42</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">32</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">這裡記錄工程實務、踩坑筆記、系統設計思考與職涯觀察。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CCNA"><span class="toc-number">1.</span> <span class="toc-text">CCNA</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B6%B2%E8%B7%AF%E5%9F%BA%E6%9C%AC%E8%AA%8D%E8%AD%98"><span class="toc-number">1.1.</span> <span class="toc-text">網路基本認識</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B6%B2%E8%B7%AF%E8%A8%AD%E5%82%99%EF%BC%88Networking-Devices%EF%BC%89"><span class="toc-number">1.1.1.</span> <span class="toc-text">網路設備（Networking Devices）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B6%B2%E8%B7%AF%E5%AA%92%E4%BB%8B%EF%BC%88Network-Media%EF%BC%89"><span class="toc-number">1.1.2.</span> <span class="toc-text">網路媒介（Network Media）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A1%9E%E5%9E%8B%EF%BC%9A"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">類型：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%A6%E9%AB%94%E4%BD%8D%E5%9D%80%EF%BC%88MAC%EF%BC%89%E4%BB%8B%E7%B4%B9"><span class="toc-number">1.1.3.</span> <span class="toc-text">實體位址（MAC）介紹</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-MAC-%E4%BD%8D%E5%9D%80%E7%9A%84%E7%B5%90%E6%A7%8B"><span class="toc-number">1.1.3.1.</span> <span class="toc-text">1. MAC 位址的結構</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-MAC%E4%BD%8D%E5%9D%80%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="toc-number">1.1.3.2.</span> <span class="toc-text">2. MAC位址的功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E7%B6%B2%E8%B7%AF%E5%82%B3%E9%80%81%E6%96%B9%E5%BC%8F%E8%88%87-MAC-%E5%9C%B0%E5%9D%80"><span class="toc-number">1.1.3.3.</span> <span class="toc-text">3. 網路傳送方式與 MAC 地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-MAC%E4%BD%8D%E5%9D%80%E8%88%87IP%E4%BD%8D%E5%9D%80%E7%9A%84%E5%8D%80%E5%88%A5"><span class="toc-number">1.1.3.4.</span> <span class="toc-text">4. MAC位址與IP位址的區別</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-MAC%E4%BD%8D%E5%9D%80%E7%9A%84%E7%94%A8%E9%80%94"><span class="toc-number">1.1.3.5.</span> <span class="toc-text">5. MAC位址的用途</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-MAC%E4%BD%8D%E5%9D%80%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7%E5%95%8F%E9%A1%8C"><span class="toc-number">1.1.3.6.</span> <span class="toc-text">6. MAC位址的安全性問題</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A3%9C%E5%85%85"><span class="toc-number">1.2.</span> <span class="toc-text">補充</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A3%9C%E5%85%851-%E6%8E%A5%E5%8F%A3%E9%A1%9E%E5%9E%8B"><span class="toc-number">1.2.1.</span> <span class="toc-text">補充1: 接口類型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A3%9C%E5%85%852-%E8%B7%AF%E7%94%B1%E5%99%A8%E8%88%87%E7%84%A1%E7%B7%9AAP%E6%AF%94%E8%BC%83"><span class="toc-number">1.2.2.</span> <span class="toc-text">補充2:路由器與無線AP比較</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A3%9C%E5%85%853-%E9%9B%86%E7%B7%9A%E5%99%A8%EF%BC%88Hub%EF%BC%89%E6%95%88%E8%83%BD%E5%B7%AE%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="toc-number">1.2.3.</span> <span class="toc-text">補充3. 集線器（Hub）效能差的原因</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Log 別亂寫：結構化 Log 如何救除錯與分析"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析">Log 別亂寫：結構化 Log 如何救除錯與分析</a><time datetime="2026-05-22T12:24:00.000Z" title="發表於 2026-05-22 20:24:00">2026-05-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型">Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型</a><time datetime="2026-05-20T12:24:00.000Z" title="發表於 2026-05-20 20:24:00">2026-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="工程師做 Survey 時，老闆真正想聽的是什麼？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？">工程師做 Survey 時，老闆真正想聽的是什麼？</a><time datetime="2026-05-19T15:24:00.000Z" title="發表於 2026-05-19 23:24:00">2026-05-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？">JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？</a><time datetime="2026-05-18T11:24:00.000Z" title="發表於 2026-05-18 19:24:00">2026-05-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）">你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）</a><time datetime="2026-05-15T14:24:00.000Z" title="發表於 2026-05-15 22:24:00">2026-05-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

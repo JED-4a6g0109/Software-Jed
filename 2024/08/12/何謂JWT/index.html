@@ -1,0 +1,292 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>何謂JWT? | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="JWT 基於 JOSE 標準，以下技術來處理Token的簽名和加密，因為stateless特性，常出現 Web應用的用戶身份驗證與微服務之間的認證場景使用。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="何謂JWT?">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2024/08/12/%E4%BD%95%E8%AC%82JWT/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="JWT 基於 JOSE 標準，以下技術來處理Token的簽名和加密，因為stateless特性，常出現 Web應用的用戶身份驗證與微服務之間的認證場景使用。">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg">
+<meta property="article:published_time" content="2024-08-12T13:25:40.495Z">
+<meta property="article:modified_time" content="2026-05-18T15:38:56.608Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="JWT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "何謂JWT?",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2024/08/12/%E4%BD%95%E8%AC%82JWT/",
+  "image": "https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg",
+  "datePublished": "2024-08-12T13:25:40.495Z",
+  "dateModified": "2026-05-18T15:38:56.608Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2024/08/12/%E4%BD%95%E8%AC%82JWT/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '何謂JWT?',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">42</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">32</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">何謂JWT?</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">何謂JWT?</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2024-08-12T13:25:40.495Z" title="發表於 2024-08-12 21:25:40">2024-08-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-05-18T15:38:56.608Z" title="更新於 2026-05-18 23:38:56">2026-05-18</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/API/">API</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/API/JWT/">JWT</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="何謂JWT"><a href="#何謂JWT" class="headerlink" title="何謂JWT?"></a>何謂JWT?</h2><p>JWT 基於 JOSE 標準，以下技術來處理Token的簽名和加密，因為stateless特性，常出現 Web應用的用戶身份驗證與微服務之間的認證場景使用。</p>
+<p>JOSE（JSON Object Signing and Encryption）</p>
+<ul>
+<li>JWS(JSON Web Signature) RFC 7515</li>
+<li>JWE(JSON Web Encryption) RFC 7516</li>
+<li>JWK(JSON Web Key) RFC 7517</li>
+<li>JWA(JSON Web Algorithms) RFC 751</li>
+</ul>
+<p>JWT(Json Web Token)主要由三個部分組成，並用(.逗點)區隔這三個部分</p>
+<ul>
+<li>Header</li>
+<li>Payload</li>
+<li>Verify Signature</li>
+</ul>
+<h3 id="Header"><a href="#Header" class="headerlink" title="Header"></a>Header</h3><p>Header又分為兩個部分組成</p>
+<ul>
+<li>Token Type<br>ex: jwt</li>
+<li>Algorithm<br>ex: HMAC SHA256、RSA</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;alg&quot;: &quot;RSA&quot;,</span><br><span class="line">  &quot;typ&quot;: &quot;JWT&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>JSON透過會被Base64Url編碼，形成JWT中的Header。</p>
+<blockquote>
+<p>💡Base64Url<br>專為URL和檔案名稱的安全性設計，避免了特殊字元在傳輸過程中造成的相容性問題</p>
+</blockquote>
+<blockquote>
+<p>💡為何不用base64?<br>在標準的 Base64 編碼在某些情況下可能不適合，因為它使用的字元集包括 +、&#x2F; 和 &#x3D;，這些字元在 URL 中具有特殊意義，或在檔案名稱中不允許使用，可以自行在資料夾命名來驗證</p>
+</blockquote>
+<h3 id="Payload"><a href="#Payload" class="headerlink" title="Payload"></a>Payload</h3><p>包含關於用戶或其他數據的聲明（Claims）。Claims可以包括身份驗證信息、授權信息或其他數據。而Claims又分為</p>
+<ul>
+<li>Registered Claims</li>
+<li>Public Claims</li>
+<li>Private Claims</li>
+</ul>
+<h4 id="Registered-Claims"><a href="#Registered-Claims" class="headerlink" title="Registered Claims"></a>Registered Claims</h4><p>標準化claims，沒有強制加入claims，共有七個Claims組成，用意在於它們是標準化的，這些標準聲明的設計目的是為了確保不同系統或應用程序之間能夠互相理解和使用這些資料，最常見應該是iss、iat、exp、sub。</p>
+<ul>
+<li>iss：發行JWT的實體。</li>
+<li>sub：JWT所針對的用戶或主體。</li>
+<li>aud：JWT的預期接收者。</li>
+<li>exp：JWT過期的時間。</li>
+<li>nbf：JWT在此時間之前無效。</li>
+<li>iat：JWT發行的時間。</li>
+<li>jti：JWT的唯一標識符，用於防止重放攻擊。</li>
+</ul>
+<p>payload</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;sub&quot;: &quot;1234567890&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Jed Hung&quot;,</span><br><span class="line">  &quot;iat&quot;: 1516239022</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>簡單來說舉個例子，如果A系統發送了一個JWT，並使用了這些標準聲明，B系統接收到這個JWT時，因為這些聲明是標準化的，B系統可以輕鬆理解JWT中包含的資料，並正確地處理它。</p>
+<blockquote>
+<p>⛔payload不要放入機密資訊，例如:密碼、卡號等等，payload由base64Url編碼，如果外洩等於明碼直接暴露</p>
+</blockquote>
+<h4 id="Custom-Claims"><a href="#Custom-Claims" class="headerlink" title="Custom Claims"></a>Custom Claims</h4><p>意旨未在Registered Claims IANA Claims標準中，自訂義的Claims，而Custom Claims又分為兩格部分:</p>
+<ul>
+<li>Public Claims<br>通用的信息，例如用戶的姓名和電子郵件地址。這些信息可能在不同的應用程序中都會使用。</li>
+</ul>
+<blockquote>
+<p>💡Public Claims需要注意名稱衝突，不同服務對於相同的Claims名稱可能有不同意義，舉例Role對於A服務是作者，而對於B服務是讀者，Claims名稱一致但意義不同，因此請用命名區隔避免混淆。</p>
+</blockquote>
+<ul>
+<li>Private Claims<br>私有聲明是用來傳遞應用程序專有的信息，<br>例如員工ID或部門名稱。這些聲明不公開，僅用於你自己的應用程序內部。</li>
+</ul>
+<h3 id="Signature"><a href="#Signature" class="headerlink" title="Signature"></a>Signature</h3><p>簽名部分用於驗證消息在過程中沒有被篡改，並且可以使用指定的算法（例如HMAC SHA256）和一個Secret來生成簽名。</p>
+<h2 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h2><ul>
+<li>JWT是可公開的: 不要在JWT的Payload中存儲敏感信息，如密碼或信用卡信息。</li>
+<li>簽名密鑰的安全性: 如果使用對稱簽名算法，務必保證簽名密鑰的安全性。</li>
+<li>設置合理的過期時間（exp）: 防止令牌被長期濫用，或者需要更新訪問權限。</li>
+<li>使用HTTPS傳輸JWT: 防止中間人攻擊。</li>
+</ul>
+<h2 id="優點"><a href="#優點" class="headerlink" title="優點:"></a>優點:</h2><ul>
+<li>無狀態: 伺服器不需要存儲JWT，方便與服務驗證交互。</li>
+<li>可擴展: JWT可以攜帶任意聲明，不僅僅限於身份驗證。</li>
+</ul>
+<h2 id="缺點"><a href="#缺點" class="headerlink" title="缺點:"></a>缺點:</h2><ul>
+<li>Payload大小: JWT的Payload直接暴露，並且經過Base64編碼後可能會增大令牌的大小。</li>
+<li>不可撤銷: JWT一旦發出，在JWT過期前，無法撤銷它的使用，除非實作JWT管理系統。</li>
+</ul>
+<blockquote>
+<p>💡在OAuth 2.0中JWT常被 ID Token、Access Token、 Refresh Token使用</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2024/08/12/%E4%BD%95%E8%AC%82JWT/">https://jed-4a6g0109.github.io/Software-Jed/2024/08/12/%E4%BD%95%E8%AC%82JWT/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/JWT/">JWT</a></div><div class="post-share"><div class="social-share" data-image="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/Software-Jed/2024/12/29/CCNA-%E7%B6%B2%E8%B7%AF%E5%9F%BA%E6%9C%AC%E8%AA%8D%E8%AD%98/" title="CCNA-網路基本認識"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">CCNA-網路基本認識</div></div><div class="info-2"><div class="info-item-1">CCNA 網路基本認識網路設備（Networking Devices）用於連接和管理網路中的數據流量。 常見設備：  交換機（Switch）：在局域網內轉發數據，使用MAC地址確保數據到達正確的設備。  路由器（Router）：連接不同網路，使用IP地址選擇最佳路徑轉發數據。  集線器（Hub）（現已少用）：Hub實體圖    用於將多台設備連接到同一個網路內 Hub提供較多的Port供給電腦，用RJ45連接 傳遞資料方式將資料全部送出，且有共同存取特性，無權限授權問題 效能差(請參考補充3.)，因此慢慢被淘汰 由於共享存取特性關係，在資訊安全部分是最差的，不像Switch沒MAC檢查來驗證原來與目的MAC      防火牆（Firewall）：監控和控制進出網路的流量，保護網路安全。  無線AP (Wireless Access Point)：提供無線連接，延伸網路覆蓋範圍      網路媒介（Network Media）用於傳輸數據的物理或無線介質。 類型： 有線介質：雙絞線、同軸電纜、光纖。 無線介質：Wi-Fi、藍牙、衛星、射頻。  實體位址（MAC）介紹MAC（Medi...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="info-item-2">JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？</div></div><div class="info-2"><div class="info-item-1">科技趣事美國矽谷人形機器人新創公司 Figure AI 發起了一場長達 10 小時的人類與機器人物流撿貨大戰，並在 YouTube 上進行直播，最終人類獲勝了。但對於身體上，如手起水泡和疲勞，雖然機器人 BOB 輸了 200 多件貨品，但她還能為老闆繼續賺錢。   直播連結 JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？JWT 是無狀態、擴展性佳，主要用於在網路應用程式之間安全地傳遞資訊，適合分散式系統及單一登入（SSO）。用途是處理身分驗證（Authentication）與授權。 後端通常會這樣開 API： 1POST /login  1234&#123;  &quot;username&quot;: &quot;user123&quot;,  &quot;password&quot;: &quot;yourpassword&quot;&#125;  Response： 12345&#123;  &quot;access_token&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-15</div><div class="info-item-2">你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）</div></div><div class="info-2"><div class="info-item-1">科技趣事有大神使用 Python 偽裝 Ubuntu 與 SSH 腳本，對外開放了 54 天 SSH 22 port，引誘攻擊者進去伺服器，並做完整分析。看完整篇實在是很有趣：I Left Port 22 Open on the Internet for 54 Days. Here’s Who Showed Up.   你的 JWT 真的安全嗎？ ⚠️ 安全研究與教學用途聲明 本文內容僅供資安學習、安全研究、CTF 練習、靶場環境與已取得授權的滲透測試使用。文中可能包含漏洞原理、攻擊流程、測試指令或範例程式碼，目的在於理解風險、提升防禦能力與協助開發者修補弱點。 請勿將本文內容用於未經授權的系統、服務、網站、帳號或任何第三方資產。任何未經授權的掃描、入侵、資料存取、權限提升、破壞、竊取或繞過安全機制之行為，皆可能違反法律與服務條款。 使用者應自行確認測試範圍、授權狀態與所在地法律規範。因使用或誤用本文內容所造成的任何損害、法律責任、資料遺失、服務中斷或其他後果，皆由使用者自行承擔，作者不負任何責任。  JWT 在微服務場景是很常見的，JWT 通常由三個部分組成，以點（.）隔開： ...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">42</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">32</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">這裡記錄工程實務、踩坑筆記、系統設計思考與職涯觀察。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%95%E8%AC%82JWT"><span class="toc-number">1.</span> <span class="toc-text">何謂JWT?</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Header"><span class="toc-number">1.1.</span> <span class="toc-text">Header</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Payload"><span class="toc-number">1.2.</span> <span class="toc-text">Payload</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Registered-Claims"><span class="toc-number">1.2.1.</span> <span class="toc-text">Registered Claims</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Custom-Claims"><span class="toc-number">1.2.2.</span> <span class="toc-text">Custom Claims</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Signature"><span class="toc-number">1.3.</span> <span class="toc-text">Signature</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-number">2.</span> <span class="toc-text">安全性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%84%AA%E9%BB%9E"><span class="toc-number">3.</span> <span class="toc-text">優點:</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%BA%E9%BB%9E"><span class="toc-number">4.</span> <span class="toc-text">缺點:</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Log 別亂寫：結構化 Log 如何救除錯與分析"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析">Log 別亂寫：結構化 Log 如何救除錯與分析</a><time datetime="2026-05-22T12:24:00.000Z" title="發表於 2026-05-22 20:24:00">2026-05-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型">Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型</a><time datetime="2026-05-20T12:24:00.000Z" title="發表於 2026-05-20 20:24:00">2026-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="工程師做 Survey 時，老闆真正想聽的是什麼？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？">工程師做 Survey 時，老闆真正想聽的是什麼？</a><time datetime="2026-05-19T15:24:00.000Z" title="發表於 2026-05-19 23:24:00">2026-05-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？">JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？</a><time datetime="2026-05-18T11:24:00.000Z" title="發表於 2026-05-18 19:24:00">2026-05-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）">你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）</a><time datetime="2026-05-15T14:24:00.000Z" title="發表於 2026-05-15 22:24:00">2026-05-15</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
