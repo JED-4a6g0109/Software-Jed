@@ -4,7 +4,44 @@
     return path === '/Software-Jed/' || path === '/'
   }
 
+  const isAbout = () => {
+    const path = window.location.pathname.replace(/\/+$/, '/')
+    return path === '/Software-Jed/about/' || path === '/about/'
+  }
+
+  const profileMap = document.querySelector('#jed-profile-map')
+  if (isAbout() && profileMap && !profileMap.querySelector('.jed-profile__map')) {
+    profileMap.innerHTML = `
+      <div class="jed-profile__panel jed-profile__map" aria-label="工程能力地圖">
+        <div class="jed-profile__map-center">
+          <span>Core</span>
+          <strong>Backend<br>Engineer</strong>
+        </div>
+        <div class="jed-profile__map-items">
+          <div style="--score: 96"><span>Python</span><strong>16</strong></div>
+          <div style="--score: 78"><span>Backend</span><strong>6</strong></div>
+          <div style="--score: 68"><span>Security</span><strong>4</strong></div>
+          <div style="--score: 58"><span>AI</span><strong>3</strong></div>
+          <div style="--score: 52"><span>DevOps</span><strong>2</strong></div>
+          <div style="--score: 66"><span>Data</span><strong>6</strong></div>
+        </div>
+        <p>依文章主題覆蓋度整理，用來呈現「長期寫作證據」，不是考試分數。</p>
+      </div>
+    `
+  }
+
   if (!isHome() || document.querySelector('.jed-guide')) return
+
+  const heroTitle = document.querySelector('#site-title')
+  if (heroTitle && !document.querySelector('.jed-hero-note')) {
+    const heroNote = document.createElement('div')
+    heroNote.className = 'jed-hero-note'
+    heroNote.innerHTML = `
+      <div>每天 0.1% 或 10% 都是進步</div>
+      <div>風景圖：新北福隆外海</div>
+    `
+    heroTitle.insertAdjacentElement('afterend', heroNote)
+  }
 
   const root = '/Software-Jed/'
   const posts = {

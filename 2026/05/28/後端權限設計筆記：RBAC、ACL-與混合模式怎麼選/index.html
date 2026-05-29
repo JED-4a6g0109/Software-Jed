@@ -1,0 +1,640 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？ | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="透過大樓門禁案例理解 RBAC、ACL 與混合權限模型的設計取捨。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2026/05/28/%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="透過大樓門禁案例理解 RBAC、ACL 與混合權限模型的設計取捨。">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg">
+<meta property="article:published_time" content="2026-05-28T12:12:17.000Z">
+<meta property="article:modified_time" content="2026-05-29T12:49:24.176Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="ACL">
+<meta property="article:tag" content="Backend">
+<meta property="article:tag" content="RBAC">
+<meta property="article:tag" content="Security">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2026/05/28/%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8/",
+  "image": "https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg",
+  "datePublished": "2026-05-28T12:12:17.000Z",
+  "dateModified": "2026-05-29T12:49:24.176Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2026/05/28/%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">42</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">44</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">33</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-05-28T12:12:17.000Z" title="發表於 2026-05-28 20:12:17">2026-05-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-05-29T12:49:24.176Z" title="更新於 2026-05-29 20:49:24">2026-05-29</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/%E8%BB%9F%E9%AB%94%E9%96%8B%E7%99%BC/">軟體開發</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/%E8%BB%9F%E9%AB%94%E9%96%8B%E7%99%BC/%E5%BE%8C%E7%AB%AF/">後端</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/%E8%BB%9F%E9%AB%94%E9%96%8B%E7%99%BC/%E5%BE%8C%E7%AB%AF/%E8%B3%87%E5%AE%89/">資安</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="後端權限設計筆記：RBAC、ACL-與混合模式怎麼選？"><a href="#後端權限設計筆記：RBAC、ACL-與混合模式怎麼選？" class="headerlink" title="後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？"></a>後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？</h1><p>後端在帳號、API、組織、後台管理、多租戶系統等場景中，常常都會遇到一個核心問題：</p>
+<blockquote>
+<p><strong>誰可以對什麼資源做什麼事？</strong></p>
+</blockquote>
+<p>這就是權限設計要處理的事情。</p>
+<p>本文會介紹最常見的兩種權限模型：</p>
+<ul>
+<li><strong>RBAC</strong>：Role-Based Access Control，角色型存取控制</li>
+<li><strong>ACL</strong>：Access Control List，存取控制清單</li>
+</ul>
+<p>我會用「高級社區帝爆大樓」作為日常例子來說明，快速理解兩者差異、優缺點，以及實務上為什麼常常會使用 <strong>RBAC + ACL 混合模式</strong>。</p>
+<hr>
+<h2 id="RBAC-—-Role-Based-Access-Control（角色型存取控制）"><a href="#RBAC-—-Role-Based-Access-Control（角色型存取控制）" class="headerlink" title="RBAC — Role-Based Access Control（角色型存取控制）"></a>RBAC — Role-Based Access Control（角色型存取控制）</h2><p>RBAC 的核心概念是：</p>
+<blockquote>
+<p>系統不直接把權限發給個人，而是先把權限發給角色，再把角色指派給使用者。</p>
+</blockquote>
+<p>基本流程如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">定義角色、動作、資源</span><br><span class="line">        ↓</span><br><span class="line">權限賦予角色</span><br><span class="line">        ↓</span><br><span class="line">角色指派給使用者</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">動作 Action + 資源 Resource = 權限 Permission</span><br></pre></td></tr></table></figure>
+
+<p>舉個易懂的例子，假設我們有一棟高級社區「帝爆大樓」。</p>
+<p>常見角色如下：</p>
+<ul>
+<li>一般住戶</li>
+<li>租房客</li>
+<li>訪客</li>
+<li>警衛</li>
+<li>清潔人員</li>
+<li>房東</li>
+</ul>
+<table>
+<tr>
+<td valign="top" style="padding-right: 30px; width: 50%;">
+
+<h3 id="資源（Resource）"><a href="#資源（Resource）" class="headerlink" title="資源（Resource）"></a>資源（Resource）</h3><table>
+<thead>
+<tr>
+<th align="left">資源</th>
+<th align="left">說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>大廳</strong></td>
+<td align="left">基本公共空間</td>
+</tr>
+<tr>
+<td align="left"><strong>住宅</strong></td>
+<td align="left">私人居住區域</td>
+</tr>
+<tr>
+<td align="left"><strong>健身房</strong></td>
+<td align="left">休閒娛樂設施</td>
+</tr>
+<tr>
+<td align="left"><strong>停車場</strong></td>
+<td align="left">車輛停放區域</td>
+</tr>
+<tr>
+<td align="left"><strong>監控室</strong></td>
+<td align="left">安全管制重地</td>
+</tr>
+</tbody></table>
+</td>
+
+<td valign="top" style="width: 50%;">
+
+<h3 id="動作（Action）"><a href="#動作（Action）" class="headerlink" title="動作（Action）"></a>動作（Action）</h3><table>
+<thead>
+<tr>
+<th align="left">動作</th>
+<th align="left">說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>enter</strong></td>
+<td align="left">進入某空間</td>
+</tr>
+<tr>
+<td align="left"><strong>use</strong></td>
+<td align="left">使用某設施</td>
+</tr>
+<tr>
+<td align="left"><strong>park</strong></td>
+<td align="left">停車</td>
+</tr>
+<tr>
+<td align="left"><strong>manage</strong></td>
+<td align="left">管理或變更權限</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</table>
+
+<p>有了角色、資源、動作後，就可以整理出角色權限總覽。</p>
+<h3 id="角色權限總覽表"><a href="#角色權限總覽表" class="headerlink" title="角色權限總覽表"></a>角色權限總覽表</h3><p>我們先以角色本身對應到資源的所有動作來看，暫時不考慮臨時授權與特殊條件。</p>
+<table>
+<thead>
+<tr>
+<th align="left">角色 &#x2F; 資源</th>
+<th align="center">大廳</th>
+<th align="center">住宅</th>
+<th align="center">健身房</th>
+<th align="center">停車場</th>
+<th align="center">監控室</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>一般住戶</strong></td>
+<td align="center"><code>enter</code></td>
+<td align="center"><code>enter</code></td>
+<td align="center"><code>use</code></td>
+<td align="center"><code>park</code></td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="left"><strong>租房客</strong></td>
+<td align="center"><code>enter</code></td>
+<td align="center"><code>enter</code></td>
+<td align="center"><code>use</code></td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="left"><strong>訪客</strong></td>
+<td align="center"><code>enter</code></td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="left"><strong>警衛</strong></td>
+<td align="center"><code>enter</code></td>
+<td align="center">❌</td>
+<td align="center"><code>enter</code></td>
+<td align="center"><code>enter</code></td>
+<td align="center"><code>enter</code></td>
+</tr>
+<tr>
+<td align="left"><strong>清潔人員</strong></td>
+<td align="center"><code>enter</code></td>
+<td align="center">❌</td>
+<td align="center"><code>enter</code></td>
+<td align="center"><code>enter</code></td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="left"><strong>房東</strong></td>
+<td align="center"><code>enter</code></td>
+<td align="center"><code>manage</code></td>
+<td align="center"><code>use</code></td>
+<td align="center"><code>manage</code></td>
+<td align="center">❌</td>
+</tr>
+</tbody></table>
+<p>RBAC 的好處是可以用角色簡化權限控制。例如「一般住戶」這個角色被賦予健身房使用權後，所有一般住戶都能繼承這份權限，不需要逐一幫每個人設定。</p>
+<p>但 RBAC 也有一些問題：當業務狀態越來越複雜，角色與權限可能會不斷膨脹。如果硬用 RBAC 去模擬 ACL 的細粒度行為，維護成本會變得很高。</p>
+<hr>
+<h2 id="RBAC-的常見問題"><a href="#RBAC-的常見問題" class="headerlink" title="RBAC 的常見問題"></a>RBAC 的常見問題</h2><h3 id="情境一：角色特殊授權來回調整，增加風險"><a href="#情境一：角色特殊授權來回調整，增加風險" class="headerlink" title="情境一：角色特殊授權來回調整，增加風險"></a>情境一：角色特殊授權來回調整，增加風險</h3><p>假設住戶帶訪客臨時使用健身房，每次住戶帶訪客時，警衛都需要針對訪客開放健身房權限。</p>
+<p>如果只用 RBAC，流程可能會變成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">訪客</span><br><span class="line">  ↓</span><br><span class="line">手動改成「訪客_健身房授權」</span><br><span class="line">  ↓</span><br><span class="line">當天結束後再改回「訪客」或註銷</span><br></pre></td></tr></table></figure>
+
+<p>少量情境還可以接受，但如果這件事很頻繁，就會開始出現問題：</p>
+<ul>
+<li>有人忘記改回來</li>
+<li>臨時角色越建越多</li>
+<li>權限異動變得難以追蹤</li>
+<li>最終衍生維護成本與資安風險</li>
+</ul>
+<p>換成軟體系統來看，就是用 RBAC 模擬 ACL。少量還好，但太頻繁就會讓角色設計變得很混亂。</p>
+<h3 id="情境二：角色對複雜條件難以維護"><a href="#情境二：角色對複雜條件難以維護" class="headerlink" title="情境二：角色對複雜條件難以維護"></a>情境二：角色對複雜條件難以維護</h3><p>假設健身房人數過多，社區改成分時制度。因為帝爆大樓太熱門，住戶有 2000 人，但健身房只能容納 50 人，所以被切成四個時段：</p>
+<ul>
+<li>06:00 - 10:00</li>
+<li>10:00 - 14:00</li>
+<li>14:00 - 18:00</li>
+<li>18:00 - 22:00</li>
+</ul>
+<p>如果硬用 RBAC 表達，可能會拆出：</p>
+<ul>
+<li>一般住戶_早上時段</li>
+<li>一般住戶_中午時段</li>
+<li>一般住戶_下午時段</li>
+<li>一般住戶_晚上時段</li>
+</ul>
+<p>看起來還可以接受，但如果條件再加上棟別、樓層、會員等級、特殊活動日，角色數量會快速爆炸。</p>
+<p>更精準地說：</p>
+<blockquote>
+<p>純 RBAC 不適合承載太多動態條件。如果把時間、地點、資源實例都塞進角色，最後會造成角色爆炸。</p>
+</blockquote>
+<h3 id="情境三：角色無法表示更小粒度的資源"><a href="#情境三：角色無法表示更小粒度的資源" class="headerlink" title="情境三：角色無法表示更小粒度的資源"></a>情境三：角色無法表示更小粒度的資源</h3><p>假設住戶冷氣壞了，維修人員需要進入 <code>12F 的 1201</code>，而且只有今天可以進入這一間。</p>
+<p>這種需求的粒度是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">某個人</span><br><span class="line">某一天</span><br><span class="line">某一間房</span><br><span class="line">某個動作</span><br></pre></td></tr></table></figure>
+
+<p>但 RBAC 比較擅長表達的是「角色對資源類型」的權限，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">維修工可以進入住宅</span><br></pre></td></tr></table></figure>
+
+<p>可是這樣太寬了，因為維修工不應該能進入所有住宅。</p>
+<p>如果硬做，就可能會建立：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">維修_1201住宅_今日</span><br></pre></td></tr></table></figure>
+
+<p>這種角色用完還要刪，會增加維護負擔，也會讓 RBAC 相關表越來越混亂。</p>
+<hr>
+<h2 id="ACL-—-Access-Control-List（存取控制清單）"><a href="#ACL-—-Access-Control-List（存取控制清單）" class="headerlink" title="ACL — Access Control List（存取控制清單）"></a>ACL — Access Control List（存取控制清單）</h2><p>ACL 的核心概念是：</p>
+<blockquote>
+<p>直接在資源上定義「誰」可以做什麼。每個資源各自維護一份清單。</p>
+</blockquote>
+<p>ACL 的基本結構通常會像這樣：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">主體 Who + 允許/拒絕 Effect + 動作 Action + 資源 Resource</span><br></pre></td></tr></table></figure>
+
+<p>RBAC 是以角色為主體，而 ACL 更像是以人或特定主體為主體。</p>
+<p>在 ACL 的設計下，<strong>每一個空間的門鎖，都有自己的一份獨立清單</strong>，裡面清楚寫著誰可以對它做什麼事。</p>
+<table>
+<tr>
+<td valign="top" style="padding-right: 20px; width: 50%;">
+
+<h4 id="健身房的感應門鎖清單"><a href="#健身房的感應門鎖清單" class="headerlink" title="健身房的感應門鎖清單"></a>健身房的感應門鎖清單</h4><p>「管你什麼角色，我看名單放行」</p>
+<table>
+<thead>
+<tr>
+<th align="left">誰（User ID）</th>
+<th align="left">可以做的動作（Action）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>住戶_張大頭</code></td>
+<td align="left"><code>use</code></td>
+</tr>
+<tr>
+<td align="left"><code>租客_李小華</code></td>
+<td align="left"><code>use</code></td>
+</tr>
+<tr>
+<td align="left"><code>訪客_陳小明</code></td>
+<td align="left"><code>use</code>，警衛臨時加進來</td>
+</tr>
+<tr>
+<td align="left"><code>清潔_林阿姨</code></td>
+<td align="left"><code>enter</code>，進去打掃</td>
+</tr>
+</tbody></table>
+</td>
+<td valign="top" style="width: 50%;">
+
+<h4 id="1201-號房的電子門鎖清單"><a href="#1201-號房的電子門鎖清單" class="headerlink" title="1201 號房的電子門鎖清單"></a>1201 號房的電子門鎖清單</h4><p>「這扇門，全世界只有這幾個人能開」</p>
+<table>
+<thead>
+<tr>
+<th align="left">誰（User ID）</th>
+<th align="left">可以做的動作（Action）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>房東_老王</code></td>
+<td align="left"><code>manage</code>，改密碼或出租</td>
+</tr>
+<tr>
+<td align="left"><code>租客_李小華</code></td>
+<td align="left"><code>enter</code>，開門進家</td>
+</tr>
+<tr>
+<td align="left"><code>維修工_阿土</code></td>
+<td align="left"><code>enter</code>，今天修水管臨時加的</td>
+</tr>
+<tr>
+<td align="left"><code>住戶_張大頭</code></td>
+<td align="left">❌，沒在名單上，預設拒絕</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</table>
+
+<p>ACL 對細粒度權限非常靈活，但它也有明顯缺點。</p>
+<hr>
+<h2 id="ACL-的常見問題"><a href="#ACL-的常見問題" class="headerlink" title="ACL 的常見問題"></a>ACL 的常見問題</h2><h3 id="情境一：重複定義問題"><a href="#情境一：重複定義問題" class="headerlink" title="情境一：重複定義問題"></a>情境一：重複定義問題</h3><p>假設帝爆大樓有 2000 位住戶。如果所有資源都使用 ACL 管理，你可能需要在健身房、停車場、公共空間等每個資源上都塞入一大堆使用者清單。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">【住戶名單（2000人）】          【核心資源（各自維護名單）】</span><br><span class="line"></span><br><span class="line">  User_0001（張大頭） ──┐      ┌─── 健身房的 ACL 清單 ───┐</span><br><span class="line">  User_0002（李小華） ──┼───→ │ - User_0001 : use       │</span><br><span class="line">  User_0003（陳阿土） ──┼───→ │ - User_0002 : use       │</span><br><span class="line">       :                │      │ - User_0003 : use       │</span><br><span class="line">  User_2000（林美秀） ──┘      │ : 這裡要塞 2000 行       │</span><br><span class="line">                               │ - User_2000 : use       │</span><br><span class="line">                               └─────────────────────────┘</span><br><span class="line"></span><br><span class="line">                               ┌─── 停車場的 ACL 清單 ───┐</span><br><span class="line">                               │ - User_0001 : park      │</span><br><span class="line">                               │ - User_0003 : park      │</span><br><span class="line">                               │ : 這裡又要塞 1500 行     │</span><br><span class="line">                               └─────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>這代表 ACL 如果用在大量共同權限上，會造成資料重複與維護負擔。</p>
+<h3 id="情境二：大量-CRUD-更新問題"><a href="#情境二：大量-CRUD-更新問題" class="headerlink" title="情境二：大量 CRUD 更新問題"></a>情境二：大量 CRUD 更新問題</h3><p>如果突然有 300 位用戶搬進來，或 500 位用戶搬出去，你就需要逐一修改每個資源上的 ACL 清單。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">【住戶異動】                  【核心資源（各自維護名單）】</span><br><span class="line"></span><br><span class="line">  500 位住戶搬出 ───────→     健身房 ACL 要刪除 500 筆</span><br><span class="line">                              停車場 ACL 要刪除部分資料</span><br><span class="line">                              公共空間 ACL 也要同步更新</span><br><span class="line">                              其他資源也可能要逐一處理</span><br></pre></td></tr></table></figure>
+
+<p>這種大量異動很容易變成高風險操作：</p>
+<ul>
+<li>更新不完整</li>
+<li>資料殘留</li>
+<li>權限沒有確實撤銷</li>
+<li>不同資源的 ACL 狀態不一致</li>
+</ul>
+<p>所以 ACL 很適合處理細粒度與特例，但不適合拿來管理大量共同權限。</p>
+<hr>
+<h2 id="RBAC-ACL-混合模式"><a href="#RBAC-ACL-混合模式" class="headerlink" title="RBAC + ACL 混合模式"></a>RBAC + ACL 混合模式</h2><p>RBAC 與 ACL 各自有適合的場景：</p>
+<ul>
+<li>RBAC 適合處理大多數人的共同權限</li>
+<li>ACL 適合處理少數人的特殊授權</li>
+</ul>
+<p>因此實務上常見的方式是混合使用。</p>
+<p>概念上會變成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">一般規則：交給 RBAC</span><br><span class="line">特殊例外：交給 ACL</span><br></pre></td></tr></table></figure>
+
+<h3 id="建議的判斷原則"><a href="#建議的判斷原則" class="headerlink" title="建議的判斷原則"></a>建議的判斷原則</h3><p>權限系統最好先定義清楚優先順序，避免規則互相打架。</p>
+<p>常見原則如下：</p>
+<ol>
+<li><strong>明確拒絕優先於允許</strong></li>
+<li><strong>ACL 可用來處理特例、臨時授權、細粒度資源</strong></li>
+<li><strong>沒有命中任何規則時，預設拒絕</strong></li>
+<li><strong>RBAC 處理大範圍共同權限，ACL 處理少數例外</strong></li>
+</ol>
+<p>流程可以設計成這樣：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[ 使用者請求發起 ]</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line"> ┌────────────────────┐</span><br><span class="line"> │ 檢查是否有明確拒絕  │</span><br><span class="line"> └────────────────────┘</span><br><span class="line">         │</span><br><span class="line">         ├── 有明確拒絕 → [ ❌ 拒絕存取 ]</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line"> ┌────────────────────┐</span><br><span class="line"> │ 第一層：RBAC        │</span><br><span class="line"> └────────────────────┘</span><br><span class="line">         │</span><br><span class="line">         ├── 符合基本角色權限 → [ ✅ 允許 ]</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line"> ┌────────────────────┐</span><br><span class="line"> │ 第二層：ACL         │</span><br><span class="line"> └────────────────────┘</span><br><span class="line">         │</span><br><span class="line">         ├── 命中特例授權 → [ ✅ 允許 ]</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">   [ ❌ 預設拒絕 ]</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="用混合模式解決前面的問題"><a href="#用混合模式解決前面的問題" class="headerlink" title="用混合模式解決前面的問題"></a>用混合模式解決前面的問題</h2><h3 id="解法一：訪客臨時使用健身房"><a href="#解法一：訪客臨時使用健身房" class="headerlink" title="解法一：訪客臨時使用健身房"></a>解法一：訪客臨時使用健身房</h3><p>訪客小明的身分從頭到尾都是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Role: 訪客</span><br></pre></td></tr></table></figure>
+
+<p>依據 RBAC 規則，訪客預設不能使用健身房。</p>
+<p>但當住戶帶小明來時，警衛不需要改變小明的角色，只需要在健身房的 ACL 特例名單新增一筆：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">User_陳小明 : use 健身房</span><br><span class="line">Expire Time : 2026-05-28 23:59:59</span><br></pre></td></tr></table></figure>
+
+<p>範例資料結構如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">【使用者個人表 Users】                   【RBAC 角色表 Roles】</span><br><span class="line">+---------+-----------+---------+             +---------+-----------+</span><br><span class="line">| user_id | user_name | role_id |             | role_id | role_name |</span><br><span class="line">+---------+-----------+---------+             +---------+-----------+</span><br><span class="line">|  8888   |  陳小明   |    3    |─── 關聯 ───&gt;|    3    |   訪客    |</span><br><span class="line">+---------+-----------+---------+             +---------+-----------+</span><br><span class="line">                                                    │</span><br><span class="line">                                                    │ 預設：訪客不能用健身房</span><br><span class="line">                                                    ▼</span><br><span class="line">                                      【ACL 核心配置表 ACL_Entries】</span><br><span class="line">+--------+--------------+-------------+-------------+--------+-----------+---------------------+</span><br><span class="line">| acl_id | subject_type | subject_id  | resource_id | action | time_slot | expire_time         |</span><br><span class="line">+--------+--------------+-------------+-------------+--------+-----------+---------------------+</span><br><span class="line">|   01   | ROLE         | 1           | 101         | use    | B         | 無                  |</span><br><span class="line">|   99   | USER         | 8888        | 101         | use    | B         | 2026-05-28 23:59:59 |</span><br><span class="line">+--------+--------------+-------------+-------------+--------+-----------+---------------------+</span><br></pre></td></tr></table></figure>
+
+<p>這樣的好處是：</p>
+<ul>
+<li>不需要新增臨時角色</li>
+<li>不需要改使用者原本角色</li>
+<li>可以設定過期時間</li>
+<li>特例授權可以被單獨追蹤</li>
+</ul>
+<h3 id="解法二：分時制度"><a href="#解法二：分時制度" class="headerlink" title="解法二：分時制度"></a>解法二：分時制度</h3><p>住戶仍然是一般住戶，不需要拆成四種角色。</p>
+<p>可以把使用者屬性與 ACL 條件搭配使用，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">user_attribute = &#123;&quot;time_slot&quot;: &quot;B&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用者刷卡時，後端拿到：</p>
+<ul>
+<li>使用者角色：一般住戶</li>
+<li>使用者時段：B</li>
+<li>目前系統時段：B</li>
+<li>目標資源：健身房</li>
+<li>動作：use</li>
+</ul>
+<p>接著去 ACL 或權限規則表比對是否允許。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">【使用者個人表 Users】</span><br><span class="line">+---------+-----------+---------+-------------------+</span><br><span class="line">| user_id | user_name | role_id | user_attribute    |</span><br><span class="line">+---------+-----------+---------+-------------------+</span><br><span class="line">|  9527   |  張大頭   |    1    | &#123;&quot;time_slot&quot;:&quot;B&quot;&#125; |</span><br><span class="line">|  9528   |  李小華   |    1    | &#123;&quot;time_slot&quot;:&quot;B&quot;&#125; |</span><br><span class="line">+---------+-----------+---------+-------------------+</span><br><span class="line"></span><br><span class="line">【ACL 核心配置表 ACL_Entries】</span><br><span class="line">+--------+--------------+------------+-------------+--------+-----------+</span><br><span class="line">| acl_id | subject_type | subject_id | resource_id | action | time_slot |</span><br><span class="line">+--------+--------------+------------+-------------+--------+-----------+</span><br><span class="line">|   01   | ROLE         |     1      |     101     | use    | A         |</span><br><span class="line">|   02   | ROLE         |     1      |     101     | use    | B         |</span><br><span class="line">|   03   | ROLE         |     1      |     101     | use    | C         |</span><br><span class="line">|   04   | ROLE         |     1      |     101     | use    | D         |</span><br><span class="line">+--------+--------------+------------+-------------+--------+-----------+</span><br></pre></td></tr></table></figure>
+
+<p>有人可能會問：</p>
+<blockquote>
+<p>那為什麼不直接把四個時段拆成四個資源？</p>
+</blockquote>
+<p>例如：</p>
+<ul>
+<li>健身房_A</li>
+<li>健身房_B</li>
+<li>健身房_C</li>
+<li>健身房_D</li>
+</ul>
+<p>這樣看似可行，但會衍生查詢與分析問題。</p>
+<p>原本統計健身房使用量只需要：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">FROM</span> access_logs</span><br><span class="line"><span class="keyword">WHERE</span> resource_id <span class="operator">=</span> <span class="number">101</span>;</span><br></pre></td></tr></table></figure>
+
+<p>拆成多個資源後，查詢可能變成：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">FROM</span> access_logs</span><br><span class="line"><span class="keyword">WHERE</span> resource_id <span class="keyword">IN</span> (<span class="number">101</span>, <span class="number">102</span>, <span class="number">103</span>, <span class="number">104</span>);</span><br></pre></td></tr></table></figure>
+
+<p>一開始看起來還好，但當條件越來越多，資源拆分會讓商業邏輯與資料分析變得更難維護。</p>
+<h3 id="解法三：維修工只進入-1201-號房"><a href="#解法三：維修工只進入-1201-號房" class="headerlink" title="解法三：維修工只進入 1201 號房"></a>解法三：維修工只進入 1201 號房</h3><p>維修工阿土的身分可以維持：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Role: 維修工</span><br></pre></td></tr></table></figure>
+
+<p>在 RBAC 的全域設定中，維修工預設不能進入任何住宅。</p>
+<p>接著利用 ACL 的細粒度能力，在 <code>1201</code> 號房的授權清單新增一筆：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">User_維修工阿土 : enter 1201</span><br><span class="line">Expire Time : 2026-05-28 18:00:00</span><br></pre></td></tr></table></figure>
+
+<p>範例資料結構如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">【使用者個人表 Users】                   【RBAC 角色表 Roles】</span><br><span class="line">+---------+------------+---------+             +---------+-----------+</span><br><span class="line">| user_id | user_name  | role_id |             | role_id | role_name |</span><br><span class="line">+---------+------------+---------+             +---------+-----------+</span><br><span class="line">|  7777   | 維修工阿土 |    4    |─── 關聯 ───&gt;|    4    |  維修工   |</span><br><span class="line">+---------+------------+---------+             +---------+-----------+</span><br><span class="line">                                                    │</span><br><span class="line">                                                    │ 全域預設：維修工不能進任何住宅</span><br><span class="line">                                                    ▼</span><br><span class="line">                                      【ACL 核心配置表 ACL_Entries】</span><br><span class="line">+--------+--------------+------------+-------------+--------+--------------------+---------------------+</span><br><span class="line">| acl_id | subject_type | subject_id | resource_id | action | target_instance_id | expire_time         |</span><br><span class="line">+--------+--------------+------------+-------------+--------+--------------------+---------------------+</span><br><span class="line">|   55   | USER         | 7777       | 999         | enter  | 1201               | 2026-05-28 18:00:00 |</span><br><span class="line">+--------+--------------+------------+-------------+--------+--------------------+---------------------+</span><br><span class="line"></span><br><span class="line">【RBAC 資源表 Resources】</span><br><span class="line">+-------------+-------------------+</span><br><span class="line">| resource_id | resource_name     |</span><br><span class="line">+-------------+-------------------+</span><br><span class="line">| 999         | 住宅 House        |</span><br><span class="line">+-------------+-------------------+</span><br><span class="line"></span><br><span class="line">【House_Instances】</span><br><span class="line">+-------------+------------------+------------+</span><br><span class="line">| instance_id | house_no         | owner      |</span><br><span class="line">+-------------+------------------+------------+</span><br><span class="line">| 1201        | A棟-12樓-1       | 張大頭     |</span><br><span class="line">| 1202        | B棟-05樓-3       | 李小華     |</span><br><span class="line">+-------------+------------------+------------+</span><br></pre></td></tr></table></figure>
+
+<p>這樣可以保留 RBAC 的簡潔性，也能處理 ACL 的細粒度需求。</p>
+<hr>
+<h2 id="RBAC、ACL、混合模式怎麼選？"><a href="#RBAC、ACL、混合模式怎麼選？" class="headerlink" title="RBAC、ACL、混合模式怎麼選？"></a>RBAC、ACL、混合模式怎麼選？</h2><table>
+<thead>
+<tr>
+<th align="left">場景</th>
+<th align="left">建議模型</th>
+<th align="left">原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">公司後台管理員、一般使用者、客服等固定角色</td>
+<td align="left">RBAC</td>
+<td align="left">角色穩定，權限共用度高</td>
+</tr>
+<tr>
+<td align="left">文件分享、單一資源授權</td>
+<td align="left">ACL</td>
+<td align="left">適合針對單一資源指定使用者</td>
+</tr>
+<tr>
+<td align="left">SaaS 多租戶系統</td>
+<td align="left">RBAC + ACL</td>
+<td align="left">角色處理基本權限，ACL 處理租戶與資源特例</td>
+</tr>
+<tr>
+<td align="left">臨時授權，例如訪客、維修工、外部協作者</td>
+<td align="left">ACL 或 RBAC + ACL</td>
+<td align="left">需要過期時間與細粒度控制</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="總結"><a href="#總結" class="headerlink" title="總結"></a>總結</h2><p>RBAC 與 ACL 沒有誰絕對比較好，重點是看業務場景。</p>
+<p>RBAC 適合處理穩定、共用、大範圍的權限，例如後台角色、組織職位、會員等級。</p>
+<p>ACL 適合處理細粒度、臨時、特例型授權，例如文件分享、指定房間進入權、臨時訪客權限。</p>
+<p>混合模式則是實務上常見的折衷：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RBAC 管基本盤</span><br><span class="line">ACL 管特殊例外</span><br><span class="line">Default Deny 作為安全底線</span><br></pre></td></tr></table></figure>
+
+<p>設計權限系統時，最重要的不是追求模型看起來多漂亮，而是要讓它在真實業務變化下仍然好維護、好追蹤、好撤銷，也不容易因為人工操作造成資安風險。</p>
+<p>方法沒有絕對正確，只有適不適合當下的業務與系統複雜度。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2026/05/28/%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8/">https://jed-4a6g0109.github.io/Software-Jed/2026/05/28/%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/Backend/">Backend</a><a class="post-meta__tags" href="/Software-Jed/tags/Security/">Security</a><a class="post-meta__tags" href="/Software-Jed/tags/RBAC/">RBAC</a><a class="post-meta__tags" href="/Software-Jed/tags/ACL/">ACL</a></div><div class="post-share"><div class="social-share" data-image="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Log 別亂寫：結構化 Log 如何救除錯與分析</div></div><div class="info-2"><div class="info-item-1">軟體工程師在開發時逃不掉寫 Log 的情況，而 Log 級別分為：    級別 (Level) 說明 (Description) 使用場景    DEBUG 詳細的除錯資訊 開發期間追蹤變數、邏輯流程。   INFO 一般狀態資訊 紀錄程式正常運行的關鍵節點，如啟動、關閉。   WARNING 警告資訊 出現不尋常但暫不影響運行的狀況，如 API 廢棄。   ERROR 一般錯誤 發生問題導致部分功能失效，如讀檔失敗。   CRITICAL 嚴重錯誤 極端嚴重的錯誤，程式通常難以維持運作。   基本上不太會使用 DEBUG 這個級別，一方面測試用放進程式碼會很亂，另一方面這個級別沒控制好，Log 搜尋會浪費儲存空間與效能。大多數 package 都會有 debug 級別的詳細資訊顯示。 因此在工作中常用的剩 INFO、WARNING、ERROR、CRITICAL，以下介紹一下使用場景。 INFO紀錄詳細 API 請求資訊，方便分析用量或行為等情境，例如機密系統的 Audit。 WARNING在後端開發最常見用在廢棄的 API。有些時候因為歷史因素 API 開放出去，但業務沒辦法追...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-15</div><div class="info-item-2">你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）</div></div><div class="info-2"><div class="info-item-1">科技趣事有大神使用 Python 偽裝 Ubuntu 與 SSH 腳本，對外開放了 54 天 SSH 22 port，引誘攻擊者進去伺服器，並做完整分析。看完整篇實在是很有趣：I Left Port 22 Open on the Internet for 54 Days. Here’s Who Showed Up.   你的 JWT 真的安全嗎？ ⚠️ 安全研究與教學用途聲明 本文內容僅供資安學習、安全研究、CTF 練習、靶場環境與已取得授權的滲透測試使用。文中可能包含漏洞原理、攻擊流程、測試指令或範例程式碼，目的在於理解風險、提升防禦能力與協助開發者修補弱點。 請勿將本文內容用於未經授權的系統、服務、網站、帳號或任何第三方資產。任何未經授權的掃描、入侵、資料存取、權限提升、破壞、竊取或繞過安全機制之行為，皆可能違反法律與服務條款。 使用者應自行確認測試範圍、授權狀態與所在地法律規範。因使用或誤用本文內容所造成的任何損害、法律責任、資料遺失、服務中斷或其他後果，皆由使用者自行承擔，作者不負任何責任。  JWT 在微服務場景是很常見的，JWT 通常由三個部分組成，以點（.）隔開： ...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="info-item-2">JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？</div></div><div class="info-2"><div class="info-item-1">科技趣事美國矽谷人形機器人新創公司 Figure AI 發起了一場長達 10 小時的人類與機器人物流撿貨大戰，並在 YouTube 上進行直播，最終人類獲勝了。但對於身體上，如手起水泡和疲勞，雖然機器人 BOB 輸了 200 多件貨品，但她還能為老闆繼續賺錢。   直播連結 JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？JWT 是無狀態、擴展性佳，主要用於在網路應用程式之間安全地傳遞資訊，適合分散式系統及單一登入（SSO）。用途是處理身分驗證（Authentication）與授權。 後端通常會這樣開 API： 1POST /login  1234&#123;  &quot;username&quot;: &quot;user123&quot;,  &quot;password&quot;: &quot;yourpassword&quot;&#125;  Response： 12345&#123;  &quot;access_token&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/06/%E5%BE%8C%E7%AB%AF%E6%9C%8D%E5%8B%99%E9%96%8B%E7%99%BC%E5%AE%89%E5%85%A8%E7%AD%86%E8%A8%98%EF%BC%9A%E8%B7%AF%E5%BE%91%E9%81%8D%E6%AD%B7-Path-Traversal/" title="後端服務開發安全筆記：路徑遍歷 (Path Traversal)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-06</div><div class="info-item-2">後端服務開發安全筆記：路徑遍歷 (Path Traversal)</div></div><div class="info-2"><div class="info-item-1"> ⚠️ 安全研究與教學用途聲明 本文內容僅供資安學習、安全研究、CTF 練習、靶場環境與已取得授權的滲透測試使用。文中可能包含漏洞原理、攻擊流程、測試指令或範例程式碼，目的在於理解風險、提升防禦能力與協助開發者修補弱點。 請勿將本文內容用於未經授權的系統、服務、網站、帳號或任何第三方資產。任何未經授權的掃描、入侵、資料存取、權限提升、破壞、竊取或繞過安全機制之行為，皆可能違反法律與服務條款。 使用者應自行確認測試範圍、授權狀態與所在地法律規範。因使用或誤用本文內容所造成的任何損害、法律責任、資料遺失、服務中斷或其他後果，皆由使用者自行承擔，作者不負任何責任。  Path Traversal 是透過 GET 請求方式使用一些特殊字元，或者透過路徑猜測伺服器內部的資料目錄，進而嘗試查看機密文件或投擲木馬的攻擊方式。 攻擊範例一個取得圖片的 API，伺服器部署在 Linux 上。 API 1https://example/image?filename=dog.jpg  相對路徑攻擊 攻擊者會將 filename 的 value 替換成路徑： 1https://example/image...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-22</div><div class="info-item-2">Log 別亂寫：結構化 Log 如何救除錯與分析</div></div><div class="info-2"><div class="info-item-1">軟體工程師在開發時逃不掉寫 Log 的情況，而 Log 級別分為：    級別 (Level) 說明 (Description) 使用場景    DEBUG 詳細的除錯資訊 開發期間追蹤變數、邏輯流程。   INFO 一般狀態資訊 紀錄程式正常運行的關鍵節點，如啟動、關閉。   WARNING 警告資訊 出現不尋常但暫不影響運行的狀況，如 API 廢棄。   ERROR 一般錯誤 發生問題導致部分功能失效，如讀檔失敗。   CRITICAL 嚴重錯誤 極端嚴重的錯誤，程式通常難以維持運作。   基本上不太會使用 DEBUG 這個級別，一方面測試用放進程式碼會很亂，另一方面這個級別沒控制好，Log 搜尋會浪費儲存空間與效能。大多數 package 都會有 debug 級別的詳細資訊顯示。 因此在工作中常用的剩 INFO、WARNING、ERROR、CRITICAL，以下介紹一下使用場景。 INFO紀錄詳細 API 請求資訊，方便分析用量或行為等情境，例如機密系統的 Audit。 WARNING在後端開發最常見用在廢棄的 API。有些時候因為歷史因素 API 開放出去，但業務沒辦法追...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/11/Retry-%E4%B8%8D%E6%98%AF%E9%87%8D%E8%A9%A6%E4%B8%89%E6%AC%A1%E5%B0%B1%E5%A5%BD%EF%BC%9ABackoff-%E8%88%87-Jitter-%E7%9A%84%E8%A8%AD%E8%A8%88%E6%80%9D%E8%80%83/" title="Retry 不是重試三次就好：Backoff 與 Jitter 的設計思考"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-11</div><div class="info-item-2">Retry 不是重試三次就好：Backoff 與 Jitter 的設計思考</div></div><div class="info-2"><div class="info-item-1">科技趣事 - 物理性注入攻擊加州研究員在路上手舉著板子，成功讓自動駕駛車子按照板子指令往前開。根據實驗結果，中文、英文、西班牙文和西班牙文與英文混合的命令似乎都能生效。現在就連現實世界也能實現與資安軟體注入攻擊類似的效果，蠻有趣的 XD。   出處與原文：https://www.theregister.com/software/2026/01/30/self-driving-cars-drones-hijacked-by-custom-road-signs/5042548 後端應用服務重試機制 (Retry) 設計筆記在軟體開發中，重試機制 Retry 是很常用的設計之一。在後端服務開發中，除了自身服務 API 外，也有可能連到外部服務做操作，這些場景都可能會需要設計重試機制。 以下以 Python 後端服務，並且在微服務架構中，寫一段 Python 重試機制作為例子。 舉例：服務 A 呼叫服務 B，透過 try except 來實作重試三次場景。 1234567891011121314151617181920212223242526import requestsimport t...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">42</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">44</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">33</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:bombom7108@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #ea4335;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><div class="jed-announcement">
+  <p class="jed-announcement__intro">科技趣事入口：從一些好玩的新聞切進工程、資安與 AI 思考。</p>
+  <a href="/Software-Jed/2026/05/11/Retry-不是重試三次就好：Backoff-與-Jitter-的設計思考/">路牌也能指揮自動駕駛？</a>
+  <a href="/Software-Jed/2026/05/18/JWT-不是無狀態嗎？前後端分離下，如何處理「User登出」的-Token-管理難題/">人類 vs Figure AI 機器人撿貨</a>
+  <a href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-到底是什麼？理解生成式-AI-模型/">AI 只看按讚就猜出你是誰</a>
+  <a href="/Software-Jed/2026/05/15/你的-JWT-真的安全嗎？常見-JWT-驗證漏洞整理（上）/">SSH 22 port 開 54 天會發生什麼？</a>
+</div>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#RBAC-%E2%80%94-Role-Based-Access-Control%EF%BC%88%E8%A7%92%E8%89%B2%E5%9E%8B%E5%AD%98%E5%8F%96%E6%8E%A7%E5%88%B6%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">RBAC — Role-Based Access Control（角色型存取控制）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B3%87%E6%BA%90%EF%BC%88Resource%EF%BC%89"><span class="toc-number">1.1.1.</span> <span class="toc-text">資源（Resource）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8B%95%E4%BD%9C%EF%BC%88Action%EF%BC%89"><span class="toc-number">1.1.2.</span> <span class="toc-text">動作（Action）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%92%E8%89%B2%E6%AC%8A%E9%99%90%E7%B8%BD%E8%A6%BD%E8%A1%A8"><span class="toc-number">1.1.3.</span> <span class="toc-text">角色權限總覽表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RBAC-%E7%9A%84%E5%B8%B8%E8%A6%8B%E5%95%8F%E9%A1%8C"><span class="toc-number">1.2.</span> <span class="toc-text">RBAC 的常見問題</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%85%E5%A2%83%E4%B8%80%EF%BC%9A%E8%A7%92%E8%89%B2%E7%89%B9%E6%AE%8A%E6%8E%88%E6%AC%8A%E4%BE%86%E5%9B%9E%E8%AA%BF%E6%95%B4%EF%BC%8C%E5%A2%9E%E5%8A%A0%E9%A2%A8%E9%9A%AA"><span class="toc-number">1.2.1.</span> <span class="toc-text">情境一：角色特殊授權來回調整，增加風險</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%85%E5%A2%83%E4%BA%8C%EF%BC%9A%E8%A7%92%E8%89%B2%E5%B0%8D%E8%A4%87%E9%9B%9C%E6%A2%9D%E4%BB%B6%E9%9B%A3%E4%BB%A5%E7%B6%AD%E8%AD%B7"><span class="toc-number">1.2.2.</span> <span class="toc-text">情境二：角色對複雜條件難以維護</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%85%E5%A2%83%E4%B8%89%EF%BC%9A%E8%A7%92%E8%89%B2%E7%84%A1%E6%B3%95%E8%A1%A8%E7%A4%BA%E6%9B%B4%E5%B0%8F%E7%B2%92%E5%BA%A6%E7%9A%84%E8%B3%87%E6%BA%90"><span class="toc-number">1.2.3.</span> <span class="toc-text">情境三：角色無法表示更小粒度的資源</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ACL-%E2%80%94-Access-Control-List%EF%BC%88%E5%AD%98%E5%8F%96%E6%8E%A7%E5%88%B6%E6%B8%85%E5%96%AE%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">ACL — Access Control List（存取控制清單）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%81%A5%E8%BA%AB%E6%88%BF%E7%9A%84%E6%84%9F%E6%87%89%E9%96%80%E9%8E%96%E6%B8%85%E5%96%AE"><span class="toc-number">1.3.1.</span> <span class="toc-text">健身房的感應門鎖清單</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1201-%E8%99%9F%E6%88%BF%E7%9A%84%E9%9B%BB%E5%AD%90%E9%96%80%E9%8E%96%E6%B8%85%E5%96%AE"><span class="toc-number">1.3.2.</span> <span class="toc-text">1201 號房的電子門鎖清單</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ACL-%E7%9A%84%E5%B8%B8%E8%A6%8B%E5%95%8F%E9%A1%8C"><span class="toc-number">1.4.</span> <span class="toc-text">ACL 的常見問題</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%85%E5%A2%83%E4%B8%80%EF%BC%9A%E9%87%8D%E8%A4%87%E5%AE%9A%E7%BE%A9%E5%95%8F%E9%A1%8C"><span class="toc-number">1.4.1.</span> <span class="toc-text">情境一：重複定義問題</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%85%E5%A2%83%E4%BA%8C%EF%BC%9A%E5%A4%A7%E9%87%8F-CRUD-%E6%9B%B4%E6%96%B0%E5%95%8F%E9%A1%8C"><span class="toc-number">1.4.2.</span> <span class="toc-text">情境二：大量 CRUD 更新問題</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RBAC-ACL-%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.5.</span> <span class="toc-text">RBAC + ACL 混合模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BB%BA%E8%AD%B0%E7%9A%84%E5%88%A4%E6%96%B7%E5%8E%9F%E5%89%87"><span class="toc-number">1.5.1.</span> <span class="toc-text">建議的判斷原則</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%A8%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E8%A7%A3%E6%B1%BA%E5%89%8D%E9%9D%A2%E7%9A%84%E5%95%8F%E9%A1%8C"><span class="toc-number">1.6.</span> <span class="toc-text">用混合模式解決前面的問題</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%B8%80%EF%BC%9A%E8%A8%AA%E5%AE%A2%E8%87%A8%E6%99%82%E4%BD%BF%E7%94%A8%E5%81%A5%E8%BA%AB%E6%88%BF"><span class="toc-number">1.6.1.</span> <span class="toc-text">解法一：訪客臨時使用健身房</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%BA%8C%EF%BC%9A%E5%88%86%E6%99%82%E5%88%B6%E5%BA%A6"><span class="toc-number">1.6.2.</span> <span class="toc-text">解法二：分時制度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%B8%89%EF%BC%9A%E7%B6%AD%E4%BF%AE%E5%B7%A5%E5%8F%AA%E9%80%B2%E5%85%A5-1201-%E8%99%9F%E6%88%BF"><span class="toc-number">1.6.3.</span> <span class="toc-text">解法三：維修工只進入 1201 號房</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RBAC%E3%80%81ACL%E3%80%81%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8%EF%BC%9F"><span class="toc-number">1.7.</span> <span class="toc-text">RBAC、ACL、混合模式怎麼選？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B8%BD%E7%B5%90"><span class="toc-number">1.8.</span> <span class="toc-text">總結</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/28/%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8/" title="後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/28/%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8/" title="後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？">後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？</a><time datetime="2026-05-28T12:12:17.000Z" title="發表於 2026-05-28 20:12:17">2026-05-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Log 別亂寫：結構化 Log 如何救除錯與分析"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析">Log 別亂寫：結構化 Log 如何救除錯與分析</a><time datetime="2026-05-22T12:24:00.000Z" title="發表於 2026-05-22 20:24:00">2026-05-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/20/Checkpoint-LoRA-VAE-%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F%E7%90%86%E8%A7%A3%E7%94%9F%E6%88%90%E5%BC%8F-AI-%E6%A8%A1%E5%9E%8B/" title="Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型">Checkpoint、LoRA、VAE 到底是什麼？理解生成式 AI 模型</a><time datetime="2026-05-20T12:24:00.000Z" title="發表於 2026-05-20 20:24:00">2026-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="工程師做 Survey 時，老闆真正想聽的是什麼？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/19/%E5%B7%A5%E7%A8%8B%E5%B8%AB%E5%81%9A-Survey-%E6%99%82%EF%BC%8C%E8%80%81%E9%97%86%E7%9C%9F%E6%AD%A3%E6%83%B3%E8%81%BD%E7%9A%84%E6%98%AF%E4%BB%80%E9%BA%BC/" title="工程師做 Survey 時，老闆真正想聽的是什麼？">工程師做 Survey 時，老闆真正想聽的是什麼？</a><time datetime="2026-05-19T15:24:00.000Z" title="發表於 2026-05-19 23:24:00">2026-05-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"/></a><div class="content"><a class="title" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？">JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？</a><time datetime="2026-05-18T11:24:00.000Z" title="發表於 2026-05-18 19:24:00">2026-05-18</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
