@@ -1,0 +1,323 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>你的專案在慢性發炎 | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="你的專案在慢性發炎 最近在回顧至今的職涯工作碰過了不少專案，大多數的內容都在做開發 測試 佈署這流程，有些專案會因為一些原因導致時間的迭代風險越來越高，就像慢性發炎一樣在早期症狀不明顯，但到了細胞突變成癌細胞需要手術時為時已晚，或者需要投入">
+<meta property="og:type" content="article">
+<meta property="og:title" content="你的專案在慢性發炎">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="你的專案在慢性發炎 最近在回顧至今的職涯工作碰過了不少專案，大多數的內容都在做開發 測試 佈署這流程，有些專案會因為一些原因導致時間的迭代風險越來越高，就像慢性發炎一樣在早期症狀不明顯，但到了細胞突變成癌細胞需要手術時為時已晚，或者需要投入">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=80">
+<meta property="article:published_time" content="2026-07-10T07:08:05.000Z">
+<meta property="article:modified_time" content="2026-07-30T15:06:01.448Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="Refactoring">
+<meta property="article:tag" content="Software Engineering">
+<meta property="article:tag" content="Technical Debt">
+<meta property="article:tag" content="Testing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=80"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "你的專案在慢性發炎",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/",
+  "image": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=80",
+  "datePublished": "2026-07-10T07:08:05.000Z",
+  "dateModified": "2026-07-30T15:06:01.448Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3RQPJSYG2V"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', 'G-3RQPJSYG2V')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', 'G-3RQPJSYG2V', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '你的專案在慢性發炎',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">50</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">76</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">43</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&amp;fit=crop&amp;w=1400&amp;q=80);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">你的專案在慢性發炎</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">你的專案在慢性發炎</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-07-10T07:08:05.000Z" title="發表於 2026-07-10 15:08:05">2026-07-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-07-30T15:06:01.448Z" title="更新於 2026-07-30 23:06:01">2026-07-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/Software-Engineering/">Software Engineering</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="你的專案在慢性發炎"><a href="#你的專案在慢性發炎" class="headerlink" title="你的專案在慢性發炎"></a>你的專案在慢性發炎</h1><p>最近在回顧至今的職涯工作碰過了不少專案，大多數的內容都在做開發&gt;測試&gt;佈署這流程，有些專案會因為一些原因導致時間的迭代風險越來越高，就像慢性發炎一樣在早期症狀不明顯，但到了細胞突變成癌細胞需要手術時為時已晚，或者需要投入更大的成本來治療，此篇文章將探討與分享我經歷的專案有哪些是慢性發炎症狀。以下七個症狀不分先後順序，也不一定會依序發生，任何一項單獨出現，都值得停下來檢視。</p>
+<h2 id="估時"><a href="#估時" class="headerlink" title="估時"></a>估時</h2><p>當PM有新的需求或者業務邏輯改動時，工程師需要給出Effort，當你發現你的估時越大時就是一種警訊，估時這樣講有點抽象，最簡單的判斷方式就是你之前寫的程式只需1天，如今現在新增新功能或者改動你需要花費大量時間，如2~5天之類的，下面舉個例子</p>
+<p>例子：新增一個欄位<br>假設 PM 提了一個需求：「使用者資料要多加一個生日欄位，前端要能填寫、後端要能存，還要顯示在會員頁面上。」<br>專案剛啟動的第一年，這種需求大多數人會估 0.5 天，不外乎內容為:</p>
+<ul>
+<li>DB Migration 加欄位</li>
+<li>API 加個參數</li>
+<li>前端補一個 input</li>
+<li>寫個單元測試</li>
+</ul>
+<p>但是現在專案跑了兩三年後，同樣性質的需求，你發現自己估到了 3 天，而且心裡還有點沒把握。為什麼呢？ 或許你擔憂這些問題:</p>
+<ul>
+<li>DB Migration 要小心，因為這張表已經被 5 個微服務直接讀寫，怕改壞</li>
+<li>此功能散落在多個微服務，沒有鏈路追蹤可追查</li>
+<li>這個欄位牽涉到程式碼寫的上帝物件（God Object），改一個地方要順便確認十幾個地方有沒有依賴</li>
+<li>沒有測試覆蓋，所以你得手動回歸測試整個會員模組，因為不確定會不會炸到別的功能</li>
+<li>前端那支表單元件已經被複製貼上到三個地方，你得三個都改，還要祈禱它們邏輯一致</li>
+<li>Code Review 要等，因為沒人敢一個人 Merge 這種「看起來簡單但誰知道會炸什麼」的 PR</li>
+</ul>
+<p>同一件事，同樣的複雜度，估時卻從 0.5 天變成 3 天以上，中間 5、6 倍的差距，這種情境發生就要注意瓶頸在哪了。</p>
+<h2 id="單元測試情境過少或消失"><a href="#單元測試情境過少或消失" class="headerlink" title="單元測試情境過少或消失"></a>單元測試情境過少或消失</h2><p>測試是很重要的，就像你吃的食物要經過檢驗、車子的引擎要經過反覆測試才能上路、醫院開給你的藥要經過層層臨床試驗，這些都是攸關安全的東西，軟體沒道理不寫單元測試。</p>
+<p>而專案會因時間成長，效益是很可觀的，單元測試的Test Case會給你信心和節省時間。不能只依靠 QA 把關，因為 RD 自己才最熟悉程式碼的邏輯與情境。並且測試還能了解程式碼的情境和用意，有些時候Spec文件沒有更新無從得知邏輯，因此看程式碼就是最精準的解法。</p>
+<p>如果一個專案的 Test Case 越來越少，甚至開始不寫，那就要注意了。我處理過微服務架構的系統，因為舊的專案沒有寫單元測試，導致在追溯問題時花很大量時間，最後發現底層核心系統的Enum少加了一個Key，且function也沒寫最基礎單元測試。事後回頭看，當初補一個測試案例只需要五分鐘，而這次代價卻是兩個工程師耗了一個下午，這就是不寫測試真正的成本，它不會馬上發生，一旦發生時間成本比你開發還要多倍。</p>
+<h2 id="假覆蓋率"><a href="#假覆蓋率" class="headerlink" title="假覆蓋率"></a>假覆蓋率</h2><p>覆蓋率指的是單元測試所測的所有專案範圍，有些主管或者公司會擬定專案要滿足幾%的覆蓋率才能佈署，我先說這是好的至少可以保證你有寫測試覆蓋到那些模組或核心業務避免遺漏，但往往覆蓋率指標設為太高就不是好事了，例如將覆蓋率門檻設在85-100%這種標準，我認為不是每個專案都能達成的，而那些專案沒辦法達成就會用一些奇怪的手段來騙過覆蓋率檢查機制</p>
+<ul>
+<li>Happy Path（快樂路徑）<br>簡單來說，單元測試只寫是最順利、完全沒出錯的理想狀況。測下來一路PASS，測試工程師與開發工程師還有PM都很Happy，也能增加覆蓋率。</li>
+<li>假單元測試<br>覆蓋率過高有些工程師就會開始偷懶，在單元測試裡面寫假單元測試，而實際是在做整合測試將覆蓋率數字衝高，但這違反了單元測試初衷，還遺留了垃圾code在裡面，因為這種測試毫無價值可言，下面舉個程式碼例子</li>
+</ul>
+<p>例子:<br>計算消費稅與下單功能</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">calculate_shipping_fee</span>(<span class="params">distance, weight</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;b: 真正有商業邏輯的函式&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> distance &gt; <span class="number">100</span>:</span><br><span class="line">        base_fee = weight * <span class="number">15</span> + <span class="number">50</span></span><br><span class="line">    <span class="keyword">elif</span> distance &gt; <span class="number">50</span>:</span><br><span class="line">        base_fee = weight * <span class="number">12</span> + <span class="number">20</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        base_fee = weight * <span class="number">10</span></span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> weight &gt; <span class="number">20</span>:</span><br><span class="line">        base_fee += <span class="number">30</span>  <span class="comment"># 超重附加費</span></span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> base_fee</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">create_order</span>(<span class="params">order_data</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;a: 只是做流程調用，本身沒什麼邏輯&quot;&quot;&quot;</span></span><br><span class="line">    fee = calculate_shipping_fee(order_data[<span class="string">&quot;distance&quot;</span>], order_data[<span class="string">&quot;weight&quot;</span>])</span><br><span class="line">    order = Order(items=order_data[<span class="string">&quot;items&quot;</span>], shipping_fee=fee)</span><br><span class="line">    <span class="keyword">return</span> order</span><br></pre></td></tr></table></figure>
+<p>工程師的單元測試只針對 create_order(a)寫，因為「反正跑起來會過，覆蓋率也會漲」</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">test_create_order</span>():</span><br><span class="line">    order_data = &#123;<span class="string">&quot;distance&quot;</span>: <span class="number">120</span>, <span class="string">&quot;weight&quot;</span>: <span class="number">25</span>, <span class="string">&quot;items&quot;</span>: [<span class="string">&quot;book&quot;</span>]&#125;</span><br><span class="line">    order = create_order(order_data)</span><br><span class="line">    <span class="keyword">assert</span> order.shipping_fee == <span class="number">25</span> * <span class="number">15</span> + <span class="number">50</span> + <span class="number">30</span>  <span class="comment"># 505</span></span><br></pre></td></tr></table></figure>
+<p>問題在於粒度錯了，兩者職責不同，理應各自獨立測試。</p>
+<ul>
+<li>Ignore註解大法<br>有些工具有提供Ignore功能來避免計算進覆蓋率，如pytest <code># pragma: no cover</code>，工程師不知道怎麼寫或是偷懶就會用此招，覆蓋率報告因此顯示 95%，但真正沒被驗證的，恰好是最容易出錯、最該被保護的分支邏輯</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">process_payment</span>(<span class="params">payment_type, amount</span>):</span><br><span class="line">    <span class="keyword">if</span> payment_type == <span class="string">&quot;credit_card&quot;</span>:</span><br><span class="line">        <span class="keyword">return</span> charge_credit_card(amount)</span><br><span class="line">    <span class="keyword">elif</span> payment_type == <span class="string">&quot;bank_transfer&quot;</span>:  <span class="comment"># pragma: no cover</span></span><br><span class="line">        <span class="keyword">return</span> process_bank_transfer(amount)  <span class="comment"># pragma: no cover</span></span><br><span class="line">    <span class="keyword">else</span>:  <span class="comment"># pragma: no cover</span></span><br><span class="line">        <span class="keyword">raise</span> NotImplementedError(<span class="string">f&quot;Unsupported: <span class="subst">&#123;payment_type&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>測試無關緊要的東西<br>覆蓋率不夠就會開始寫一些垃圾單元測試，例如測試第三方function、framework方法、甚至連DTO一些無邏輯程式碼</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 測試 Python 內建的 datetime，或第三方套件本身的行為</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test_datetime_now</span>():</span><br><span class="line">    now = datetime.datetime.now()</span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">isinstance</span>(now, datetime.datetime)</span><br><span class="line"> </span><br><span class="line"><span class="comment"># 測試一個純粹的 DTO/Model，完全沒有邏輯</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">UserDTO</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, name</span>):</span><br><span class="line">        <span class="variable language_">self</span>.name = name</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">get_name</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>.name</span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test_user_dto_get_name</span>():</span><br><span class="line">    dto = UserDTO(<span class="string">&quot;Tom&quot;</span>)</span><br><span class="line">    <span class="keyword">assert</span> dto.get_name() == <span class="string">&quot;Tom&quot;</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># 測試 framework 自己保證會動的東西</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test_pydantic_model_creation</span>():</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">UserModel</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">        name: <span class="built_in">str</span></span><br><span class="line"> </span><br><span class="line">    user = UserModel(name=<span class="string">&quot;Tom&quot;</span>)</span><br><span class="line">    <span class="keyword">assert</span> user.name == <span class="string">&quot;Tom&quot;</span>  <span class="comment"># Pydantic 本身就保證這件事，不用你測</span></span><br></pre></td></tr></table></figure>
+<p>這些手法的共同點是，數字很誠實地反映了「你寫了測試」，卻完全不反映「系統被驗證過」，覆蓋率報告變成一份好看的謊言。</p>
+<h2 id="明確的危險症狀"><a href="#明確的危險症狀" class="headerlink" title="明確的危險症狀"></a>明確的危險症狀</h2><p>幾乎每個做過專案的人都聽過這句話：「這邊別動，能跑就好」。團隊心裡都清楚哪裡是雷區，某段邏輯沒人懂當初為什麼這樣寫、某個模組改一行就牽動十個地方。這不是沒人發現問題，恰恰相反，大家都知道，只是選擇繞過去。</p>
+<p>繞過去的理由永遠一堆:</p>
+<ul>
+<li>時程太趕</li>
+<li>政治敏感</li>
+<li>跨部門溝通成本太高</li>
+<li>耦合度太深動不了</li>
+<li>業務邏輯太重不敢碰</li>
+</ul>
+<p>業務需求會變、依賴套件會爆出資安漏洞、雲端服務商會停止支援舊版本，外部世界不會等一個程式碼庫自己想通再變動。沒有一個專案能永遠不更新、不佈署，遲早有一天，那個「別碰的地方」會被迫碰。</p>
+<p>當出現不得已要開始改動時，已經太晚了，通常主管通常會開始評估兩條路：</p>
+<ul>
+<li>局部重構</li>
+<li>另開新專案做 Migration</li>
+</ul>
+<p>但要提醒的是，Migration 從來不是必然選項，只是當耦合深到連局部重構都無法切入時，才會被迫走這條成本最高、風險最大的路。多數情況下，漸進式重構才是更務實的第一選擇。</p>
+<h2 id="手動"><a href="#手動" class="headerlink" title="手動"></a>手動</h2><p>人都會犯錯，沒有人是完美的。就算你自己夠仔細不會出錯，也要考慮到同事，以及未來接手的同仁未必知道你動過什麼。</p>
+<p>我自己就遇過一次教訓：曾經為了協助 QA 建立測試環境，手動改動了程式碼內部的參數，事後忘記調整回去，發 PR 時同事也沒注意到，最後這段改動被佈署上線，導致產品故障。而所有系統任何地方都不應該出現手動，如果出現請警惕並分析為啥還不調整自動，而系統任何的手動會衍生出三個問題：</p>
+<ul>
+<li>沒有 Audit Trail：出事時完全查不到是誰動的、什麼時候動的，究責無從查起</li>
+<li>無法維護：沒人知道系統實際被改成什麼樣子，接手的人像在拆一顆不知道線路的炸彈</li>
+<li>增加犯錯風險：手動操作本身就比自動化更容易出錯，而且每次都要重新花時間確認</li>
+</ul>
+<p>如果你的專案裡還存在這種手動操作，就跟身體裡的腫瘤一樣，現在看起來沒事，只是還沒等到它癌變的那一天。</p>
+<h2 id="拒絕當算命師"><a href="#拒絕當算命師" class="headerlink" title="拒絕當算命師"></a>拒絕當算命師</h2><p>在開發時，很多時候明明需求還不明確就開始過度設計，或預先開發，但我認為這是無意義且增加技術債的行為。我自己的判斷標準是</p>
+<blockquote>
+<p>只要這個需求還沒被放進 Backlog、PM 也沒有明確拍板未來一定會做，只是目前先擱置，我一律不會因此改變我的設計或預留彈性。</p>
+</blockquote>
+<p>原因是業務需求本來就是多變的，你今天猜的「未來可能會這樣用」，很可能三個月後方向完全變了，甚至這個需求根本被砍掉。你現在為了「可能發生的未來」多寫的抽象層、多留的參數、多繞的彈性設計，只會換來一個結果</p>
+<blockquote>
+<p>系統複雜度變高，而複雜度是不會自己消失的，它會一直留在那裡，變成往後每個人都要多花時間理解的成本。</p>
+</blockquote>
+<p>有些人會反駁:「程式碼寫得有彈性、好擴展、好維護，這不是好事嗎？」這句話本身沒有錯，我也不否認彈性設計、可維護性是好的工程實踐，但這跟「為一個還不存在的需求預先設計」是兩碼子事。彈性應該是為了「已知會變動的東西」而準備，不是為了「你猜測會發生的東西」而準備。</p>
+<p>既然需求還沒確定，為什麼不等它明確下來再開發？你現在腦中預想的方案，真的能保證就是未來需求出現時的最佳解嗎？多數時候答案是不能，你今天猜的彈性設計方向，未來需求真的來的時候，往往剛好不是那個方向，於是你多留的彈性完全沒用上，反而變成一段增加理解成本、卻從未被使用過的死程式碼。與其賭一個不確定的未來，不如把力氣留到需求真正確定的那一刻，用當下最清楚的資訊做出最合適的設計。</p>
+<h2 id="佈署恐慌"><a href="#佈署恐慌" class="headerlink" title="佈署恐慌"></a>佈署恐慌</h2><p>佈署頻率持續下降，是需要提高警覺的訊號。任何有價值的系統都不會出現這種現象，就算是穩定成熟的系統，也會有例行的優化與維護性更新，佈署次數不會無緣無故越來越少。</p>
+<p>當專案惡化到沒人敢佈署、連一個小功能上線都要提心吊膽、每次佈署 Product 都會炸，基本上已經是末期病徵，通常代表 Migration 已經是唯一選項了。不過這裡要區分兩種佈署頻率下降的成因：</p>
+<p>一種是系統本身太脆弱、變更成本太高（前面講的情況），另一種其實是團隊士氣低落或人力流失導致產出變慢，跟程式碼健康度無關。這兩者外在症狀很像，但病因完全不同，不要把士氣問題誤診成技術債，反過來也不要把技術債問題誤診成人的問題。</p>
+<h1 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h1><p>文內所提的</p>
+<ul>
+<li>估時暴增</li>
+<li>測試消失</li>
+<li>覆蓋率造假</li>
+<li>危險地區浮現</li>
+<li>手動操作蔓延</li>
+<li>預先為未來過度設計</li>
+<li>佈署頻率下降</li>
+</ul>
+<p>這七個症狀很少同時出現在同一天，它們是慢性的、漸進的，就像發炎初期你甚至不會特別在意。但等到多個症狀同時出現、團隊已經對佈署感到恐慌時，通常代表病灶已經不是吃藥調理能解決的範圍了，而是要動刀，也就是前面提到的重構或 Migration。</p>
+<p>慢性發炎最麻煩的地方就是你對於這些小問題不會有太大感覺，你覺得只是小感冒或者身體痠痛過幾天就好，但是沒有人能準確預測「還剩多少時間」，等到症狀越來越明顯基本上就罹癌了，與其等到不得不動刀那天，不如現在就開始留意這些訊號，越早發現，治療成本越低。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/">https://jed-4a6g0109.github.io/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/Software-Engineering/">Software Engineering</a><a class="post-meta__tags" href="/Software-Jed/tags/Technical-Debt/">Technical Debt</a><a class="post-meta__tags" href="/Software-Jed/tags/Refactoring/">Refactoring</a><a class="post-meta__tags" href="/Software-Jed/tags/Testing/">Testing</a></div><div class="post-share"><div class="social-share" data-image="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&amp;fit=crop&amp;w=1400&amp;q=80" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/" title="bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE"><img class="cover" src="https://github.com/user-attachments/assets/87959754-9816-4a38-848f-27da4ee7affd" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE</div></div><div class="info-2"><div class="info-item-1">科技趣事-AI鍵盤最近看到OpenAI出了一個鍵盤可以對Agent做批准等操作，而RGB燈是顯示目前處理進度，這要230美金真的會笑死，據消息此設計師之前待過蘋果，那真是不意外了XD bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE最近總算有點時間剛好很久沒看到bytebytego，看到了關於輪詢 vs 長輪詢 vs Webhooks vs SSE這篇介紹我感覺有點太過簡略，雖然這是他文章定位不同職位與階級能快速吸收的方式，但很少深入到「這個方案在什麼條件下會出問題」的層次大量內容是把經典論文&#x2F;官方文件的結論重新排版成好看的圖，原創洞察不多我認為非常可惜，所以針對這章節補充一些內容 輪詢 vs 長輪詢 vs Webhooks vs SSE屬於客戶端-伺服器通訊模式(Client-Server Communication Patterns)設計，主要解決Client與Server用哪種設計來達成資訊的通訊，其實還有更多設計，只是這四種目前普遍大家常看到的設計，而他的優缺點bytebytego其實很精簡介紹了，但他並沒有說為何這樣...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/" title="架構模式BFF(Backend for Frontend)是什麼?"><img class="cover" src="https://github.com/user-attachments/assets/f855c1b6-0e67-4c14-a6a7-86c5a9e0505d" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">架構模式BFF(Backend for Frontend)是什麼?</div></div><div class="info-2"><div class="info-item-1">架構模式BFF(Backend for Frontend)是什麼?在現在公司以及軟體規模，通常後端需要同時要支援 Web、iOS、Android 甚至第三方合作夥伴的產品,在後端 API開發上可能會遇到前端夥伴一些需求  這支 API 給的資料不是我要的格式 我要打三支 API 才能拼出一個畫面 要客製化的前端專屬業務邏輯 API怎麼打?怎麼接?  而以上這正是 BFF(Backend for Frontend)這個架構模式想解決的問題。 BFF 是什麼?SoundCloud 早在 2013 年就率先提出了後端服務前端(BFF) 架構模式， 與其讓所有前端(Web、iOS、Android、第三方)共用同一組通用後端 API，不如為「每一種前端」量身打造一層專屬的後端服務。  每個前端對應一個(或一組)專屬 BFF，BFF 再去呼叫底層各個領域的微服務，聚合、轉換之後回傳給前端。它介於「前端」與「底層核心服務(微服務、資料庫、第三方系統)」之間負責:  聚合多個微服務的資料，組成前端要的單一回應 針對特定裝置或平台做資料處理或格式轉換 處理該前端專屬的認證、快取、錯誤處理邏輯 隔離...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">50</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">76</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">43</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:bombom7108@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #ea4335;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><div class="jed-announcement">
+  <p class="jed-announcement__intro">科技趣事入口：近期從 AI、HTTP、DevSecOps 與系統設計新聞切進工程思考。</p>
+  <a href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/">祖克伯認為 5 年內 AI 代理會爆炸式成長</a>
+  <a href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/">Spring Boot 工程師看 FastAPI 的破防感</a>
+  <a href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/">OpenAI Agent 鍵盤與 AI 工具硬體化</a>
+  <a href="/Software-Jed/2026/06/29/RFC-10008-HTTP%E6%96%B0%E5%A2%9EQUERY%E6%96%B9%E6%B3%95/">SQLite 作者為什麼拒絕免費 PR？</a>
+  <a href="/Software-Jed/2026/06/04/DevSecOps-%E5%AF%A6%E8%B8%90%EF%BC%9APac%E5%AF%A6%E8%B8%90%E8%88%87%E6%BC%8F%E6%B4%9E%E6%8E%83%E6%8F%8F/">ZIP 炸彈與爬蟲防護趣事</a>
+</div>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E"><span class="toc-number">1.</span> <span class="toc-text">你的專案在慢性發炎</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%B0%E6%99%82"><span class="toc-number">1.1.</span> <span class="toc-text">估時</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%96%AE%E5%85%83%E6%B8%AC%E8%A9%A6%E6%83%85%E5%A2%83%E9%81%8E%E5%B0%91%E6%88%96%E6%B6%88%E5%A4%B1"><span class="toc-number">1.2.</span> <span class="toc-text">單元測試情境過少或消失</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%81%87%E8%A6%86%E8%93%8B%E7%8E%87"><span class="toc-number">1.3.</span> <span class="toc-text">假覆蓋率</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%8E%E7%A2%BA%E7%9A%84%E5%8D%B1%E9%9A%AA%E7%97%87%E7%8B%80"><span class="toc-number">1.4.</span> <span class="toc-text">明確的危險症狀</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%8B%E5%8B%95"><span class="toc-number">1.5.</span> <span class="toc-text">手動</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8B%92%E7%B5%95%E7%95%B6%E7%AE%97%E5%91%BD%E5%B8%AB"><span class="toc-number">1.6.</span> <span class="toc-text">拒絕當算命師</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%88%E7%BD%B2%E6%81%90%E6%85%8C"><span class="toc-number">1.7.</span> <span class="toc-text">佈署恐慌</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">2.</span> <span class="toc-text">結論</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/" title="圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術"><img src="https://github.com/user-attachments/assets/0f0aeb38-38ce-4e76-8c01-b1199aae676d" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/" title="圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術">圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術</a><time datetime="2026-07-28T05:44:48.000Z" title="發表於 2026-07-28 13:44:48">2026-07-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/" title="從Concurrency與Parallelism概念去了解Python: Multiprocessing、Threading、Coroutine、asyncio"><img src="https://github.com/user-attachments/assets/292fb9fd-cac8-4b7d-8c08-5d1b1cca52a4" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="從Concurrency與Parallelism概念去了解Python: Multiprocessing、Threading、Coroutine、asyncio"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/" title="從Concurrency與Parallelism概念去了解Python: Multiprocessing、Threading、Coroutine、asyncio">從Concurrency與Parallelism概念去了解Python: Multiprocessing、Threading、Coroutine、asyncio</a><time datetime="2026-07-22T06:25:02.000Z" title="發表於 2026-07-22 14:25:02">2026-07-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/" title="bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE"><img src="https://github.com/user-attachments/assets/87959754-9816-4a38-848f-27da4ee7affd" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/" title="bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE">bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE</a><time datetime="2026-07-16T05:08:27.000Z" title="發表於 2026-07-16 13:08:27">2026-07-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/" title="你的專案在慢性發炎"><img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&amp;fit=crop&amp;w=1400&amp;q=80" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="你的專案在慢性發炎"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/" title="你的專案在慢性發炎">你的專案在慢性發炎</a><time datetime="2026-07-10T07:08:05.000Z" title="發表於 2026-07-10 15:08:05">2026-07-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/" title="架構模式BFF(Backend for Frontend)是什麼?"><img src="https://github.com/user-attachments/assets/f855c1b6-0e67-4c14-a6a7-86c5a9e0505d" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="架構模式BFF(Backend for Frontend)是什麼?"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/" title="架構模式BFF(Backend for Frontend)是什麼?">架構模式BFF(Backend for Frontend)是什麼?</a><time datetime="2026-07-08T06:23:54.000Z" title="發表於 2026-07-08 14:23:54">2026-07-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

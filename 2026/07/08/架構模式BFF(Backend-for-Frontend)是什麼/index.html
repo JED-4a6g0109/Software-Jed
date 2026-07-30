@@ -1,0 +1,284 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>架構模式BFF(Backend for Frontend)是什麼? | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="架構模式BFF(Backend for Frontend)是什麼? 在現在公司以及軟體規模，通常後端需要同時要支援 Web、iOS、Android 甚至第三方合作夥伴的產品,在後端 API開發上可能會遇到前端夥伴一些需求 這支 API 給的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="架構模式BFF(Backend for Frontend)是什麼?">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="架構模式BFF(Backend for Frontend)是什麼? 在現在公司以及軟體規模，通常後端需要同時要支援 Web、iOS、Android 甚至第三方合作夥伴的產品,在後端 API開發上可能會遇到前端夥伴一些需求 這支 API 給的">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://github.com/user-attachments/assets/f855c1b6-0e67-4c14-a6a7-86c5a9e0505d">
+<meta property="article:published_time" content="2026-07-08T06:23:54.000Z">
+<meta property="article:modified_time" content="2026-07-30T11:09:36.490Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="Architecture">
+<meta property="article:tag" content="BFF">
+<meta property="article:tag" content="Backend">
+<meta property="article:tag" content="Microservices">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/user-attachments/assets/f855c1b6-0e67-4c14-a6a7-86c5a9e0505d"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "架構模式BFF(Backend for Frontend)是什麼?",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/",
+  "image": "https://github.com/user-attachments/assets/f855c1b6-0e67-4c14-a6a7-86c5a9e0505d",
+  "datePublished": "2026-07-08T06:23:54.000Z",
+  "dateModified": "2026-07-30T11:09:36.490Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3RQPJSYG2V"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', 'G-3RQPJSYG2V')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', 'G-3RQPJSYG2V', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '架構模式BFF(Backend for Frontend)是什麼?',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">50</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">76</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">43</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://github.com/user-attachments/assets/f855c1b6-0e67-4c14-a6a7-86c5a9e0505d);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">架構模式BFF(Backend for Frontend)是什麼?</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">架構模式BFF(Backend for Frontend)是什麼?</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-07-08T06:23:54.000Z" title="發表於 2026-07-08 14:23:54">2026-07-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-07-30T11:09:36.490Z" title="更新於 2026-07-30 19:09:36">2026-07-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/Backend/">Backend</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/Backend/Architecture/">Architecture</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="架構模式BFF-Backend-for-Frontend-是什麼"><a href="#架構模式BFF-Backend-for-Frontend-是什麼" class="headerlink" title="架構模式BFF(Backend for Frontend)是什麼?"></a>架構模式BFF(Backend for Frontend)是什麼?</h1><p>在現在公司以及軟體規模，通常後端需要同時要支援 Web、iOS、Android 甚至第三方合作夥伴的產品,在後端 API開發上可能會遇到前端夥伴一些需求</p>
+<ul>
+<li>這支 API 給的資料不是我要的格式</li>
+<li>我要打三支 API 才能拼出一個畫面</li>
+<li>要客製化的前端專屬業務邏輯</li>
+<li>API怎麼打?怎麼接?</li>
+</ul>
+<p>而以上這正是 BFF(Backend for Frontend)這個架構模式想解決的問題。</p>
+<h2 id="BFF-是什麼"><a href="#BFF-是什麼" class="headerlink" title="BFF 是什麼?"></a>BFF 是什麼?</h2><p>SoundCloud 早在 2013 年就率先提出了<a target="_blank" rel="noopener" href="https://www.thoughtworks.com/insights/blog/bff-soundcloud">後端服務前端</a>(BFF) 架構模式， 與其讓所有前端(Web、iOS、Android、第三方)共用同一組通用後端 API，不如為「每一種前端」量身打造一層專屬的後端服務。<br> <img class="jed-post-image" style="--jed-image-width: 860px;" alt="Image" src="https://github.com/user-attachments/assets/f855c1b6-0e67-4c14-a6a7-86c5a9e0505d" /></p>
+<p>每個前端對應一個(或一組)專屬 BFF，BFF 再去呼叫底層各個領域的微服務，聚合、轉換之後回傳給前端。它介於「前端」與「底層核心服務(微服務、資料庫、第三方系統)」之間負責:</p>
+<ul>
+<li>聚合多個微服務的資料，組成前端要的單一回應</li>
+<li>針對特定裝置或平台做資料處理或格式轉換</li>
+<li>處理該前端專屬的認證、快取、錯誤處理邏輯</li>
+<li>隔離前端變動對核心服務的衝擊<br>簡單說，BFF 讓「前端想要什麼形狀的資料」跟「後端實際怎麼存資料」這兩件事解耦，以及簡化前端需要學習後端API服務開怎使用的學習成本(後端服務有時API是多層的非常複雜)</li>
+</ul>
+<h2 id="BFF設計帶來什麼好處"><a href="#BFF設計帶來什麼好處" class="headerlink" title="BFF設計帶來什麼好處?"></a>BFF設計帶來什麼好處?</h2><h3 id="支援不同前端的需求差異化"><a href="#支援不同前端的需求差異化" class="headerlink" title="支援不同前端的需求差異化"></a>支援不同前端的需求差異化</h3><ul>
+<li><p>商業模式導致的差異<br>有些是出於商業模式，又或者前端侷限而導致不同端的需求會有些微差異，例子:<br>電商平台的 Web 後台(給商家用)需要完整的營收報表、庫存明細、財務數字;但消費者端的 Mobile App 只需要簡化過的商品資訊與訂單狀態，因為使用情境不同(商家在辦公室分析數據 vs. 消費者滑手機下單)。</p>
+</li>
+<li><p>前端技術侷限造成的差異<br>Mobile App 在行動網路環境下要考慮流量與電量，BFF 可以做資料的Cache，又或者大量計算可以由後端算完將結果傳至前端，來降低前端運算電力消耗問題</p>
+</li>
+</ul>
+<h3 id="減少前端的API學習成本"><a href="#減少前端的API學習成本" class="headerlink" title="減少前端的API學習成本"></a>減少前端的API學習成本</h3><p>沒有 BFF 的情況下，前端常常得自己打好幾支 API，再自己組裝資料、處理錯誤、做重試邏輯。這些邏輯搬到 BFF 之後，前端只要呼叫一支專門為它設計的 API，拿到剛剛好的資料就好，畫面邏輯乾淨很多。解決了前端開發上無需學習後端API成本</p>
+<img class="jed-post-image" style="--jed-image-width: 860px;" alt="Image" src="https://github.com/user-attachments/assets/70a934aa-de85-451e-a682-b51061e51144" />
+
+ 
+<h3 id="後端領域服務"><a href="#後端領域服務" class="headerlink" title="後端領域服務"></a>後端領域服務</h3><ul>
+<li><p>端與端之間解偶非強耦合在同後端服務<br>核心微服務可以維持通用、穩定、不隨前端需求變動的設計，不必為了遷就某個特定前端而妥協資料結構。BFF 則是變動最頻繁、最貼近使用者體驗的那一層，兩者責任分開後，兩邊的迭代速度都能加快。不需要因不同端邏輯修改而影響到另一端服務與邏輯在各前端不同步問題(API由後端掌控，非前端自行處理避免未來大改或者業務大改)</p>
+</li>
+<li><p>隱藏對外暴露風險<br>前端不會針對底層API服務做請求，而是向BFF做請求，而BFF在與底層服務做請求與組合，通常底層服務都與資料庫緊密連接，API都是核心API對於穩定性和可靠性有很大的要求，因此越少這種資訊暴露在前端越好</p>
+</li>
+</ul>
+<img class="jed-post-image" style="--jed-image-width: 860px;" alt="Image" src="https://github.com/user-attachments/assets/ec0d5d1e-603e-4603-9c4b-08790a4a48b1" />
+
+ 
+<h2 id="導入-BFF-前要想清楚的事"><a href="#導入-BFF-前要想清楚的事" class="headerlink" title="導入 BFF 前要想清楚的事"></a>導入 BFF 前要想清楚的事</h2><p>BFF 不是萬靈丹，導入前建議先評估:</p>
+<ul>
+<li><p><strong>團隊規模是否夠大</strong>:如果公司產品單純，無須多個服務只有一個前端、一個後端，多一層 BFF 反而增加維運成本與部署複雜度。</p>
+</li>
+<li><p><strong>誰來維護 BFF</strong>:是前端團隊、後端團隊，還是獨立的平台團隊?責任歸屬不清楚，BFF 容易變成沒人想碰的孤兒服務。不過通常是後端工程師去維護。</p>
+</li>
+<li><p><strong>會不會變成新的瓶頸</strong>:如果所有邏輯都塞進 BFF，它自己也可能膨脹成另一個難以維護的巨石應用，失去原本輕量聚合層的初衷。</p>
+</li>
+<li><p><strong>重複程式碼的風險</strong>:多個 BFF 之間可能會有相似的邏輯(如認證、Logging)，需要透過共用套件或平台工具來降低重複。</p>
+</li>
+<li><p><strong>前端服務即時性問題</strong>:BFF就是再多一層後端服務聚合前端所需，因此在Response時間上不會比單體服務或者直接訪問底層API來的快，這場景也須謹慎評估。</p>
+</li>
+<li><p><strong>鏈路追蹤處理</strong>:即使BFF針對前端不會有前端相互耦合，但對於核心的底層後端服務也是耦合的，多個BFF會與底下多個底層後端服務耦合，所以鏈路追蹤需要做好監控與管理。</p>
+</li>
+</ul>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>BFF 的本質，是把「前端專屬的資料整合與轉換邏輯」從通用後端中抽離出來，讓每個前端都能擁有一支貼身訂製的 API。它特別適合:- 產品同時支援多種前端平台，且需求差異明顯- 後端已經微服務化，前端常需要串接多支 API 才能組出一個畫面- 團隊夠大，能夠負擔多一層服務的維運成本</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/">https://jed-4a6g0109.github.io/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/Backend/">Backend</a><a class="post-meta__tags" href="/Software-Jed/tags/Architecture/">Architecture</a><a class="post-meta__tags" href="/Software-Jed/tags/BFF/">BFF</a><a class="post-meta__tags" href="/Software-Jed/tags/Microservices/">Microservices</a></div><div class="post-share"><div class="social-share" data-image="https://github.com/user-attachments/assets/f855c1b6-0e67-4c14-a6a7-86c5a9e0505d" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/" title="你的專案在慢性發炎"><img class="cover" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&amp;fit=crop&amp;w=1400&amp;q=80" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">你的專案在慢性發炎</div></div><div class="info-2"><div class="info-item-1">你的專案在慢性發炎最近在回顧至今的職涯工作碰過了不少專案，大多數的內容都在做開發&gt;測試&gt;佈署這流程，有些專案會因為一些原因導致時間的迭代風險越來越高，就像慢性發炎一樣在早期症狀不明顯，但到了細胞突變成癌細胞需要手術時為時已晚，或者需要投入更大的成本來治療，此篇文章將探討與分享我經歷的專案有哪些是慢性發炎症狀。以下七個症狀不分先後順序，也不一定會依序發生，任何一項單獨出現，都值得停下來檢視。 估時當PM有新的需求或者業務邏輯改動時，工程師需要給出Effort，當你發現你的估時越大時就是一種警訊，估時這樣講有點抽象，最簡單的判斷方式就是你之前寫的程式只需1天，如今現在新增新功能或者改動你需要花費大量時間，如2~5天之類的，下面舉個例子 例子：新增一個欄位假設 PM 提了一個需求：「使用者資料要多加一個生日欄位，前端要能填寫、後端要能存，還要顯示在會員頁面上。」專案剛啟動的第一年，這種需求大多數人會估 0.5 天，不外乎內容為:  DB Migration 加欄位 API 加個參數 前端補一個 input 寫個單元測試  但是現在專案跑了兩三年後，同樣性質的需求，你發現自己...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/06/29/RFC-10008-HTTP%E6%96%B0%E5%A2%9EQUERY%E6%96%B9%E6%B3%95/" title="RFC 10008: HTTP新增QUERY方法"><img class="cover" src="https://github.com/user-attachments/assets/c1bcb67f-f2a6-43b5-afcc-520996668c01" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">RFC 10008: HTTP新增QUERY方法</div></div><div class="info-2"><div class="info-item-1">科技趣事 - PR不是免費的  SQLite 的作者 Richard Hipp 在訪談中解釋了為何 SQLite 一律拒絕外部提交的 PR。 他的理由很直接：「免費」的貢獻，對維護者來說從來都不免費。 他引用了一個說法來比喻這件事：  「Free 有兩種意思——免費啤酒，和言論自由。但還有第三種 Free：免費的小狗。『瞧，我這裡有隻免費的小狗送給你！』」  提交一個 PR，就像有人送你一隻免費的小狗。 表面上是禮物，但從你收下的那一刻起，責任就轉移了。你不能把牠丟掉，道德上你有義務照顧牠，直到牠自然死亡。一天下來，你的小屋裡多了一隻狗。一年下來呢？ 所以 Richard Hipp 的答案很簡單：「我不要任何免費的小狗。」 自己很有感觸，程式開發維護才是最大的挑戰。任何功能都是一段需要長期維護、測試、相容的程式碼。也是身為工程師更上一層樓的硬實力。 RFC 10008: HTTP新增QUERY方法2026 年 6 月，IETF 正式發布了 RFC 10008，為 HTTP 帶來了一個期待已久的新方法：QUERY。解決了後端工程師一定都會遇到的API開發問題 問題從哪裡來？在 RE...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/Software-Jed/2026/05/15/%E4%BD%A0%E7%9A%84-JWT-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%97%8E%EF%BC%9F%E5%B8%B8%E8%A6%8B-JWT-%E9%A9%97%E8%AD%89%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86%EF%BC%88%E4%B8%8A%EF%BC%89/" title="你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-15</div><div class="info-item-2">你的 JWT 真的安全嗎？常見 JWT 驗證漏洞整理（上）</div></div><div class="info-2"><div class="info-item-1">科技趣事有大神使用 Python 偽裝 Ubuntu 與 SSH 腳本，對外開放了 54 天 SSH 22 port，引誘攻擊者進去伺服器，並做完整分析。看完整篇實在是很有趣：I Left Port 22 Open on the Internet for 54 Days. Here’s Who Showed Up.   你的 JWT 真的安全嗎？ ⚠️ 安全研究與教學用途聲明 本文內容僅供資安學習、安全研究、CTF 練習、靶場環境與已取得授權的滲透測試使用。文中可能包含漏洞原理、攻擊流程、測試指令或範例程式碼，目的在於理解風險、提升防禦能力與協助開發者修補弱點。 請勿將本文內容用於未經授權的系統、服務、網站、帳號或任何第三方資產。任何未經授權的掃描、入侵、資料存取、權限提升、破壞、竊取或繞過安全機制之行為，皆可能違反法律與服務條款。 使用者應自行確認測試範圍、授權狀態與所在地法律規範。因使用或誤用本文內容所造成的任何損害、法律責任、資料遺失、服務中斷或其他後果，皆由使用者自行承擔，作者不負任何責任。  JWT 在微服務場景是很常見的，JWT 通常由三個部分組成，以點（.）隔開： ...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="info-item-2">JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？</div></div><div class="info-2"><div class="info-item-1">科技趣事美國矽谷人形機器人新創公司 Figure AI 發起了一場長達 10 小時的人類與機器人物流撿貨大戰，並在 YouTube 上進行直播，最終人類獲勝了。但對於身體上，如手起水泡和疲勞，雖然機器人 BOB 輸了 200 多件貨品，但她還能為老闆繼續賺錢。   直播連結 JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？JWT 是無狀態、擴展性佳，主要用於在網路應用程式之間安全地傳遞資訊，適合分散式系統及單一登入（SSO）。用途是處理身分驗證（Authentication）與授權。 後端通常會這樣開 API： 1POST /login  1234&#123;  &quot;username&quot;: &quot;user123&quot;,  &quot;password&quot;: &quot;yourpassword&quot;&#125;  Response： 12345&#123;  &quot;access_token&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/28/%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8/" title="後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-28</div><div class="info-item-2">後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？</div></div><div class="info-2"><div class="info-item-1">後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？後端在帳號、API、組織、後台管理、多租戶系統等場景中，常常都會遇到一個核心問題：  誰可以對什麼資源做什麼事？  這就是權限設計要處理的事情。 本文會介紹最常見的兩種權限模型：  RBAC：Role-Based Access Control，角色型存取控制 ACL：Access Control List，存取控制清單  我會用「高級社區帝爆大樓」作為日常例子來說明，快速理解兩者差異、優缺點，以及實務上為什麼常常會使用 RBAC + ACL 混合模式。  RBAC — Role-Based Access Control（角色型存取控制）RBAC 的核心概念是：  系統不直接把權限發給個人，而是先把權限發給角色，再把角色指派給使用者。  基本流程如下： 12345定義角色、動作、資源        ↓權限賦予角色        ↓角色指派給使用者  其中： 1動作 Action + 資源 Resource = 權限 Permission  舉個易懂的例子，假設我們有一棟高級社區「帝爆大樓」。 常見角色如下：  一般住戶 租房客 ...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/06/%E5%BE%8C%E7%AB%AF%E6%9C%8D%E5%8B%99%E9%96%8B%E7%99%BC%E5%AE%89%E5%85%A8%E7%AD%86%E8%A8%98%EF%BC%9A%E8%B7%AF%E5%BE%91%E9%81%8D%E6%AD%B7-Path-Traversal/" title="後端服務開發安全筆記：路徑遍歷 (Path Traversal)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-06</div><div class="info-item-2">後端服務開發安全筆記：路徑遍歷 (Path Traversal)</div></div><div class="info-2"><div class="info-item-1"> ⚠️ 安全研究與教學用途聲明 本文內容僅供資安學習、安全研究、CTF 練習、靶場環境與已取得授權的滲透測試使用。文中可能包含漏洞原理、攻擊流程、測試指令或範例程式碼，目的在於理解風險、提升防禦能力與協助開發者修補弱點。 請勿將本文內容用於未經授權的系統、服務、網站、帳號或任何第三方資產。任何未經授權的掃描、入侵、資料存取、權限提升、破壞、竊取或繞過安全機制之行為，皆可能違反法律與服務條款。 使用者應自行確認測試範圍、授權狀態與所在地法律規範。因使用或誤用本文內容所造成的任何損害、法律責任、資料遺失、服務中斷或其他後果，皆由使用者自行承擔，作者不負任何責任。  Path Traversal 是透過 GET 請求方式使用一些特殊字元，或者透過路徑猜測伺服器內部的資料目錄，進而嘗試查看機密文件或投擲木馬的攻擊方式。 攻擊範例一個取得圖片的 API，伺服器部署在 Linux 上。 API 1https://example/image?filename=dog.jpg  相對路徑攻擊 攻擊者會將 filename 的 value 替換成路徑： 1https://example/image...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-22</div><div class="info-item-2">Log 別亂寫：結構化 Log 如何救除錯與分析</div></div><div class="info-2"><div class="info-item-1">軟體工程師在開發時逃不掉寫 Log 的情況，而 Log 級別分為：    級別 (Level) 說明 (Description) 使用場景    DEBUG 詳細的除錯資訊 開發期間追蹤變數、邏輯流程。   INFO 一般狀態資訊 紀錄程式正常運行的關鍵節點，如啟動、關閉。   WARNING 警告資訊 出現不尋常但暫不影響運行的狀況，如 API 廢棄。   ERROR 一般錯誤 發生問題導致部分功能失效，如讀檔失敗。   CRITICAL 嚴重錯誤 極端嚴重的錯誤，程式通常難以維持運作。   基本上不太會使用 DEBUG 這個級別，一方面測試用放進程式碼會很亂，另一方面這個級別沒控制好，Log 搜尋會浪費儲存空間與效能。大多數 package 都會有 debug 級別的詳細資訊顯示。 因此在工作中常用的剩 INFO、WARNING、ERROR、CRITICAL，以下介紹一下使用場景。 INFO紀錄詳細 API 請求資訊，方便分析用量或行為等情境，例如機密系統的 Audit。 WARNING在後端開發最常見用在廢棄的 API。有些時候因為歷史因素 API 開放出去，但業務沒辦法追...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/11/Retry-%E4%B8%8D%E6%98%AF%E9%87%8D%E8%A9%A6%E4%B8%89%E6%AC%A1%E5%B0%B1%E5%A5%BD%EF%BC%9ABackoff-%E8%88%87-Jitter-%E7%9A%84%E8%A8%AD%E8%A8%88%E6%80%9D%E8%80%83/" title="Retry 不是重試三次就好：Backoff 與 Jitter 的設計思考"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-11</div><div class="info-item-2">Retry 不是重試三次就好：Backoff 與 Jitter 的設計思考</div></div><div class="info-2"><div class="info-item-1">科技趣事 - 物理性注入攻擊加州研究員在路上手舉著板子，成功讓自動駕駛車子按照板子指令往前開。根據實驗結果，中文、英文、西班牙文和西班牙文與英文混合的命令似乎都能生效。現在就連現實世界也能實現與資安軟體注入攻擊類似的效果，蠻有趣的 XD。   出處與原文：https://www.theregister.com/software/2026/01/30/self-driving-cars-drones-hijacked-by-custom-road-signs/5042548 後端應用服務重試機制 (Retry) 設計筆記在軟體開發中，重試機制 Retry 是很常用的設計之一。在後端服務開發中，除了自身服務 API 外，也有可能連到外部服務做操作，這些場景都可能會需要設計重試機制。 以下以 Python 後端服務，並且在微服務架構中，寫一段 Python 重試機制作為例子。 舉例：服務 A 呼叫服務 B，透過 try except 來實作重試三次場景。 1234567891011121314151617181920212223242526import requestsimport t...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">50</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">76</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">43</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:bombom7108@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #ea4335;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><div class="jed-announcement">
+  <p class="jed-announcement__intro">科技趣事入口：近期從 AI、HTTP、DevSecOps 與系統設計新聞切進工程思考。</p>
+  <a href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/">祖克伯認為 5 年內 AI 代理會爆炸式成長</a>
+  <a href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/">Spring Boot 工程師看 FastAPI 的破防感</a>
+  <a href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/">OpenAI Agent 鍵盤與 AI 工具硬體化</a>
+  <a href="/Software-Jed/2026/06/29/RFC-10008-HTTP%E6%96%B0%E5%A2%9EQUERY%E6%96%B9%E6%B3%95/">SQLite 作者為什麼拒絕免費 PR？</a>
+  <a href="/Software-Jed/2026/06/04/DevSecOps-%E5%AF%A6%E8%B8%90%EF%BC%9APac%E5%AF%A6%E8%B8%90%E8%88%87%E6%BC%8F%E6%B4%9E%E6%8E%83%E6%8F%8F/">ZIP 炸彈與爬蟲防護趣事</a>
+</div>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF-Backend-for-Frontend-%E6%98%AF%E4%BB%80%E9%BA%BC"><span class="toc-number">1.</span> <span class="toc-text">架構模式BFF(Backend for Frontend)是什麼?</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#BFF-%E6%98%AF%E4%BB%80%E9%BA%BC"><span class="toc-number">1.1.</span> <span class="toc-text">BFF 是什麼?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#BFF%E8%A8%AD%E8%A8%88%E5%B8%B6%E4%BE%86%E4%BB%80%E9%BA%BC%E5%A5%BD%E8%99%95"><span class="toc-number">1.2.</span> <span class="toc-text">BFF設計帶來什麼好處?</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%8F%B4%E4%B8%8D%E5%90%8C%E5%89%8D%E7%AB%AF%E7%9A%84%E9%9C%80%E6%B1%82%E5%B7%AE%E7%95%B0%E5%8C%96"><span class="toc-number">1.2.1.</span> <span class="toc-text">支援不同前端的需求差異化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B8%9B%E5%B0%91%E5%89%8D%E7%AB%AF%E7%9A%84API%E5%AD%B8%E7%BF%92%E6%88%90%E6%9C%AC"><span class="toc-number">1.2.2.</span> <span class="toc-text">減少前端的API學習成本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BE%8C%E7%AB%AF%E9%A0%98%E5%9F%9F%E6%9C%8D%E5%8B%99"><span class="toc-number">1.2.3.</span> <span class="toc-text">後端領域服務</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8E%E5%85%A5-BFF-%E5%89%8D%E8%A6%81%E6%83%B3%E6%B8%85%E6%A5%9A%E7%9A%84%E4%BA%8B"><span class="toc-number">1.3.</span> <span class="toc-text">導入 BFF 前要想清楚的事</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">1.4.</span> <span class="toc-text">結論</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/" title="圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術"><img src="https://github.com/user-attachments/assets/0f0aeb38-38ce-4e76-8c01-b1199aae676d" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/" title="圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術">圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術</a><time datetime="2026-07-28T05:44:48.000Z" title="發表於 2026-07-28 13:44:48">2026-07-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/" title="從Concurrency與Parallelism概念去了解Python: Multiprocessing、Threading、Coroutine、asyncio"><img src="https://github.com/user-attachments/assets/292fb9fd-cac8-4b7d-8c08-5d1b1cca52a4" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="從Concurrency與Parallelism概念去了解Python: Multiprocessing、Threading、Coroutine、asyncio"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/" title="從Concurrency與Parallelism概念去了解Python: Multiprocessing、Threading、Coroutine、asyncio">從Concurrency與Parallelism概念去了解Python: Multiprocessing、Threading、Coroutine、asyncio</a><time datetime="2026-07-22T06:25:02.000Z" title="發表於 2026-07-22 14:25:02">2026-07-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/" title="bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE"><img src="https://github.com/user-attachments/assets/87959754-9816-4a38-848f-27da4ee7affd" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/" title="bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE">bytebytego沒告訴你的細節之輪詢 vs 長輪詢 vs Webhooks vs SSE</a><time datetime="2026-07-16T05:08:27.000Z" title="發表於 2026-07-16 13:08:27">2026-07-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/" title="你的專案在慢性發炎"><img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&amp;fit=crop&amp;w=1400&amp;q=80" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="你的專案在慢性發炎"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/10/%E4%BD%A0%E7%9A%84%E5%B0%88%E6%A1%88%E5%9C%A8%E6%85%A2%E6%80%A7%E7%99%BC%E7%82%8E/" title="你的專案在慢性發炎">你的專案在慢性發炎</a><time datetime="2026-07-10T07:08:05.000Z" title="發表於 2026-07-10 15:08:05">2026-07-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/" title="架構模式BFF(Backend for Frontend)是什麼?"><img src="https://github.com/user-attachments/assets/f855c1b6-0e67-4c14-a6a7-86c5a9e0505d" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="架構模式BFF(Backend for Frontend)是什麼?"/></a><div class="content"><a class="title" href="/Software-Jed/2026/07/08/%E6%9E%B6%E6%A7%8B%E6%A8%A1%E5%BC%8FBFF(Backend-for-Frontend)%E6%98%AF%E4%BB%80%E9%BA%BC/" title="架構模式BFF(Backend for Frontend)是什麼?">架構模式BFF(Backend for Frontend)是什麼?</a><time datetime="2026-07-08T06:23:54.000Z" title="發表於 2026-07-08 14:23:54">2026-07-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
