@@ -1,0 +1,272 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kubernetes 入門：從部署演進看懂容器編排解決了什麼 | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言 在前幾年容器化開發非常火紅，解決了像是系統移植問題、環境隔離、更輕鬆雲端佈署，其實一直有Docker與Docker Compose經驗，但實在沒有實際Kubernetes工作經驗，因為位置在後端工程師，基本上負責Kubernetes都是SRE工程師，而最近剛好工作有接觸而工作內容又跟Kuber">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes 入門：從部署演進看懂容器編排解決了什麼">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2026/07/30/Kubernetes%E5%85%A5%E9%96%80%E7%B3%BB%E5%88%97/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="前言 在前幾年容器化開發非常火紅，解決了像是系統移植問題、環境隔離、更輕鬆雲端佈署，其實一直有Docker與Docker Compose經驗，但實在沒有實際Kubernetes工作經驗，因為位置在後端工程師，基本上負責Kubernetes都是SRE工程師，而最近剛好工作有接觸而工作內容又跟Kuber">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://github.com/user-attachments/assets/29474d03-a510-4ec9-ac26-ded2d90951fa">
+<meta property="article:published_time" content="2026-07-30T06:51:53.000Z">
+<meta property="article:modified_time" content="2026-08-27T13:32:34.311Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="Backend">
+<meta property="article:tag" content="Cloud Native">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="Docker">
+<meta property="article:tag" content="Kubernetes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/user-attachments/assets/29474d03-a510-4ec9-ac26-ded2d90951fa"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kubernetes 入門：從部署演進看懂容器編排解決了什麼",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2026/07/30/Kubernetes%E5%85%A5%E9%96%80%E7%B3%BB%E5%88%97/",
+  "image": "https://github.com/user-attachments/assets/29474d03-a510-4ec9-ac26-ded2d90951fa",
+  "datePublished": "2026-07-30T06:51:53.000Z",
+  "dateModified": "2026-08-27T13:32:34.311Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2026/07/30/Kubernetes%E5%85%A5%E9%96%80%E7%B3%BB%E5%88%97/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3RQPJSYG2V"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', 'G-3RQPJSYG2V')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', 'G-3RQPJSYG2V', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kubernetes 入門：從部署演進看懂容器編排解決了什麼',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">87</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">47</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://github.com/user-attachments/assets/29474d03-a510-4ec9-ac26-ded2d90951fa);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">Kubernetes 入門：從部署演進看懂容器編排解決了什麼</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kubernetes 入門：從部署演進看懂容器編排解決了什麼</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-07-30T06:51:53.000Z" title="發表於 2026-07-30 14:51:53">2026-07-30</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-08-27T13:32:34.311Z" title="更新於 2026-08-27 21:32:34">2026-08-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/Cloud-Native/">Cloud Native</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/Cloud-Native/Kubernetes/">Kubernetes</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在前幾年容器化開發非常火紅，解決了像是系統移植問題、環境隔離、更輕鬆雲端佈署，其實一直有Docker與Docker Compose經驗，但實在沒有實際Kubernetes工作經驗，因為位置在後端工程師，基本上負責Kubernetes都是SRE工程師，而最近剛好工作有接觸而工作內容又跟Kubernetes有相關，再慢慢接觸與認識後真心覺得Kubernetes非常重要，他不只是單單用來編排容器而已，更重要的是他的一些設計概念與知識對於後端工程師是有幫助的，我認為我要好好寫個完整Kubernetes入門系列，以及他的設計和實務上解決什麼問題。</p>
+<p>由於Kubernetes內容非常多，我打算分篇一一介紹Kubernetes，因為他真的太多內容了，到後面他還能延伸各個雲原生工具。</p>
+<h1 id="部署演進史"><a href="#部署演進史" class="headerlink" title="部署演進史"></a>部署演進史</h1><p>在認識K8S之前先講以前伺服器是如何部署的。</p>
+<h2 id="傳統部署"><a href="#傳統部署" class="headerlink" title="傳統部署"></a>傳統部署</h2><p>直接裝了兩個 Tomcat又或者Apache，每個  各跑一個 Java 應用(war 包)。問題在於兩個應用共用同一套作業系統環境，同一份系統函式庫、同一組系統資源、甚至同一個網路 port 範圍。任何一個應用出狀況(記憶體洩漏、CPU 打滿、依賴版本衝突)，都可能拖累另一個，完全沒有隔離性。</p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/29474d03-a510-4ec9-ac26-ded2d90951fa" />
+
+<h2 id="虛擬化部署"><a href="#虛擬化部署" class="headerlink" title="虛擬化部署"></a>虛擬化部署</h2><p>同一台實體伺服器，透過虛擬化技術切成多台虛擬機，每台虛擬機各自有獨立的 Linux 作業系統，裡面再各自跑一個 Tomcat + Java 應用。這樣一來應用之間互相隔離了，各自有獨立的作業系統、獨立的資源配額，一個掛掉不會直接波及另一個。</p>
+<p>但代價是每台虛擬機都要背一整套完整的作業系統，啟動慢、佔用資源多，伺服器的整體資源利用率不高導致浪費。</p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/20d1845e-1cb6-4a75-8b56-9dd1a1f10a45" />
+
+<h2 id="容器化部署"><a href="#容器化部署" class="headerlink" title="容器化部署"></a>容器化部署</h2><p>為了解決以上兩者部署缺點，在Linux上使用 LXC(Linux Containers技術，他是一種作業系統層的虛擬化技術，在單一主機上執行多個獨立的 Linux 系統環境。容器化帶來了</p>
+<ul>
+<li><p>共用作業系統核心:整台伺服器只跑一套 Linux 作業系統，不像虛擬化部署要一整套獨立的 OS。</p>
+</li>
+<li><p>各自獨立的容器環境:透過容器引擎(例如 Docker)，把每個 Tomcat + Java 應用包成一個獨立的容器，容器之間有各自獨立的檔案系統、網路空間、資源限制，互相隔離不會像傳統部署那樣互相干擾。</p>
+</li>
+<li><p>輕量、啟動快:因為容器不用背整套作業系統，只打包應用本身需要的執行環境和依賴，所以體積小很多，啟動速度是秒級的(如果有玩過虛擬機通常要分鐘級很慢)。</p>
+</li>
+<li><p>資源利用率高:一台伺服器可以塞下遠比虛擬機更多的容器,硬體資源用得更有效率。</p>
+</li>
+</ul>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/39055e6f-2b88-4af6-92d0-ce4249530f07" />
+
+<h2 id="容器化一些問題"><a href="#容器化一些問題" class="headerlink" title="容器化一些問題"></a>容器化一些問題</h2><p>由於容器有生命週期且可能會很短，像是建立、重啟、刪除，對於傳統上配置如硬碟、網路配置都是固定的，但容器每次刪除或重啟都有可能會遺失資料或配置，對於容器上的服務像是後端服務，這些配置都不會想要變動的一變更都是災難，因此才有了Docker的出現，但Docker只能針對單一主機做管理，如果要多台主機以上就得需要Kubernetes來管理控制了，Kubernetes不僅僅解決單純這些配置問題，後面將會介紹Kubernetes威力有點多強。</p>
+<h1 id="Kubernetes"><a href="#Kubernetes" class="headerlink" title="Kubernetes"></a>Kubernetes</h1><p>Kubernetes，中文圈又常簡稱 K8s，取首尾字母加中間 8 個字母而來，是一個開源的容器編排系統，最初由 Google 開發，現由 CNCF維護。負責自動管理大量的容器，要跑在哪台機器上、掛了要不要重啟、流量怎麼分配，這些事都交給它處理。</p>
+<blockquote>
+<p>Google有個系統叫伯格(Borg)，Kubernetes是基於這系統的優點，以及改善缺點而誕生的。</p>
+</blockquote>
+<p>如果有玩過Docker Compose其實就是一樣概念，只是Kubernetes他是管理多台設備與雲平台上容器，當然Docker Compose也能做到，但需要依靠docker swarm，但現況docker swarm基本已死去，目前主流還是Kubernetes為主。為了方便寫Blog 文章我將Kubernetes都稱為K8S。</p>
+<p>上面介紹可能非常無趣且抽象，我這邊就講述一下關於docker、 docker compose、Kubernetes Logo設計含意</p>
+<img class="jed-post-image" style="--jed-image-width: 860px;" alt="Image" src="https://github.com/user-attachments/assets/73f0a3ba-bb45-42fb-98ac-13174d5d1f86" />
+
+<h1 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h1><p>到這邊我們從傳統部署 → 虛擬化部署 → 容器化部署一路講到 Kubernetes 為什麼會出現，核心觀念是：</p>
+<ul>
+<li>容器化解決了資源利用率與環境隔離的問題，但單機管理（Docker）在多機規模下會失控</li>
+<li>Kubernetes 的角色，就是把「一堆容器要跑在哪、掛了要不要重啟、流量怎麼分配」這些瑣事自動化，讓我們能用宣告式的方式管理整個叢集</li>
+</ul>
+<p>這篇算是講述背景知識，讓後面看到 K8s 的架構與元件時，能理解「為什麼要這樣設計」，之後會一一介紹。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2026/07/30/Kubernetes%E5%85%A5%E9%96%80%E7%B3%BB%E5%88%97/">https://jed-4a6g0109.github.io/Software-Jed/2026/07/30/Kubernetes%E5%85%A5%E9%96%80%E7%B3%BB%E5%88%97/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/Docker/">Docker</a><a class="post-meta__tags" href="/Software-Jed/tags/DevOps/">DevOps</a><a class="post-meta__tags" href="/Software-Jed/tags/Backend/">Backend</a><a class="post-meta__tags" href="/Software-Jed/tags/Kubernetes/">Kubernetes</a><a class="post-meta__tags" href="/Software-Jed/tags/Cloud-Native/">Cloud Native</a></div><div class="post-share"><div class="social-share" data-image="https://github.com/user-attachments/assets/29474d03-a510-4ec9-ac26-ded2d90951fa" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Software-Jed/2026/08/04/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95/" title="SQL 索引入門：B+ 樹、葉節點與查詢加速原理"><img class="cover" src="https://github.com/user-attachments/assets/7014aa10-639f-4482-9368-f04a1be8e1e8" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">SQL 索引入門：B+ 樹、葉節點與查詢加速原理</div></div><div class="info-2"><div class="info-item-1">在工作上很常用索引，但有想過為什麼有些情況下加上索引，查詢反而變慢了?這篇筆記從最基礎的索引結構開始講起，一路拆解到 B 樹如何加速查詢，最後帶到「索引為什麼會變慢」這個問題的根源。 （本篇整理自 Use The Index， Luke 的 Anatomy of an SQL Index 系列） 一、Index 是什麼：像書本目錄一樣的獨立結構Index 是用 CREATE INDEX 語句建立的獨立資料結構，它會佔用自己的磁碟空間，並保存著被索引欄位的副本。建立索引不會改變原表(table)資料，它只是另外建立一個指向原表的新資料結構。 就像一本書的目錄，他需要佔據一頁紙張的空間，而目錄裡各篇章頁碼指向內容的實際位置。而索引關鍵在於所有條目都按照明確的順序排列。在有序資料集中尋找資料既快速又方便，因為排序順序決定了每個條目的位置。 但資料庫比一本書的目錄複雜得多，因為它必須隨時面對變動。一本書的目錄可以等下一次印刷才更新，但 SQL 資料庫必須即時處理 insert、delete、update，而且要在不大量搬移資料的前提下維持順序。 為了應付這個挑戰，資料庫結合了兩種資料結構...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/" title="圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術"><img class="cover" src="https://github.com/user-attachments/assets/0f0aeb38-38ce-4e76-8c01-b1199aae676d" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術</div></div><div class="info-2"><div class="info-item-1">祖克伯認為5年內AI代理會爆炸式成長最近股市慘淡，看到網上民眾對於AI認知不是很理解，都認為AI就是無用誇大一般人用不到的東西，畢竟他們常常被新聞帶風向也不易外，AI可以說是我人生中經歷過最感到作夢的時期，以前在看多拉A夢在想是啥機器人可以滿足大雄任何願望跟任性，然而AI出現基本已經是哆啦A夢了，AI是知識面的多拉A夢，雖然沒有實體但我相信如果拿來教育，甚至出AI教育助理給未來小孩用如果小孩知道怎運用這個知識面的哆啦A夢，我認為潛能會有更大提升。所以我認為這些大企業老闆未來肯定會推出更多AI應運來進行第四次的工業革命。   新聞連結 什麼是向量？讓電腦學會「看懂」特徵我在逛大賣場或者3C都會有個習慣就是開蝦皮，然後拍照以圖搜圖來比價網購比較划算還是在實體店面比較划算，然而在用這以圖搜圖技術讓我充滿好奇心想了解它背後的原理，身為後端工程師肯定要去了解裡面到底用了啥，所以此篇文章將講述從這動機一路學習，ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術。 以下為三種狗，雖然風格不一致但你總是能辨別，這是因為我們大腦從出生到現在已經把狗的特徵記住在腦子裡，比如長長的耳朵、大大的狗...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/Software-Jed/2025/01/27/Docker-%E5%8A%A0%E9%80%9F%E7%9A%84%E6%8A%80%E5%B7%A7%E4%BB%A5%E5%8F%8A%E7%AE%A1%E7%90%86/" title="Docker 加速的技巧以及管理"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/vvYDcnuBlA0R22glza9oucfH2RdW2faQ.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-27</div><div class="info-item-2">Docker 加速的技巧以及管理</div></div><div class="info-2"><div class="info-item-1">Docker在近幾十年內是目前大多企業最常使用的技術，在開發上Docker也是不可或缺的，而本篇文章將提出幾項如何讓Docker加快以及減少空間好管理得的技巧。 善用Docker Cache在寫Dockerfile時，是否注意到每次在做Docker build image時總是特別慢，特別是在node install，或者 python poetry install，每次都浪費幾分鐘時間，其實在Dockerfile在內部就有Cache來幫你處理，直接舉個例子。 建置一個Python Django image正常情況下你會像下面這樣建立。 1234567891011121314151617181920# 使用輕量級的 Python 鏡像FROM python:3.11-slim#工作目錄WORKDIR /app#複製所有專案COPY . /app/#安裝RUN pip install poetry# 安裝依賴RUN poetry install --no-root# 暴露端口EXPOSE 80# 設定預設啟動命令CMD [&quot;poetry&quot;, &quot;run&...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/18/JWT-%E4%B8%8D%E6%98%AF%E7%84%A1%E7%8B%80%E6%85%8B%E5%97%8E%EF%BC%9F%E5%89%8D%E5%BE%8C%E7%AB%AF%E5%88%86%E9%9B%A2%E4%B8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E8%99%95%E7%90%86%E3%80%8CUser%E7%99%BB%E5%87%BA%E3%80%8D%E7%9A%84-Token-%E7%AE%A1%E7%90%86%E9%9B%A3%E9%A1%8C/" title="JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="info-item-2">JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？</div></div><div class="info-2"><div class="info-item-1">科技趣事美國矽谷人形機器人新創公司 Figure AI 發起了一場長達 10 小時的人類與機器人物流撿貨大戰，並在 YouTube 上進行直播，最終人類獲勝了。但對於身體上，如手起水泡和疲勞，雖然機器人 BOB 輸了 200 多件貨品，但她還能為老闆繼續賺錢。   直播連結 JWT 不是無狀態嗎？前後端分離下，如何處理「User登出」的 Token 管理難題？JWT 是無狀態、擴展性佳，主要用於在網路應用程式之間安全地傳遞資訊，適合分散式系統及單一登入（SSO）。用途是處理身分驗證（Authentication）與授權。 後端通常會這樣開 API： 1POST /login  1234&#123;  &quot;username&quot;: &quot;user123&quot;,  &quot;password&quot;: &quot;yourpassword&quot;&#125;  Response： 12345&#123;  &quot;access_token&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2025/01/19/%E5%9F%BA%E7%A4%8E%E6%9E%B6%E6%A7%8B%E5%8D%B3%E7%A8%8B%E5%BC%8F%E7%A2%BC-IaC/" title="基礎架構即程式碼(IaC)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">基礎架構即程式碼(IaC)</div></div><div class="info-2"><div class="info-item-1">Infrastructure as Code IaC基礎架構即程式碼(IaC)基礎建設即程式碼（Infrastructure as Code, IaC） 是一種強化 DevOps持續交付軟體品質與版本控制的技術，透過描述性的模型來定義與部署基礎建設資源，例如以下：  net   vm   api gateway   cdn   serverless fcuntion  IaC把煩雜的設置抽象出來，且用讓人看得懂的設置使得部署更好維護，以及快速拓展應用程式無需一一設置，直接實際舉個例子： 需求如下建立一個簡單的 HTTP API，當訪問 &#x2F;greet&#x2F;{name} 時返回一個問候語。使用 AWS Lambda 提供業務邏輯，並通過 API Gateway 提供 HTTP 端點。 首先需要寫個python lambda 123456789import osdef greet(event, context):    name = event[&quot;pathParameters&quot;].get(&quot;name&quot;, &quot;Strange...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/06/%E5%BE%8C%E7%AB%AF%E6%9C%8D%E5%8B%99%E9%96%8B%E7%99%BC%E5%AE%89%E5%85%A8%E7%AD%86%E8%A8%98%EF%BC%9A%E8%B7%AF%E5%BE%91%E9%81%8D%E6%AD%B7-Path-Traversal/" title="後端服務開發安全筆記：路徑遍歷 (Path Traversal)"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-06</div><div class="info-item-2">後端服務開發安全筆記：路徑遍歷 (Path Traversal)</div></div><div class="info-2"><div class="info-item-1"> ⚠️ 安全研究與教學用途聲明 本文內容僅供資安學習、安全研究、CTF 練習、靶場環境與已取得授權的滲透測試使用。文中可能包含漏洞原理、攻擊流程、測試指令或範例程式碼，目的在於理解風險、提升防禦能力與協助開發者修補弱點。 請勿將本文內容用於未經授權的系統、服務、網站、帳號或任何第三方資產。任何未經授權的掃描、入侵、資料存取、權限提升、破壞、竊取或繞過安全機制之行為，皆可能違反法律與服務條款。 使用者應自行確認測試範圍、授權狀態與所在地法律規範。因使用或誤用本文內容所造成的任何損害、法律責任、資料遺失、服務中斷或其他後果，皆由使用者自行承擔，作者不負任何責任。  Path Traversal 是透過 GET 請求方式使用一些特殊字元，或者透過路徑猜測伺服器內部的資料目錄，進而嘗試查看機密文件或投擲木馬的攻擊方式。 攻擊範例一個取得圖片的 API，伺服器部署在 Linux 上。 API 1https://example/image?filename=dog.jpg  相對路徑攻擊 攻擊者會將 filename 的 value 替換成路徑： 1https://example/image...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/28/%E5%BE%8C%E7%AB%AF%E6%AC%8A%E9%99%90%E8%A8%AD%E8%A8%88%E7%AD%86%E8%A8%98%EF%BC%9ARBAC%E3%80%81ACL-%E8%88%87%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E6%80%8E%E9%BA%BC%E9%81%B8/" title="後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-28</div><div class="info-item-2">後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？</div></div><div class="info-2"><div class="info-item-1">後端權限設計筆記：RBAC、ACL 與混合模式怎麼選？後端在帳號、API、組織、後台管理、多租戶系統等場景中，常常都會遇到一個核心問題：  誰可以對什麼資源做什麼事？  這就是權限設計要處理的事情。 本文會介紹最常見的兩種權限模型：  RBAC：Role-Based Access Control，角色型存取控制 ACL：Access Control List，存取控制清單  我會用「高級社區帝爆大樓」作為日常例子來說明，快速理解兩者差異、優缺點，以及實務上為什麼常常會使用 RBAC + ACL 混合模式。  RBAC — Role-Based Access Control（角色型存取控制）RBAC 的核心概念是：  系統不直接把權限發給個人，而是先把權限發給角色，再把角色指派給使用者。  基本流程如下： 12345定義角色、動作、資源        ↓權限賦予角色        ↓角色指派給使用者  其中： 1動作 Action + 資源 Resource = 權限 Permission  舉個易懂的例子，假設我們有一棟高級社區「帝爆大樓」。 常見角色如下：  一般住戶 租房客 ...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/05/22/Log-%E5%88%A5%E4%BA%82%E5%AF%AB%EF%BC%9A%E7%B5%90%E6%A7%8B%E5%8C%96-Log-%E5%A6%82%E4%BD%95%E6%95%91%E9%99%A4%E9%8C%AF%E8%88%87%E5%88%86%E6%9E%90/" title="Log 別亂寫：結構化 Log 如何救除錯與分析"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-22</div><div class="info-item-2">Log 別亂寫：結構化 Log 如何救除錯與分析</div></div><div class="info-2"><div class="info-item-1">軟體工程師在開發時逃不掉寫 Log 的情況，而 Log 級別分為：    級別 (Level) 說明 (Description) 使用場景    DEBUG 詳細的除錯資訊 開發期間追蹤變數、邏輯流程。   INFO 一般狀態資訊 紀錄程式正常運行的關鍵節點，如啟動、關閉。   WARNING 警告資訊 出現不尋常但暫不影響運行的狀況，如 API 廢棄。   ERROR 一般錯誤 發生問題導致部分功能失效，如讀檔失敗。   CRITICAL 嚴重錯誤 極端嚴重的錯誤，程式通常難以維持運作。   基本上不太會使用 DEBUG 這個級別，一方面測試用放進程式碼會很亂，另一方面這個級別沒控制好，Log 搜尋會浪費儲存空間與效能。大多數 package 都會有 debug 級別的詳細資訊顯示。 因此在工作中常用的剩 INFO、WARNING、ERROR、CRITICAL，以下介紹一下使用場景。 INFO紀錄詳細 API 請求資訊，方便分析用量或行為等情境，例如機密系統的 Audit。 WARNING在後端開發最常見用在廢棄的 API。有些時候因為歷史因素 API 開放出去，但業務沒辦法追...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">87</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">47</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:bombom7108@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #ea4335;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><div class="jed-announcement">
+  <p class="jed-announcement__intro">科技趣事入口：近期從 AI、HTTP、DevSecOps 與系統設計新聞切進工程思考。</p>
+  <a href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/">祖克伯認為 5 年內 AI 代理會爆炸式成長</a>
+  <a href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/">Spring Boot 工程師看 FastAPI 的破防感</a>
+  <a href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/">OpenAI Agent 鍵盤與 AI 工具硬體化</a>
+  <a href="/Software-Jed/2026/06/29/RFC-10008-HTTP%E6%96%B0%E5%A2%9EQUERY%E6%96%B9%E6%B3%95/">SQLite 作者為什麼拒絕免費 PR？</a>
+  <a href="/Software-Jed/2026/06/04/DevSecOps-%E5%AF%A6%E8%B8%90%EF%BC%9APac%E5%AF%A6%E8%B8%90%E8%88%87%E6%BC%8F%E6%B4%9E%E6%8E%83%E6%8F%8F/">ZIP 炸彈與爬蟲防護趣事</a>
+</div>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E6%BC%94%E9%80%B2%E5%8F%B2"><span class="toc-number">2.</span> <span class="toc-text">部署演進史</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%82%B3%E7%B5%B1%E9%83%A8%E7%BD%B2"><span class="toc-number">2.1.</span> <span class="toc-text">傳統部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%99%9B%E6%93%AC%E5%8C%96%E9%83%A8%E7%BD%B2"><span class="toc-number">2.2.</span> <span class="toc-text">虛擬化部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%B9%E5%99%A8%E5%8C%96%E9%83%A8%E7%BD%B2"><span class="toc-number">2.3.</span> <span class="toc-text">容器化部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%B9%E5%99%A8%E5%8C%96%E4%B8%80%E4%BA%9B%E5%95%8F%E9%A1%8C"><span class="toc-number">2.4.</span> <span class="toc-text">容器化一些問題</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Kubernetes"><span class="toc-number">3.</span> <span class="toc-text">Kubernetes</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-number">4.</span> <span class="toc-text">結論</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="AI Agent Action：從決定要做到「真的做完」最終章"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章">AI Agent Action：從決定要做到「真的做完」最終章</a><time datetime="2026-09-18T07:51:08.000Z" title="發表於 2026-09-18 15:51:08">2026-09-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="AI Agent Tools：讓模型從只會講變成「真的能做」"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」">AI Agent Tools：讓模型從只會講變成「真的能做」</a><time datetime="2026-09-18T07:29:45.000Z" title="發表於 2026-09-18 15:29:45">2026-09-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話">LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話</a><time datetime="2026-09-17T07:35:34.000Z" title="發表於 2026-09-17 15:35:34">2026-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%89-create-react-agent-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E8%A9%B2%E7%94%A8/" title="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%89-create-react-agent-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E8%A9%B2%E7%94%A8/" title="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?">LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?</a><time datetime="2026-09-17T07:35:01.000Z" title="發表於 2026-09-17 15:35:01">2026-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%BA%8C-%E6%8E%A7%E5%88%B6%E6%B5%81%E8%88%87%E5%88%86%E6%94%AF-%E6%89%8B%E5%88%BB-ReAct-Agent/" title="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%BA%8C-%E6%8E%A7%E5%88%B6%E6%B5%81%E8%88%87%E5%88%86%E6%94%AF-%E6%89%8B%E5%88%BB-ReAct-Agent/" title="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent">LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent</a><time datetime="2026-09-17T07:34:29.000Z" title="發表於 2026-09-17 15:34:29">2026-09-17</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

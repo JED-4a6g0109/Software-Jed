@@ -1,0 +1,542 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>AI Agent Planning：任務拆解、反思修正與多步驟推理 | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在前面Agent概念篇講到這張圖為Agent核心 - Memory - Action - Planning - Tools 他們是概念與技術是如何實踐的本篇將來講述Planning。 圖片Overview of a LLM-powered autonomous agent system. 來源 ht">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Agent Planning：任務拆解、反思修正與多步驟推理">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2026/08/20/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Planning/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="在前面Agent概念篇講到這張圖為Agent核心 - Memory - Action - Planning - Tools 他們是概念與技術是如何實踐的本篇將來講述Planning。 圖片Overview of a LLM-powered autonomous agent system. 來源 ht">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e">
+<meta property="article:published_time" content="2026-08-20T05:34:58.000Z">
+<meta property="article:modified_time" content="2026-08-27T14:42:41.757Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="Planning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI Agent Planning：任務拆解、反思修正與多步驟推理",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2026/08/20/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Planning/",
+  "image": "https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e",
+  "datePublished": "2026-08-20T05:34:58.000Z",
+  "dateModified": "2026-08-27T14:42:41.757Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2026/08/20/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Planning/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3RQPJSYG2V"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', 'G-3RQPJSYG2V')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', 'G-3RQPJSYG2V', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'AI Agent Planning：任務拆解、反思修正與多步驟推理',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">87</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">47</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">AI Agent Planning：任務拆解、反思修正與多步驟推理</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">AI Agent Planning：任務拆解、反思修正與多步驟推理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-08-20T05:34:58.000Z" title="發表於 2026-08-20 13:34:58">2026-08-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-08-27T14:42:41.757Z" title="更新於 2026-08-27 22:42:41">2026-08-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/AI/">AI</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>在前面Agent概念篇講到這張圖為Agent核心</p>
+<ul>
+<li>Memory </li>
+<li>Action</li>
+<li>Planning</li>
+<li>Tools</li>
+</ul>
+<p>他們是概念與技術是如何實踐的本篇將來講述Planning。</p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e" />
+
+<p><a target="_blank" rel="noopener" href="https://lilianweng.github.io/posts/2023-06-23-agent/">圖片Overview of a LLM-powered autonomous agent system. 來源</a></p>
+<h1 id="Planning"><a href="#Planning" class="headerlink" title="Planning"></a>Planning</h1><p>前面所提女友突然向你提出要去日本，而你拿到一個任務，該怎麼想、怎麼安排步驟才能完成它?本質上就是Planning。</p>
+<p>規劃女友的日本旅遊行程 Planning 需要的所有元素:</p>
+<ul>
+<li>拆解任務(訂機票&#x2F;飯店&#x2F;行程)</li>
+<li>線性推理(一步步想景點遊玩順序)</li>
+<li>自我審查(排完先自己挑毛病)</li>
+<li>事後反思(這次行程太趕女友不開心，下次筆記記起來)</li>
+</ul>
+<p>而LLM 本身是一次生成一段回應的機制，但複雜任務往往需要多步驟、有依賴關係、可能中途要修正方向。如果沒有 Planning，Agent 就容易在長任務中迷失或繞遠路。Planning 的本質，目的是讓 Agent 從「憑感覺直接回答」進化成「像人一樣有條理地想清楚再行動，而且會從錯誤中學習」。</p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/11104a3b-0610-41e2-a478-bbedde321ba1" />
+
+
+<h2 id="Subgoal-Decomposition-目標拆解"><a href="#Subgoal-Decomposition-目標拆解" class="headerlink" title="Subgoal Decomposition(目標拆解)"></a>Subgoal Decomposition(目標拆解)</h2><p>Subgoal Decomposition 做的事，就是先把大任務拆成幾個可以獨立處理的子任務，但這件事怎麼拆、拆完怎麼執行，會因為是什麼情境在規劃而完全不同。</p>
+<p>想像同樣是規劃日本三天遊，但發生在三種不同情境下:</p>
+<h3 id="情境一-腦子裡想到什麼就做什麼"><a href="#情境一-腦子裡想到什麼就做什麼" class="headerlink" title="情境一:腦子裡想到什麼就做什麼"></a>情境一:腦子裡想到什麼就做什麼</h3><p>先查機票吧→ 查完發現這週貴到爆 →那要不要改日期?→ 改查別的日期，便宜多了→機票定案,接下來查飯店→ …</p>
+<blockquote>
+<p>只能先查一步、看結果、再決定下一步，拆解跟執行是交替發生的，不會先把清單列好才開始做。</p>
+</blockquote>
+<h3 id="情境二-全委託給一個常去日本的兄弟"><a href="#情境二-全委託給一個常去日本的兄弟" class="headerlink" title="情境二:全委託給一個常去日本的兄弟"></a>情境二:全委託給一個常去日本的兄弟</h3><p>你只丟給兄弟一句話:「幫我規劃三天日本遊，女人會喜歡溫泉跟網美景點」，下次請你吃飯，兄弟收好處辦事開始幫你拆解任務、動用各種資源查資料訂票訂房，過程中還會自我檢討(「我還沒問預算上限,現在查機票可能白查」)，而查桃園機場接駁資訊這種瑣事，兄弟不會親自去查，而是叫剛好在航空公司上班的妹妹協助，自己則專心處理飯店這些需要判斷的大事。</p>
+<blockquote>
+<p>它不只是拆解任務，而是把拆解出來的任務，<strong>分派給不同角色去做</strong>(兄弟與他妹)。</p>
+</blockquote>
+<h3 id="情境三-自己有規劃的安排"><a href="#情境三-自己有規劃的安排" class="headerlink" title="情境三:自己有規劃的安排"></a>情境三:自己有規劃的安排</h3><p>先做一件事(查機票)，查完發現冒出新的待辦(要查接駁交通)，寫進筆記本清單裡，再看清單裡哪件事最急(接駁資訊比訂飯店急)，排到前面優先做，做完再生出新待辦、再排序重複這個動作，直到清單清空。</p>
+<blockquote>
+<p>執行 → 產生新任務 → 重新排序。做一件事記錄後再去排序優先事項。</p>
+</blockquote>
+<p>與情境一不同在於情境一是「憑直覺一路想下去，沒有正式紀錄與清單」，而此情境為「每做完一步，都要正式回頭管理整份待辦清單在進行優先排序」</p>
+<h3 id="Subgoal-Decomposition-框架"><a href="#Subgoal-Decomposition-框架" class="headerlink" title="Subgoal Decomposition 框架"></a>Subgoal Decomposition 框架</h3><p>前面舉了三個情境如果理解差異，那恭你已經了解了Subgoal Decomposition的三個框架</p>
+<ul>
+<li><p>ReAct<br>對應情境一，邊推理邊行動，不預先規劃全部，走一步算一步。</p>
+</li>
+<li><p>AutoGPT<br>能自主運作，除了拆解之外還疊加了自我批評、工具整合、任務委派給其他人手這些功能。 這其實就是我們前面學過的上下級協同(Hierarchical Collaboration)的實際案例:<br><strong>兄弟 &#x3D; 中控Agent</strong>,負責理解目標、拆解任務、做決策;<br><strong>兄弟他妹 &#x3D; Sub-L1 Agent</strong>，只負責被分派下來的簡單任務,不用自己判斷全局。<br>只是拆解任務，而是把拆解出來的任務，分派給不同角色去做，跟單純自己邊想邊做的 ReAct 已經是不同層次的設計了。</p>
+</li>
+</ul>
+<img class="jed-post-image" style="--jed-image-width: 760px;" alt="Image" src="https://github.com/user-attachments/assets/a2a61dc6-fffd-4ba7-b089-5b4747630efa" />
+
+<ul>
+<li>BabyAGI<br>執行 → 產生新任務 → 重新排序，單純的任務清單管理迴圈</li>
+</ul>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/37a6f4bb-3cb6-45a3-b6be-1fd3b2c0f890" />
+
+<h2 id="Chain-of-Thoughts-推理"><a href="#Chain-of-Thoughts-推理" class="headerlink" title="Chain of Thoughts(推理)"></a>Chain of Thoughts(推理)</h2><p>Subgoal Decomposition好之後，針對每一個子任務，Agent 還需要一步步推理，而不是憑感覺直接給答案。這就是 Chain of Thoughts 要解決的問題，而它本身又依複雜度分成四個階段:</p>
+<h3 id="IO"><a href="#IO" class="headerlink" title="IO"></a>IO</h3><p>直接輸出，無思考過程。例如女友問去哪玩，隨口講一個地方，完全不清過大腦思考的答案</p>
+<img class="jed-post-image" style="--jed-image-width: 760px;" alt="Image" src="https://github.com/user-attachments/assets/25a595a1-8f11-4a22-8f23-62d9c5bdcd78" />
+
+<h3 id="CoT"><a href="#CoT" class="headerlink" title="CoT"></a>CoT</h3><p>線性一步步推理。例如女友問去哪玩後，按步驟想先查機票→再查飯店→再排行程。</p>
+<img class="jed-post-image" style="--jed-image-width: 760px;" alt="Image" src="https://github.com/user-attachments/assets/ded91f2c-0019-488d-8433-896b3426a6b2" />
+
+<h3 id="CoT-SC"><a href="#CoT-SC" class="headerlink" title="CoT-SC"></a>CoT-SC</h3><p>多條鏈平行跑完再投票，競爭式協同。例如女友問去哪玩後，自己、阿浩、阿昇各排一套完整行程，並投票選最多人認同的行程。</p>
+<img class="jed-post-image" style="--jed-image-width: 760px;" alt="Image" src="https://github.com/user-attachments/assets/1f93fc0a-26c9-455a-af36-6ad13fd487e5" />
+
+<h3 id="ToT"><a href="#ToT" class="headerlink" title="ToT"></a>ToT</h3><p>邊展開邊評估、可剪枝回溯，Reflection + Self-critics方式。例如女友問去哪玩後，規劃時「沖繩 vs 東京」兩條路線都先想一下，邊想邊評估划不划算，發現沖繩太貴就直接放棄，專心走東京這條線，中途卡關還能回頭換方向。</p>
+<img class="jed-post-image" style="--jed-image-width: 760px;" alt="Image" src="https://github.com/user-attachments/assets/45c38f2c-48a0-4cf6-8766-ea69d5f65137" />
+
+
+<h3 id="IO、CoT、CoT-SC、ToT比較"><a href="#IO、CoT、CoT-SC、ToT比較" class="headerlink" title="IO、CoT、CoT-SC、ToT比較"></a>IO、CoT、CoT-SC、ToT比較</h3><table>
+<thead>
+<tr>
+<th>階段</th>
+<th>用到的思考機制</th>
+<th>行為</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IO</td>
+<td>無</td>
+<td>隨口講一個地方</td>
+</tr>
+<tr>
+<td>CoT</td>
+<td>Chain of Thoughts</td>
+<td>線性一步步推理規劃</td>
+</tr>
+<tr>
+<td>CoT-SC</td>
+<td>Chain of Thoughts + 簡易 Self-Critics</td>
+<td>競爭式協同，投票選最多人認同的</td>
+</tr>
+<tr>
+<td>ToT</td>
+<td>Chain of Thoughts + Self-Critics + Reflection</td>
+<td>規劃時同時納入多個規劃，中途卡關還能回頭換方向</td>
+</tr>
+</tbody></table>
+<p>IO&#x2F;CoT 是「線性思考」，一條路走到底<br>CoT-SC&#x2F;ToT 是「多路徑思考」，差別在於 CoT-SC 是走完才比較，ToT 是邊走邊比較、能中途放棄壞路徑。</p>
+<h2 id="Reflection-反思"><a href="#Reflection-反思" class="headerlink" title="Reflection(反思)"></a>Reflection(反思)</h2><p>為甚麼需要有Reflection?沒有他有差嗎?我們一樣以日本之旅講述，如果每次規劃行程犯錯(排太趕惹女友生氣)，你都要花一週<br>「重新調校自己的旅遊規劃能力」才能學到教訓，那也太沒效率，女友可能受不了生氣氣乾脆不去，這時你需要的是<strong>當下就能記住教訓</strong>，修正後彙報一版給女友。傳統的強化學習方法，需要大量訓練樣本，還要花很大成本去微調模型權重如:</p>
+<blockquote>
+<p>Agent 這次任務失敗了 → 把這次失敗的資料收集起來 → 重新訓練模型、更新權重 → 才能讓它「學會」不要再犯同樣的錯</p>
+</blockquote>
+<p>但這代表每次想讓 Agent 進步，都要跑一次昂貴、耗時的訓練流程，這是不切實際的，對即時場景來說，太慢也太貴了使用者也不可能接受。</p>
+<p>因此才提出一個新框架 Reflexion，不透過更新模型權重來強化語言 Agent。<br>運用三個 LLM 角色 + 一個記憶模組:</p>
+<ul>
+<li><strong>Actor</strong>:執行動作、產生輸出</li>
+<li><strong>Evaluator</strong>:對 Actor 的輸出打分數</li>
+<li><strong>Self-Reflection</strong>:把評分結果轉換成「文字反思」</li>
+<li><strong>Memory</strong>:把反思文字存起來，成為長期記憶，供下一輪任務參考(這是儲存區，不是模型)</li>
+</ul>
+<blockquote>
+<p>Reflexion 不是真正的學習。模型權重完全沒有改變</p>
+</blockquote>
+<p>Actor 執行 → Evaluator 評分 → Self-Reflection 生成反思文字 → 存入 Memory → 下一輪迭代時,Actor 會讀取這些反思記憶,避免重蹈覆轍</p>
+<img class="jed-post-image" style="--jed-image-width: 860px;" alt="Image" src="https://github.com/user-attachments/assets/14f57c78-502a-4f9e-b435-4488f7185904" />
+
+<h3 id="Actor"><a href="#Actor" class="headerlink" title="Actor"></a>Actor</h3><p>Actor 是 Reflexion 框架裡負責產生行動、中間推理過程與最終答案的策略(policy)，這個策略由兩部分共同決定:</p>
+<ul>
+<li>固定不變的 LLM 權重</li>
+<li>會隨嘗試次數累積、不斷變動的記憶內容。</li>
+</ul>
+<p>每次呼叫 LLM 時，把記憶內容當作 prompt 的一部分一起輸入，LLM 本身自始至終沒有被改變過。Actor有兩種實作風格:</p>
+<h4 id="Chain-of-Thought-CoT"><a href="#Chain-of-Thought-CoT" class="headerlink" title="Chain-of-Thought(CoT)"></a>Chain-of-Thought(CoT)</h4><p>前面所提純推理，一步步在腦中往下想</p>
+<blockquote>
+<p>想一步 → 做一個動作(查資料)→ 看結果 → 再想</p>
+</blockquote>
+<p>由於此方式只靠訓練時記下的知識進行推理，沒有管道查證或更新資訊，因此容易產生幻覺、講錯過時或冷門資訊。<br>舉例日本之旅:<br>憑記憶規劃行程，腦子裡想到哪個景點就寫哪個，沒有打開 Google 查證</p>
+<h4 id="為什麼需要外部連結"><a href="#為什麼需要外部連結" class="headerlink" title="為什麼需要外部連結?"></a>為什麼需要外部連結?</h4><p>LLM 的知識在訓練那一刻就固定住了，遇到這幾種狀況就容易出錯:</p>
+<ul>
+<li>訓練資料本來就沒涵蓋到的冷門知識</li>
+<li>訓練之後才發生的新資訊(比如最新的營業時間、最新價格)</li>
+<li>模型自己記錯、記混了(這就是常聽到的「幻覺 hallucination」)</li>
+</ul>
+<h4 id="ReAct"><a href="#ReAct" class="headerlink" title="ReAct"></a>ReAct</h4><p>模型推理到一半，可以主動下指令查詢外部環境(搜尋維基百科或Google)，拿到搜尋結果，再繼續往下推理，推理過程中會插入真實查詢動作，不是憑空想。每查一次，都會先寫一段推理(「我查到 A 了，但題目問的是 B,，還需要再查 C」)，讓查詢動作有方向、有目的查完的資訊也才會被真正整合進最後的答案裡。</p>
+<p>舉例日本之旅:<br>邊想邊查這個溫泉飯店現在還有開嗎?直接打開網頁查，查到結果再繼續往下規劃。</p>
+<blockquote>
+<p>補充:ReAct 在前面 Subgoal Decomposition 章節出現過，當時談的是它「邊做邊拆解任務」的特性，這裡則是聚焦在它「怎麼讓 Actor 內部思考」這個面向，兩者談的是同一個框架的不同功能。）</p>
+</blockquote>
+<h4 id="Chain-of-Thought-CoT-與-ReAct"><a href="#Chain-of-Thought-CoT-與-ReAct" class="headerlink" title="Chain-of-Thought(CoT) 與 ReAct"></a>Chain-of-Thought(CoT) 與 ReAct</h4><table>
+<thead>
+<tr>
+<th></th>
+<th>Chain-of-Thought(CoT)</th>
+<th>ReAct</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>運作方式</td>
+<td>純推理，一步步在腦中往下想，沒有跟外部環境互動</td>
+<td>推理跟行動交錯進行:想一步 → 做一個動作(查資料)→ 看結果 → 再想</td>
+</tr>
+<tr>
+<td>適合場景</td>
+<td>不需要即時外部資訊、靠內部知識就能推理的任務</td>
+<td>需要查證、取得即時資訊的任務(問答、事實查核)</td>
+</tr>
+<tr>
+<td>缺點</td>
+<td>沒有外部連結，容易產生幻覺、講錯過時或冷門資訊</td>
+<td>如果只做行動、沒有推理(純行動基準線)，查了資料也整合不出答案，所以 ReAct 一定要保留推理這一步</td>
+</tr>
+<tr>
+<td>論文實測</td>
+<td>HotPotQA 上單獨表現略勝 ReAct(29.4 vs 27.4)</td>
+<td>Fever 上優於 CoT(60.9 vs 56.3)，因為查核任務特別需要即時準確的知識</td>
+</tr>
+</tbody></table>
+<p><a href="arxiv.org/abs/2210.03629">論文實測資訊</a></p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/71ce66c9-bac5-42ab-873b-24dd2476ce22" />
+
+<h3 id="Evaluator"><a href="#Evaluator" class="headerlink" title="Evaluator"></a>Evaluator</h3><p>Evaluator 負責針對 Actor 這一次嘗試產生的軌跡打分數，判斷「這次做得好不好、成功了嗎」。輸入是 Actor 執行完留下的完整行動軌跡，輸出是一個獎勵訊號。Evaluator 有好幾種不同的實作算法</p>
+<h4 id="1-精確匹配-Exact-Match"><a href="#1-精確匹配-Exact-Match" class="headerlink" title="1. 精確匹配(Exact Match)"></a>1. 精確匹配(Exact Match)</h4><p>用在像客服或故障排除系統這種有標準答案的問答任務上，直接檢查模型生成的答案，是否跟正確答案完全吻合。這種評分方式最直接、最沒有模糊空間，但也只適用於「答案是固定、可比對」的任務類型。</p>
+<p>日本之旅比喻:女友問你這間溫泉飯店一晚多少錢?，答案是固定的、可以直接比對的，你查到的數字要嘛跟官網公告的價格一模一樣，要嘛不一樣，沒有模糊空間，對就是對、錯就是錯。</p>
+<h4 id="2-啟發式規則-Heuristic-Rules"><a href="#2-啟發式規則-Heuristic-Rules" class="headerlink" title="2. 啟發式規則(Heuristic Rules)"></a>2. 啟發式規則(Heuristic Rules)</h4><p>用在像系統架構之類需要跟環境互動、完成一連串動作的商業邏輯或場景權衡。因為這類任務沒有單一「正確答案」可以比對，所以改用預先定義好的規則去檢測特定失敗模式。</p>
+<p>日本旅遊比喻:規劃行程沒有「唯一正確的排法」，但可以設幾條啟發式規則去抓明顯的問題</p>
+<ul>
+<li>同一天排的景點，交通時間加起來超過 3 小時就標記太趕</li>
+<li>訂的飯店距離安排的景點超過 1 小時車程</li>
+</ul>
+<p>標記不合理，不用比對標準答案行程表，只要沒踩到這些紅線,就算是合格的規劃。</p>
+<h4 id="3-單元測試-Unit-Tests"><a href="#3-單元測試-Unit-Tests" class="headerlink" title="3. 單元測試(Unit Tests)"></a>3. 單元測試(Unit Tests)</h4><p>用在程式撰寫任務上，直接讓生成的程式碼跑過一組單元測試，通過測試就代表這次輸出是成功的。<br>日本之旅比喻:排完行程後，拿幾個檢查點去實測驗證通過這些檢查點才算合格。</p>
+<ul>
+<li>機票時間跟飯店 check-in 時間對得上嗎?</li>
+<li>每天的交通接駁真的銜接得起來嗎?</li>
+</ul>
+<h4 id="4-LLM-自評"><a href="#4-LLM-自評" class="headerlink" title="4. LLM 自評"></a>4. LLM 自評</h4><p>直接找另一個 LLM 來扮演 Evaluator 角色，讓它閱讀 Actor 的輸出後自己給出評分。這是彈性最高的做法，但也最依賴這個「評審用」LLM 本身的判斷能力夠不夠準確。<br>日本之旅比喻:行程排好後，找一個有經驗的兄弟通篇看過整份行程，憑他的經驗跟判斷給你打分。</p>
+<h4 id="為什麼-Reflexion-只需要「粗略」的訊號就夠"><a href="#為什麼-Reflexion-只需要「粗略」的訊號就夠" class="headerlink" title="為什麼 Reflexion 只需要「粗略」的訊號就夠?"></a>為什麼 Reflexion 只需要「粗略」的訊號就夠?</h4><p>Evaluator 的要求只有訊號的精細度很低，不代表「設計難度」很低。</p>
+<p>傳統強化學習需要設計精細的數值獎勵函數(reward shaping)，像是下棋贏了給 +100，每吃一步棋給 +1，被吃扣 -5，模型依靠這些數值去更新，數字的顆粒度直接影響模型學得好不好。這套獎勵函數往往要花很多心力去調校並不是這麼容易。</p>
+<p>而Reflexion 要的只是粗略方向，像是成功&#x2F;失敗這種二元結果，不需要精細的數值型獎勵。原因是 Reflexion 觸發 Self-Reflection 去做精細判斷的工作，被移到下一棒，Evaluator 不用告訴系統這次做得有多爛、爛在哪，只要告訴系統過不過關就好，為什麼失敗、哪裡出錯、下次怎麼改這些精細的判斷，全部交給 Self-Reflection 處理。所以「粗略」換來的好處，是「不用做強化學習數字的精算」。</p>
+<p>日本旅遊比喻:Evaluator 不需要打出這次行程 87 分這種精確分數，只需要一句簡單訊號，「女友這次滿不滿意」二元結果。</p>
+<p>但要準確判斷出「滿意還是不滿意」，還是得仔細觀察她全程的表情、有沒有抱怨，判斷這件事本身沒有變簡單，只是不用把「滿意程度」精算成一個分數而已。真正要搞懂「哪裡讓她不滿意、下次怎麼改」，是後面 Self-Reflection 該做的事。</p>
+<h4 id="Self-Reflection的天花板，取決於-Evaluator"><a href="#Self-Reflection的天花板，取決於-Evaluator" class="headerlink" title="Self-Reflection的天花板，取決於 Evaluator"></a>Self-Reflection的天花板，取決於 Evaluator</h4><p>Evaluator 的品質其實是整個系統的第一道瓶頸，獎勵訊號設計得不好，反思內容自然也會跟著跑偏。「一步錯，步步錯」，或者在計算機科學中常說的「垃圾進，垃圾出」。</p>
+<p>這裡舉個例子MBPP(Mostly Basic Python) 問題，最早由 Google Research 提出，用來測試模型能不能根據自然語言描述產生正確 Python 程式，但因MBPP單元測試的情境過低導致輕易就能通過</p>
+<p>題目為找出陣列第一個元素</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">first_element</span>(<span class="params">arr</span>):</span><br><span class="line">    <span class="keyword">return</span> arr[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+
+<p>模型自己寫的單元測試:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">assert</span> first_element([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]) == <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>Evaluator 認為成功，但事實上有學過單元測的朋友都知道這只是Happy Path，但現實中往往更多情境需要考慮，但只要陣列是空的，這段程式碼就會直接拋出 <code>IndexError</code> 而崩潰，這種邊界情況，自產的測試根本沒想到要涵蓋。問題被直接放過，連被檢討的機會都沒有。</p>
+<blockquote>
+<p>Evaluator 判定成功 → 系統認為這一輪任務已經完成，不需要反思 → 疊代直接停止，但這段程式碼實際上還有漏洞，只是沒被自己寫的測試抓出來</p>
+</blockquote>
+<p>日本旅遊比喻:你排的行程只用最順利的情況驗證過一遍(晴天、交通都準時)，沒去想「如果那天下雨怎麼辦」邊界情況。驗證方式太寬鬆行程被誤判成「沒問題」，反而少了一次回頭修正的機會。</p>
+<p>還有另一種更隱蔽的風險，如果 Evaluator 正確判定失敗，但打分的依據本身有問題(比如啟發式規則設計得不夠精準)，Self-Reflection 雖然有被觸發，寫出來的反思內容卻是基於錯誤前提推導出來的，等於「做了,但做錯方向」，這種情況比「完全沒被觸發」更難察覺，因為表面上系統看起來確實有在「反思、修正」，只是修正的方向從一開始就偏了。</p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/f624dcbb-e9e3-4b90-9482-7da3973e1711" />
+
+<p>日本之旅比喻:同一天排超過 3 個景點就算太趕，女友這天確實抱怨了(Evaluator 正確判定失敗)，於是你認真寫下反思:「果然是排了 4 個景點太多，下次每天最多排 3 個」。</p>
+<p>但你完全想錯方向了，女友真正不開心的原因，其實是那天一直在轉車，花太多時間耗在交通上，跟景點數量根本沒關係。規則從一開始設計得不夠精準(只看景點數量,沒考慮交通時間)，導致 Self-Reflection 雖然確實被觸發、也認真寫了檢討，但整段反思的前提就是錯的。</p>
+<p>這就導致下次規劃，你照著這個「錯誤的教訓」把景點壓到 3 個以內，結果因為完全沒處理交通問題，女友更不開心整趟旅程一直生悶氣，表面上確實有在檢討、有在調整，看起來很認真學習，但方向從第一步就偏了，而且因為每次都有反思紀錄，反而更難發現問題出在「規則本身設錯」，而不是「沒有反思」。</p>
+<h3 id="Self-Reflection-反思"><a href="#Self-Reflection-反思" class="headerlink" title="Self-Reflection(反思)"></a>Self-Reflection(反思)</h3><p>Self-Reflection 拿到 Evaluator 給的分數(通常只是一個數字，或成功&#x2F;失敗這種二元訊號)，負責把它<strong>翻譯成一段有意義的文字說明</strong>，當 Evaluator 判定失敗時，Self-Reflection 模型會把這個結果轉換成語言回饋。根據失敗的軌跡跟評估結果，它會生成自然語言反思，診斷哪裡出錯、解釋推理為什麼失敗，並建議下次嘗試該用什麼策略。反思常是具體、很像可執行的指令，而不是空泛的檢討</p>
+<h4 id="信用分配問題-Credit-Assignment-Problem"><a href="#信用分配問題-Credit-Assignment-Problem" class="headerlink" title="信用分配問題(Credit Assignment Problem)"></a>信用分配問題(Credit Assignment Problem)</h4><p>產生有用的反思回饋很有挑戰性，因為這需要對「模型到底哪裡做錯」有很好的理解(也就是所謂的<strong>信用分配問題</strong>)，需要有能力生成一段包含可執行改進建議的摘要。Reflexion 透過對軌跡中「哪些具體行動」導致失敗進行隱式推理，來處理信用分配問題，並為未來的嘗試提出替代策略，沒有額外的演算法去精確定位錯誤步驟，完全靠 LLM 自己讀完整條軌跡後，用推理能力去判斷問題出在哪。</p>
+<p>跟傳統強化學習 對照:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>傳統 RL(顯式信用分配)</th>
+<th>Reflexion(隱式信用分配)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>怎麼分配信用</td>
+<td>用數學公式計算每步的貢獻度</td>
+<td>讓 LLM 讀完整條軌跡,自己推理判斷</td>
+</tr>
+<tr>
+<td>需要什麼</td>
+<td>精心設計的演算法(TD、優勢估計等)</td>
+<td>只需要 LLM 本身的推理能力</td>
+</tr>
+<tr>
+<td>準確度保證</td>
+<td>有數學收斂性質可以分析</td>
+<td>沒有正式的準確度保證,完全依賴 LLM 判斷力</td>
+</tr>
+<tr>
+<td>成本</td>
+<td>訓練複雜、需要大量樣本</td>
+<td>不用訓練,一次呼叫 LLM 就能生成</td>
+</tr>
+</tbody></table>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/a7041105-0400-4cee-805c-11e25a157931" />
+
+<h4 id="三種產生反思內容的方式"><a href="#三種產生反思內容的方式" class="headerlink" title="三種產生反思內容的方式"></a>三種產生反思內容的方式</h4><ul>
+<li>單純的二元環境回饋:只根據成功&#x2F;失敗這個簡單訊號生成反思</li>
+<li>針對常見失敗案例預先定義的啟發式規則:遇到特定已知的失敗模式，套用固定的檢討模板</li>
+<li>自我生成:讓 LLM 自己分析失敗原因，不依賴任何預設規則，完全靠推理能力產生反思</li>
+</ul>
+<blockquote>
+<p>這裡跟 Evaluator 的四種評分方式不是同一件事，Evaluator 決定過不過關，反思則是決定檢討報告要根據什麼資訊來寫。</p>
+</blockquote>
+<h3 id="Memory"><a href="#Memory" class="headerlink" title="Memory"></a>Memory</h3><p>這裡的Memory是Reflexion 的模組，與Planning同層的Memory是不同的，但他們的概念邏輯很像，兩層:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>短期記憶(Short-term &#x2F; Trajectory)</th>
+<th>長期記憶(Episodic Memory)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>存的內容</td>
+<td>這一次嘗試(trial)過程中的完整行動軌跡</td>
+<td>Self-Reflection 產生的文字反思</td>
+</tr>
+<tr>
+<td>有效範圍</td>
+<td>只在<strong>這一輪</strong>任務內有效</td>
+<td><strong>跨越多輪嘗試</strong>持續累積</td>
+</tr>
+<tr>
+<td>誰在用</td>
+<td>Evaluator 打分數時,讀取的就是這段軌跡</td>
+<td>下一輪 Actor 開始執行前,會先讀取這裡</td>
+</tr>
+</tbody></table>
+<p>Evaluator 打分數時，輸入的是這次任務產生的完整行動軌跡，這段軌跡本身也被稱作短期記憶，也就是說,<strong>短期記憶其實就是 Actor 這一輪跑出來的「工作紀錄」，用完就沒有下一輪的價值</strong>，真正會被留下來、影響未來表現的，是長期記憶裡存的反思文字。</p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/cc44ff37-efda-4014-959a-3a647007a780" />
+
+<p>對照日本旅遊:</p>
+<ul>
+<li>短期記憶是:這次查的機票報價、聯絡過的飯店客服，下次規劃別的旅行用不到</li>
+<li>長期記憶則:每天別排超過 3 個景點、訂飯店要考慮跟景點的交通時間，這份備忘錄下次規劃不同的旅行時還翻得到。</li>
+</ul>
+<h2 id="Self-Critics-自我批評"><a href="#Self-Critics-自我批評" class="headerlink" title="Self-Critics(自我批評)"></a>Self-Critics(自我批評)</h2><p>Self-Critics 做的事，是讓 Actor <strong>在產出的當下</strong>就有能力自己抓出問題、當場修正，不用等到整個任務跑完、被外部驗證失敗後才回頭補救。如果Actor 生成完一個答案就直接輸出，不會自己回頭檢查，會發生什麼事?</p>
+<p>就像寫東西一樣，LLM 不會每次第一次嘗試就寫出最好的版本。差別在於人類會自己重讀一遍草稿，挑出不順、不夠好的地方修一修(對於我在寫文章非常有感觸哈)，但如果 LLM 沒有這個機制，第一版就是最終版沒有人幫它把關，錯字、邏輯漏洞、考慮不周的地方，就這樣直接送出去了。</p>
+<p>Self-Critics代表的框架為Self-Refine ，模仿人類修改草稿的方式，讓模型自己生成初稿，再讓模型本身回頭批評自己的初稿，並根據這個批評修正，不斷重複這個過程，逐步把輸出打磨得更好。</p>
+<p>對照日本旅遊:排完行程草稿後不急著給女友看，自己先重讀一次寫下問題，再照著這些問題修一版，整個過程都是你自己一個人在做。</p>
+<p>Self-Refine 通通是自問自答完成的，同時扮演三個角色:</p>
+<ul>
+<li>產生者(Generate):先產生一版初始輸出</li>
+<li>批評者(Feedback):把這版輸出送回自己，要求它具體指出哪裡有問題</li>
+<li>修正者(Refine):把回饋跟原輸出一起送回模型，請它產出修正版</li>
+</ul>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/8724c1b8-21a3-4a64-bb3b-06369c70feed" />
+
+<p>對照日本旅遊: 想一步 → 挑一個毛病(景點排太多)→ 修一版 → 再挑毛病(忘記溫泉飯店)→ 再修一版 → … → 覺得夠好了，交出去給女友看</p>
+<h3 id="現實迭代次數取捨"><a href="#現實迭代次數取捨" class="headerlink" title="現實迭代次數取捨"></a>現實迭代次數取捨</h3><p>輪數太少可能還沒改到位，輪數太多反而可能因為沒有標準答案可以對照，讓模型在沒有明確方向的情況下越改越差，同時每多一輪都要重新呼叫模型，成本跟著累加。所以需要「改善空間」跟「成本&#x2F;風險」之間抓的一個實務平衡點。</p>
+<p>對照日本旅遊:改個 2~3 輪左右差不多就夠了，改太多次反而可能越改越亂，原本排得不錯的部分，因為找不到更多毛病硬要挑，反而被改壞了。</p>
+<h2 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h2><p>Planning 是 AI Agent 從「直接回答」走向「能處理複雜任務」的核心能力。它讓 Agent 可以先拆解任務、規劃步驟、執行後再反思與修正，而不是一次把答案生成完就結束。</p>
+<p>這篇的重點可以收斂成三句話：</p>
+<ul>
+<li>Subgoal Decomposition 讓 Agent 把大任務拆成可以執行的小任務。</li>
+<li>Reflection &#x2F; Self-Reflection 讓 Agent 從失敗或不完整的結果中修正策略。</li>
+<li>Self-Critics &#x2F; Self-Refine 則讓模型在輸出前先自我檢查，逐步打磨答案品質。</li>
+</ul>
+<p>實務上 Planning 不是越複雜越好，而是要在任務難度、迭代成本、輸出品質之間取平衡。簡單任務不一定需要完整規劃流程，但只要任務開始變長、變多步驟、需要中途修正，Planning 就會變成 Agent 能不能穩定完成工作的關鍵。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://lilianweng.github.io/posts/2023-06-23-agent/">Lilian Weng - LLM Powered Autonomous Agents</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2026/08/20/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Planning/">https://jed-4a6g0109.github.io/Software-Jed/2026/08/20/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Planning/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/AI/">AI</a><a class="post-meta__tags" href="/Software-Jed/tags/LLM/">LLM</a><a class="post-meta__tags" href="/Software-Jed/tags/AI-Agent/">AI Agent</a><a class="post-meta__tags" href="/Software-Jed/tags/Planning/">Planning</a></div><div class="post-share"><div class="social-share" data-image="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Software-Jed/2026/08/26/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Memory/" title="AI Agent Memory：短期記憶與長期記憶怎麼運作？"><img class="cover" src="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">AI Agent Memory：短期記憶與長期記憶怎麼運作？</div></div><div class="info-2"><div class="info-item-1">在前面Agent概念篇講到這張圖為Agent核心  Memory  Action Planning Tools  上章節介紹完了Planning此篇來介紹Memory   圖片Overview of a LLM-powered autonomous agent system. 來源 關於大型語言模型固定知識大型語言模型運作起來像「只能憑記憶回答不能查資料」系統，只能依賴模型本身參數與當初訓練資訊記住的東西回答問題，知識固定在訓練那一刻，沒辦法即時更新，也容易編造錯誤資訊(幻覺)。 對照日本旅遊:如果女友問你「前年那間拉麵店還開著嗎」，你只能憑「上次去的印象」回答，上一次去還在所以你硬要答:是還在，但事實上已經不再了，存在過時(倒閉、或搬遷)，或根本不存在的答案(還存在)，這就是「缺乏特地知識或者訓練時沒此資訊」的困境:你手邊沒有紀錄可以查與參考，只能憑腦中殘存的記憶硬答，答錯了也不會有人告訴你，你自己還以為講得對的。 Memory如果 Planning 負責「想清楚怎麼做」，Memory 負責的是「記得住什麼」。 每次對話都是失憶狀態，Agent 回答就不可能精準。就像人類對話都...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/08/17/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent%E6%A6%82%E5%BF%B5%E7%AF%87/" title="AI Agent 入門：從旅行規劃理解 Planning、Memory 與 Tools"><img class="cover" src="https://github.com/user-attachments/assets/663204b5-c5cb-45af-8cd5-f9481963a557" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">AI Agent 入門：從旅行規劃理解 Planning、Memory 與 Tools</div></div><div class="info-2"><div class="info-item-1">AI Agent是什麼?其實你已經知道Agent是什麼了，只是太多深疏的專有名詞你不能理解，這邊舉個例子，假如快放長假了，你女朋友突然想要去日本，那你會怎做呢? 身為一個男朋友通常會分幾步驟:  聽你女友想去日本哪邊、想吃什麼、想住什麼類型飯店 開始上網開起工具(Google、IG)，開始尋找機票、飯店、網美景點、好吃的好料、交通、伴手禮店 然後你會將這些記錄(女友要求、查詢日本相關資訊等)陸陸續續紀錄在Line上阿，或者兄弟DC群阿等等 最後將結果輸出上報給女友大人等待好玩的日本之旅  其實你就等於Agent，Agent做的事情概念與你相同    步驟 對應 Agent 模組 對照重點    聽女友想去哪、想吃什麼、想住什麼飯店 推理與規劃(大腦) 理解需求、拆解成「地點、美食、住宿」等子任務   開 Google、IG 找機票、飯店、景點、美食、交通、伴手禮 感知交互(工具) 調用不同工具(Google、IG)去外部獲取資訊   陸陸續續把女友要求、查到的資訊記錄在 LINE 或兄弟 DC 群 狀態管理(記憶) 重點就在「陸陸續續」——不是查完一次性記錄,而是邊查邊更新、持續...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/Software-Jed/2026/08/26/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Memory/" title="AI Agent Memory：短期記憶與長期記憶怎麼運作？"><img class="cover" src="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-26</div><div class="info-item-2">AI Agent Memory：短期記憶與長期記憶怎麼運作？</div></div><div class="info-2"><div class="info-item-1">在前面Agent概念篇講到這張圖為Agent核心  Memory  Action Planning Tools  上章節介紹完了Planning此篇來介紹Memory   圖片Overview of a LLM-powered autonomous agent system. 來源 關於大型語言模型固定知識大型語言模型運作起來像「只能憑記憶回答不能查資料」系統，只能依賴模型本身參數與當初訓練資訊記住的東西回答問題，知識固定在訓練那一刻，沒辦法即時更新，也容易編造錯誤資訊(幻覺)。 對照日本旅遊:如果女友問你「前年那間拉麵店還開著嗎」，你只能憑「上次去的印象」回答，上一次去還在所以你硬要答:是還在，但事實上已經不再了，存在過時(倒閉、或搬遷)，或根本不存在的答案(還存在)，這就是「缺乏特地知識或者訓練時沒此資訊」的困境:你手邊沒有紀錄可以查與參考，只能憑腦中殘存的記憶硬答，答錯了也不會有人告訴你，你自己還以為講得對的。 Memory如果 Planning 負責「想清楚怎麼做」，Memory 負責的是「記得住什麼」。 每次對話都是失憶狀態，Agent 回答就不可能精準。就像人類對話都...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-18</div><div class="info-item-2">AI Agent Tools：讓模型從只會講變成「真的能做」</div></div><div class="info-2"><div class="info-item-1">前面兩篇分別講了 Planning（想清楚怎麼做）跟 Memory（記得住什麼），這篇來把 Agent 核心四大模組的第三塊拼上：Tools。  Memory  Action Planning Tools    圖片Overview of a LLM-powered autonomous agent system. 來源 為什麼 LLM 需要 Tools回想女友吵著要去日本玩的例子，你負責規劃行程(Planning)，也把女友的需求跟查到的資訊陸續記在 LINE 上(Memory)，但光靠這兩樣，你還是訂不到機票、訂不到飯店，因為這些事情不是用腦子想就能完成的，你得打開 Google、開 App、甚至打電話給航空公司，而這些就是 Tools 在做的事。 大型語言模型本質上是個「文字接龍機器」，它只會根據訓練時記住的東西生成文字，沒辦法真的幫你查今天匯率、訂機票、查資料庫。就像你腦袋再怎麼會規劃行程，沒有 Google Maps、沒有訂票網站，你也只能空想。  關於「LLM只會根據訓練時記住的東西生成文字」，可以透過詢問方式來佐證  Tools 要解決的問題就是讓 Agent 從「...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-18</div><div class="info-item-2">AI Agent Action：從決定要做到「真的做完」最終章</div></div><div class="info-2"><div class="info-item-1">前面三篇分別講了 Planning（想清楚怎麼做）、Memory（記得住什麼）、Tools（有工具可以用），這篇來補上 Agent 核心四大模組的最後一塊：Action。 四篇寫完，Memory &#x2F; Action &#x2F; Planning &#x2F; Tools 這張圖總算補齊。算是花了一個半月學習收穫頗豐   圖片Overview of a LLM-powered autonomous agent system. 來源 還是回到女友吵著去日本的例子。你已經規劃好行程(Planning)、陸續把資訊記在 LINE 上(Memory)、也打開了訂票 App 查到票價(Tools)，但如果你查完票價之後就放著不動，行程永遠停在「查到」而已，女友還是沒有機票。真正把「查到 3000 元的機票」變成「刷卡訂下去、收到電子機票」的那個動作，就是 Action。 Action 跟 Tools 差在哪？ Tools講的是「Agent 有哪些能力可以呼叫」，Tools 是你車上有方向盤、油門、剎車這些可以用的裝置  Action講的是「Agent 實際上選了哪個能力、在什麼時機...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/08/17/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent%E6%A6%82%E5%BF%B5%E7%AF%87/" title="AI Agent 入門：從旅行規劃理解 Planning、Memory 與 Tools"><img class="cover" src="https://github.com/user-attachments/assets/663204b5-c5cb-45af-8cd5-f9481963a557" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-17</div><div class="info-item-2">AI Agent 入門：從旅行規劃理解 Planning、Memory 與 Tools</div></div><div class="info-2"><div class="info-item-1">AI Agent是什麼?其實你已經知道Agent是什麼了，只是太多深疏的專有名詞你不能理解，這邊舉個例子，假如快放長假了，你女朋友突然想要去日本，那你會怎做呢? 身為一個男朋友通常會分幾步驟:  聽你女友想去日本哪邊、想吃什麼、想住什麼類型飯店 開始上網開起工具(Google、IG)，開始尋找機票、飯店、網美景點、好吃的好料、交通、伴手禮店 然後你會將這些記錄(女友要求、查詢日本相關資訊等)陸陸續續紀錄在Line上阿，或者兄弟DC群阿等等 最後將結果輸出上報給女友大人等待好玩的日本之旅  其實你就等於Agent，Agent做的事情概念與你相同    步驟 對應 Agent 模組 對照重點    聽女友想去哪、想吃什麼、想住什麼飯店 推理與規劃(大腦) 理解需求、拆解成「地點、美食、住宿」等子任務   開 Google、IG 找機票、飯店、景點、美食、交通、伴手禮 感知交互(工具) 調用不同工具(Google、IG)去外部獲取資訊   陸陸續續把女友要求、查到的資訊記錄在 LINE 或兄弟 DC 群 狀態管理(記憶) 重點就在「陸陸續續」——不是查完一次性記錄,而是邊查邊更新、持續...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%80-State-Node-Edge/" title="LangGraph 由淺入深(一):State、Node、Edge"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-17</div><div class="info-item-2">LangGraph 由淺入深(一):State、Node、Edge</div></div><div class="info-2"><div class="info-item-1">LangGraph 由淺入深(一):State、Node、Edge 核心心智模型在前面我們鋪層了許多概念與知識，從解釋向量是甚麼至AI是如何搜索向量，再到解釋OpenAI研究員部落格講到的Agent四個核心架構  圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術 AI Agent 入門：從旅行規劃理解 Planning、Memory 與 Tools AI Agent Planning：任務拆解、反思修正與多步驟推理 AI Agent Memory：短期記憶與長期記憶怎麼運作？  目前我們已經對Agent有一定的深度了解，那該如何實現呢? 接下來將開始介紹低階的Agent 編排框架 LangGraph 為什麼需要 LangGraph?LLM 本質上是一次生成一段文字的服務，沒有記憶、不能自己執行任何外部動作。要做一個「查詢天氣、記得對話、能被打斷審核」的完整 Agent，這些其實你可以用Python也一堆if-else去創建一個Agent，但是你需要自己維護狀態、寫分支邏輯、處理迴圈跟中斷恢復，甚至每個模型的定義跟串接都要自己處理，很多非常細部的...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-17</div><div class="info-item-2">LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話</div></div><div class="info-2"><div class="info-item-1">LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話沒有記憶的 Agent每次 invoke() 都是全新的一次呼叫。LLM不會有記憶這機制，可以從下面程式驗證這件事情 123456789101112131415161718192021222324252627282930313233from langgraph.prebuilt import create_react_agentimport osos.environ[&quot;GOOGLE_API_KEY&quot;] = &quot;KEY&quot;from langchain_core.tools import tool@tooldef get_weather(city: str) -&gt; str:    &quot;&quot;&quot;查詢指定城市的天氣&quot;&quot;&quot;    fake_data = &#123;&quot;台北&quot;: &quot;晴天,28度&quot;, &quot;東京&quot;: &quot;雨天,18度&quot;&...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">87</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">47</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:bombom7108@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #ea4335;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><div class="jed-announcement">
+  <p class="jed-announcement__intro">科技趣事入口：近期從 AI、HTTP、DevSecOps 與系統設計新聞切進工程思考。</p>
+  <a href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/">祖克伯認為 5 年內 AI 代理會爆炸式成長</a>
+  <a href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/">Spring Boot 工程師看 FastAPI 的破防感</a>
+  <a href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/">OpenAI Agent 鍵盤與 AI 工具硬體化</a>
+  <a href="/Software-Jed/2026/06/29/RFC-10008-HTTP%E6%96%B0%E5%A2%9EQUERY%E6%96%B9%E6%B3%95/">SQLite 作者為什麼拒絕免費 PR？</a>
+  <a href="/Software-Jed/2026/06/04/DevSecOps-%E5%AF%A6%E8%B8%90%EF%BC%9APac%E5%AF%A6%E8%B8%90%E8%88%87%E6%BC%8F%E6%B4%9E%E6%8E%83%E6%8F%8F/">ZIP 炸彈與爬蟲防護趣事</a>
+</div>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Planning"><span class="toc-number">1.</span> <span class="toc-text">Planning</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Subgoal-Decomposition-%E7%9B%AE%E6%A8%99%E6%8B%86%E8%A7%A3"><span class="toc-number">1.1.</span> <span class="toc-text">Subgoal Decomposition(目標拆解)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%85%E5%A2%83%E4%B8%80-%E8%85%A6%E5%AD%90%E8%A3%A1%E6%83%B3%E5%88%B0%E4%BB%80%E9%BA%BC%E5%B0%B1%E5%81%9A%E4%BB%80%E9%BA%BC"><span class="toc-number">1.1.1.</span> <span class="toc-text">情境一:腦子裡想到什麼就做什麼</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%85%E5%A2%83%E4%BA%8C-%E5%85%A8%E5%A7%94%E8%A8%97%E7%B5%A6%E4%B8%80%E5%80%8B%E5%B8%B8%E5%8E%BB%E6%97%A5%E6%9C%AC%E7%9A%84%E5%85%84%E5%BC%9F"><span class="toc-number">1.1.2.</span> <span class="toc-text">情境二:全委託給一個常去日本的兄弟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%83%85%E5%A2%83%E4%B8%89-%E8%87%AA%E5%B7%B1%E6%9C%89%E8%A6%8F%E5%8A%83%E7%9A%84%E5%AE%89%E6%8E%92"><span class="toc-number">1.1.3.</span> <span class="toc-text">情境三:自己有規劃的安排</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Subgoal-Decomposition-%E6%A1%86%E6%9E%B6"><span class="toc-number">1.1.4.</span> <span class="toc-text">Subgoal Decomposition 框架</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Chain-of-Thoughts-%E6%8E%A8%E7%90%86"><span class="toc-number">1.2.</span> <span class="toc-text">Chain of Thoughts(推理)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#IO"><span class="toc-number">1.2.1.</span> <span class="toc-text">IO</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CoT"><span class="toc-number">1.2.2.</span> <span class="toc-text">CoT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CoT-SC"><span class="toc-number">1.2.3.</span> <span class="toc-text">CoT-SC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ToT"><span class="toc-number">1.2.4.</span> <span class="toc-text">ToT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IO%E3%80%81CoT%E3%80%81CoT-SC%E3%80%81ToT%E6%AF%94%E8%BC%83"><span class="toc-number">1.2.5.</span> <span class="toc-text">IO、CoT、CoT-SC、ToT比較</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reflection-%E5%8F%8D%E6%80%9D"><span class="toc-number">1.3.</span> <span class="toc-text">Reflection(反思)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Actor"><span class="toc-number">1.3.1.</span> <span class="toc-text">Actor</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Chain-of-Thought-CoT"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">Chain-of-Thought(CoT)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%82%BA%E4%BB%80%E9%BA%BC%E9%9C%80%E8%A6%81%E5%A4%96%E9%83%A8%E9%80%A3%E7%B5%90"><span class="toc-number">1.3.1.2.</span> <span class="toc-text">為什麼需要外部連結?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ReAct"><span class="toc-number">1.3.1.3.</span> <span class="toc-text">ReAct</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Chain-of-Thought-CoT-%E8%88%87-ReAct"><span class="toc-number">1.3.1.4.</span> <span class="toc-text">Chain-of-Thought(CoT) 與 ReAct</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Evaluator"><span class="toc-number">1.3.2.</span> <span class="toc-text">Evaluator</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%B2%BE%E7%A2%BA%E5%8C%B9%E9%85%8D-Exact-Match"><span class="toc-number">1.3.2.1.</span> <span class="toc-text">1. 精確匹配(Exact Match)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%95%9F%E7%99%BC%E5%BC%8F%E8%A6%8F%E5%89%87-Heuristic-Rules"><span class="toc-number">1.3.2.2.</span> <span class="toc-text">2. 啟發式規則(Heuristic Rules)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%96%AE%E5%85%83%E6%B8%AC%E8%A9%A6-Unit-Tests"><span class="toc-number">1.3.2.3.</span> <span class="toc-text">3. 單元測試(Unit Tests)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-LLM-%E8%87%AA%E8%A9%95"><span class="toc-number">1.3.2.4.</span> <span class="toc-text">4. LLM 自評</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%82%BA%E4%BB%80%E9%BA%BC-Reflexion-%E5%8F%AA%E9%9C%80%E8%A6%81%E3%80%8C%E7%B2%97%E7%95%A5%E3%80%8D%E7%9A%84%E8%A8%8A%E8%99%9F%E5%B0%B1%E5%A4%A0"><span class="toc-number">1.3.2.5.</span> <span class="toc-text">為什麼 Reflexion 只需要「粗略」的訊號就夠?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Self-Reflection%E7%9A%84%E5%A4%A9%E8%8A%B1%E6%9D%BF%EF%BC%8C%E5%8F%96%E6%B1%BA%E6%96%BC-Evaluator"><span class="toc-number">1.3.2.6.</span> <span class="toc-text">Self-Reflection的天花板，取決於 Evaluator</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Self-Reflection-%E5%8F%8D%E6%80%9D"><span class="toc-number">1.3.3.</span> <span class="toc-text">Self-Reflection(反思)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%A1%E7%94%A8%E5%88%86%E9%85%8D%E5%95%8F%E9%A1%8C-Credit-Assignment-Problem"><span class="toc-number">1.3.3.1.</span> <span class="toc-text">信用分配問題(Credit Assignment Problem)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E7%A8%AE%E7%94%A2%E7%94%9F%E5%8F%8D%E6%80%9D%E5%85%A7%E5%AE%B9%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="toc-number">1.3.3.2.</span> <span class="toc-text">三種產生反思內容的方式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Memory"><span class="toc-number">1.3.4.</span> <span class="toc-text">Memory</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Self-Critics-%E8%87%AA%E6%88%91%E6%89%B9%E8%A9%95"><span class="toc-number">1.4.</span> <span class="toc-text">Self-Critics(自我批評)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8F%BE%E5%AF%A6%E8%BF%AD%E4%BB%A3%E6%AC%A1%E6%95%B8%E5%8F%96%E6%8D%A8"><span class="toc-number">1.4.1.</span> <span class="toc-text">現實迭代次數取捨</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%B5%90"><span class="toc-number">1.5.</span> <span class="toc-text">小結</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.6.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="AI Agent Action：從決定要做到「真的做完」最終章"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章">AI Agent Action：從決定要做到「真的做完」最終章</a><time datetime="2026-09-18T07:51:08.000Z" title="發表於 2026-09-18 15:51:08">2026-09-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="AI Agent Tools：讓模型從只會講變成「真的能做」"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」">AI Agent Tools：讓模型從只會講變成「真的能做」</a><time datetime="2026-09-18T07:29:45.000Z" title="發表於 2026-09-18 15:29:45">2026-09-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話">LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話</a><time datetime="2026-09-17T07:35:34.000Z" title="發表於 2026-09-17 15:35:34">2026-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%89-create-react-agent-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E8%A9%B2%E7%94%A8/" title="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%89-create-react-agent-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E8%A9%B2%E7%94%A8/" title="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?">LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?</a><time datetime="2026-09-17T07:35:01.000Z" title="發表於 2026-09-17 15:35:01">2026-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%BA%8C-%E6%8E%A7%E5%88%B6%E6%B5%81%E8%88%87%E5%88%86%E6%94%AF-%E6%89%8B%E5%88%BB-ReAct-Agent/" title="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%BA%8C-%E6%8E%A7%E5%88%B6%E6%B5%81%E8%88%87%E5%88%86%E6%94%AF-%E6%89%8B%E5%88%BB-ReAct-Agent/" title="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent">LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent</a><time datetime="2026-09-17T07:34:29.000Z" title="發表於 2026-09-17 15:34:29">2026-09-17</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

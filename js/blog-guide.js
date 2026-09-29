@@ -9,6 +9,82 @@
     return path === '/Software-Jed/about/' || path === '/about/'
   }
 
+  const initArticleImageLightbox = () => {
+    const article = document.querySelector('#article-container')
+    if (!article) return
+
+    const images = Array.from(article.querySelectorAll('img'))
+      .filter(img => !img.closest('a') && !img.classList.contains('no-lightbox'))
+    if (!images.length) return
+
+    let lightbox = document.querySelector('.jed-image-lightbox')
+    if (!lightbox) {
+      lightbox = document.createElement('div')
+      lightbox.className = 'jed-image-lightbox'
+      lightbox.setAttribute('role', 'dialog')
+      lightbox.setAttribute('aria-modal', 'true')
+      lightbox.setAttribute('aria-label', '圖片預覽')
+      lightbox.innerHTML = `
+        <button class="jed-image-lightbox__close" type="button" aria-label="關閉圖片預覽">×</button>
+        <img class="jed-image-lightbox__img" alt="">
+        <div class="jed-image-lightbox__caption"></div>
+      `
+      document.body.appendChild(lightbox)
+    }
+
+    const preview = lightbox.querySelector('.jed-image-lightbox__img')
+    const caption = lightbox.querySelector('.jed-image-lightbox__caption')
+    const closeButton = lightbox.querySelector('.jed-image-lightbox__close')
+
+    const close = () => {
+      lightbox.classList.remove('is-open')
+      document.documentElement.classList.remove('jed-lightbox-open')
+      preview.removeAttribute('src')
+      preview.alt = ''
+      caption.textContent = ''
+    }
+
+    const open = img => {
+      const src = img.currentSrc || img.src
+      if (!src) return
+      preview.src = src
+      preview.alt = img.alt || '文章圖片'
+      caption.textContent = img.alt || img.getAttribute('title') || ''
+      lightbox.classList.add('is-open')
+      document.documentElement.classList.add('jed-lightbox-open')
+      closeButton.focus({ preventScroll: true })
+    }
+
+    images.forEach(img => {
+      if (img.dataset.jedLightboxReady === 'true') return
+      img.dataset.jedLightboxReady = 'true'
+      img.classList.add('jed-lightbox-trigger')
+      img.setAttribute('role', 'button')
+      img.setAttribute('tabindex', '0')
+      img.setAttribute('aria-label', img.alt ? `放大圖片：${img.alt}` : '放大圖片')
+      img.addEventListener('click', () => open(img))
+      img.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          open(img)
+        }
+      })
+    })
+
+    if (lightbox.dataset.jedEventsReady === 'true') return
+    lightbox.dataset.jedEventsReady = 'true'
+    closeButton.addEventListener('click', close)
+    preview.addEventListener('click', close)
+    lightbox.addEventListener('click', event => {
+      if (event.target === lightbox) close()
+    })
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && lightbox.classList.contains('is-open')) close()
+    })
+  }
+
+  initArticleImageLightbox()
+  document.addEventListener('pjax:complete', initArticleImageLightbox)
   const profileMap = document.querySelector('#jed-profile-map')
   if (isAbout() && profileMap && !profileMap.querySelector('.jed-profile__map')) {
     profileMap.innerHTML = `
@@ -206,3 +282,5 @@
     render('interview')
   }
 })()
+
+

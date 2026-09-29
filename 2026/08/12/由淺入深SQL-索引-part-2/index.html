@@ -1,0 +1,377 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>SQL 複合索引：回表成本、Concatenated Keys 與索引順序 | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="還記得上一篇「SQL 索引入門：B+ 樹、葉節點與查詢加速原理」提到的葉節點鏈表掃描與回表撈取資料會影響速度問題嗎？這邊快速複習一下整個 Flow 此篇將介紹深入介紹瓶頸以及原因。 Concatenated Keys 複合索引 舉個例子需要設計一個公司員工表 employee id 的唯一性，資料庫不需要遍歷整個索引葉節點，只要沿著索引樹往">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL 複合索引：回表成本、Concatenated Keys 與索引順序">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2026/08/12/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95-part-2/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="還記得上一篇「SQL 索引入門：B+ 樹、葉節點與查詢加速原理」提到的葉節點鏈表掃描與回表撈取資料會影響速度問題嗎？這邊快速複習一下整個 Flow 此篇將介紹深入介紹瓶頸以及原因。 Concatenated Keys 複合索引 舉個例子需要設計一個公司員工表 employee id 的唯一性，資料庫不需要遍歷整個索引葉節點，只要沿著索引樹往">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://github.com/user-attachments/assets/85330f29-b8fe-45c8-8e23-9380bc6b3e73">
+<meta property="article:published_time" content="2026-08-12T02:04:47.000Z">
+<meta property="article:modified_time" content="2026-08-27T14:20:40.342Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="Database">
+<meta property="article:tag" content="Index">
+<meta property="article:tag" content="Performance">
+<meta property="article:tag" content="SQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/user-attachments/assets/85330f29-b8fe-45c8-8e23-9380bc6b3e73"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SQL 複合索引：回表成本、Concatenated Keys 與索引順序",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2026/08/12/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95-part-2/",
+  "image": "https://github.com/user-attachments/assets/85330f29-b8fe-45c8-8e23-9380bc6b3e73",
+  "datePublished": "2026-08-12T02:04:47.000Z",
+  "dateModified": "2026-08-27T14:20:40.342Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2026/08/12/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95-part-2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3RQPJSYG2V"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', 'G-3RQPJSYG2V')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', 'G-3RQPJSYG2V', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'SQL 複合索引：回表成本、Concatenated Keys 與索引順序',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">87</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">47</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://github.com/user-attachments/assets/85330f29-b8fe-45c8-8e23-9380bc6b3e73);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">SQL 複合索引：回表成本、Concatenated Keys 與索引順序</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">SQL 複合索引：回表成本、Concatenated Keys 與索引順序</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-08-12T02:04:47.000Z" title="發表於 2026-08-12 10:04:47">2026-08-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-08-27T14:20:40.342Z" title="更新於 2026-08-27 22:20:40">2026-08-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/Database/">Database</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>還記得上一篇「SQL 索引入門：B+ 樹、葉節點與查詢加速原理」提到的葉節點鏈表掃描與回表撈取資料會影響速度問題嗎？這邊快速複習一下整個 Flow</p>
+<pre><code class="highlight mermaid">flowchart TD
+    A[開始 Index Scan] --&gt; B[Tree Traversal&lt;br/&gt;從 root 找到 leaf]
+    B --&gt; C[找到第一筆符合條件的&lt;br/&gt;index entry]
+    C --&gt; D&#123;查詢需要的欄位&lt;br/&gt;都在 index 裡嗎?&#125;
+    D --&gt;|是| E[Index Only Scan&lt;br/&gt;直接從 index 回傳資料]
+    D --&gt;|否| F[依照 ROWID / RID&lt;br/&gt;回 table 找 row]
+    F --&gt; G[讀取完整資料列]
+    G --&gt; H&#123;還有其他符合條件的&lt;br/&gt;index entries 嗎?&#125;
+    H --&gt;|有| I[沿著 leaf linked list&lt;br/&gt;繼續掃描下一筆]
+    I --&gt; D
+    H --&gt;|沒有| J[回傳查詢結果]
+
+    F:::hot
+    G:::hot
+    I:::warn
+
+    classDef hot fill:#ffe8e8,stroke:#d33,stroke-width:2px,color:#222;
+    classDef warn fill:#fff4cc,stroke:#d99a00,stroke-width:2px,color:#222;</code></pre>
+<p>此篇將介紹深入介紹瓶頸以及原因。</p>
+<h1 id="Concatenated-Keys-複合索引"><a href="#Concatenated-Keys-複合索引" class="headerlink" title="Concatenated Keys(複合索引)"></a>Concatenated Keys(複合索引)</h1><p>舉個例子需要設計一個公司員工表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> employees (</span><br><span class="line">    employee_id <span class="type">INT</span>,</span><br><span class="line">    first_name <span class="type">VARCHAR</span>(<span class="number">50</span>),</span><br><span class="line">    last_name <span class="type">VARCHAR</span>(<span class="number">50</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>employee_id 的唯一性，資料庫不需要遍歷整個索引葉節點，只要沿著索引樹往下找就能確定唯一的一筆資料，效率很高。</p>
+<p>假設有一張表，公司因為成長合併了其他家公司，表中需要新增subsidiary_id</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> employees (</span><br><span class="line">    employee_id <span class="type">INT</span>,</span><br><span class="line">    subsidiary_id <span class="type">INT</span>,</span><br><span class="line">    first_name <span class="type">VARCHAR</span>(<span class="number">50</span>),</span><br><span class="line">    last_name <span class="type">VARCHAR</span>(<span class="number">50</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>原本是查詢employee_id現在變成subsidiary_id雙主鍵，因此需要加複合式索引</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX emp_idx</span><br><span class="line"><span class="keyword">ON</span> employees(employee_id, subsidiary_id);</span><br></pre></td></tr></table></figure>
+<p>查詢時就會用上索引</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> first_name, last_name</span><br><span class="line">  <span class="keyword">FROM</span> employees</span><br><span class="line"> <span class="keyword">WHERE</span> employee_id   <span class="operator">=</span> <span class="number">123</span></span><br><span class="line">   <span class="keyword">AND</span> subsidiary_id <span class="operator">=</span> <span class="number">30</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>很多人以為複合索引是建立兩個索引，其實是錯的他是一體的。單一的 B-Tree 結構，資料是以欄位順序的「組合值」來排序與儲存的。</p>
+</blockquote>
+<h2 id="複合索引失效查詢"><a href="#複合索引失效查詢" class="headerlink" title="複合索引失效查詢"></a>複合索引失效查詢</h2><p>但是如果查詢條件為以下就會失效走全局掃描。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> first_name, last_name</span><br><span class="line">  <span class="keyword">FROM</span> employees</span><br><span class="line"> <span class="keyword">WHERE</span> subsidiary_id <span class="operator">=</span> <span class="number">20</span></span><br></pre></td></tr></table></figure>
+<p>因為葉節點subsidiary_id被分散在各地，索引是以employees列好的順序開始找，索引用索引搜尋，但用subsidiary_id找的話，會不知道路徑要從哪找，所以就會全局掃描。</p>
+<blockquote>
+<p>B-tree 的內部節點(branch node)，只記錄了 employee_id 的分界值，用來做「往左走還是往右走」的路由判斷。因為索引是先依 employee_id 排、subsidiary_id 只是次要排序，所以樹狀結構裡完全沒有任何一個內部節點是依 subsidiary_id 的值來分岔的。</p>
+</blockquote>
+<img class="jed-post-image" style="--jed-image-width: 860px;" alt="Image" src="https://github.com/user-attachments/assets/85330f29-b8fe-45c8-8e23-9380bc6b3e73" />
+
+<h2 id="複合索引與多個單一索引"><a href="#複合索引與多個單一索引" class="headerlink" title="複合索引與多個單一索引"></a>複合索引與多個單一索引</h2><p>上一節提到複合索引，那如果把 employees 與 subsidiary_id 各自建立單一索引，也能加快嗎？答案是可以的。</p>
+<p>雖然加一個額外的 subsidiary_id 索引也能讓兩種查詢都變快，但單一個順序正確的複合索引更好。上一篇「SQL 索引入門：B+ 樹、葉節點與查詢加速原理」也提到：索引本身需要維護，因此複合索引可以節省儲存空間，也省下第二個索引對 insert&#x2F;update&#x2F;delete 帶來的額外負擔。</p>
+<h2 id="複合索引欄位順序"><a href="#複合索引欄位順序" class="headerlink" title="複合索引欄位順序"></a>複合索引欄位順序</h2><p>複合索引欄位順序，決定它能不能被有效利用，因此判斷依據如下</p>
+<ul>
+<li>最常查詢的欄位放前面</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WHERE</span> user_id<span class="operator">=</span>? </span><br><span class="line"><span class="keyword">AND</span> created_date<span class="operator">=</span>?</span><br></pre></td></tr></table></figure>
+<p>那index肯定是這樣設計</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(user_id, created_date)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>多唯一性擺前面<br>性別欄位只有兩種 -&gt; M&#x2F;F<br>user_id多種 -&gt; 1、2、3….1000000</li>
+</ul>
+<p>查詢索引順序，假設定義了複合式索引</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">INDEX(A,B,C)</span><br><span class="line"># 先排 A <span class="operator">-</span><span class="operator">&gt;</span>再排 B <span class="operator">-</span><span class="operator">&gt;</span>最後排 C</span><br></pre></td></tr></table></figure>
+
+<p>複合索引 <code>(A, B, C)</code> 查詢有效性分析</p>
+<table>
+<thead>
+<tr>
+<th align="left">查詢條件 (<code>WHERE</code>)</th>
+<th align="center">索引是否有效</th>
+<th align="left">原因說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>A</strong></td>
+<td align="center">有效</td>
+<td align="left">包含最左側欄位 <code>A</code></td>
+</tr>
+<tr>
+<td align="left"><strong>A, B</strong></td>
+<td align="center">有效</td>
+<td align="left">從最左側開始，連續包含 <code>A</code> 和 <code>B</code></td>
+</tr>
+<tr>
+<td align="left"><strong>A, B, C</strong></td>
+<td align="center">有效</td>
+<td align="left">完整匹配整個複合索引的所有欄位</td>
+</tr>
+<tr>
+<td align="left"><strong>B</strong></td>
+<td align="center">無效</td>
+<td align="left">缺少最左側欄位 <code>A</code>，無法使用索引排序</td>
+</tr>
+<tr>
+<td align="left"><strong>C</strong></td>
+<td align="center">無效</td>
+<td align="left">缺少前置欄位 <code>A</code> 與 <code>B</code></td>
+</tr>
+<tr>
+<td align="left"><strong>B, C</strong></td>
+<td align="center">無效</td>
+<td align="left">雖然欄位連續，但依然缺少起頭的 <code>A</code></td>
+</tr>
+</tbody></table>
+<p>因此複合索引欄位順序，決定它能不能被有效利用。後端工程師在做設計時須考量實際業務邏輯與查詢的關係。重點就是「容易被查詢的擺前面，不常或者不被搜尋擺後面」定義索引順序。</p>
+<h2 id="複合索引讓速度變更慢了"><a href="#複合索引讓速度變更慢了" class="headerlink" title="複合索引讓速度變更慢了"></a>複合索引讓速度變更慢了</h2><p>改索引不是只影響你想優化的那個查詢，而是會影響這張表上所有查詢。</p>
+<p>例子<br>公司內部的電話簿系統突然變慢了。查詢SQL:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> first_name, last_name, subsidiary_id, phone_number</span><br><span class="line">  <span class="keyword">FROM</span> employees</span><br><span class="line"> <span class="keyword">WHERE</span> last_name  <span class="operator">=</span> <span class="string">&#x27;WINAND&#x27;</span></span><br><span class="line">   <span class="keyword">AND</span> subsidiary_id <span class="operator">=</span> <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<p>因為 last_name 根本不在這個索引裡，索引只能先抓出 id 為 30 的分公司所有員工的 ROWID(這裡有 25 個 ROWID)， 再對這 25 筆逐一回表去檢查姓氏是不是 WINAND</p>
+<img class="jed-post-image" style="--jed-image-width: 860px;" alt="Image" src="https://github.com/user-attachments/assets/b9a8dcdb-e135-4e09-b74d-3deedb947cbc" />
+
+<p>索引雖然幫你快速鎖定，但你還要對這 25 筆逐一做「回表」(隨機 I&#x2F;O)，這比循序讀完整張表還要慢。這正是「SQL 索引入門：B+ 樹、葉節點與查詢加速原理」和本文開頭一直在鋪的慢索引兩要素：索引範圍太寬 + 逐筆回表。因此數據量非常大時，這種查詢就會導致資料庫效能瓶頸，甚至比不加索引還糟糕。</p>
+<blockquote>
+<p>資料庫非常聰明，當它發現你在做全表掃描時，會一口氣把後面幾十個Block&#x2F;Page提早載入到記憶體。隨機 I&#x2F;O 讓資料庫無法預測你下一步要讀哪裡，每一次都必須老老實實去翻實體磁碟。索引有沒有用到不是重點，重點是索引幫你排除掉了多少「不相關的資料」，而回表次數越多，索引就越慢</p>
+</blockquote>
+<h2 id="Index-Only-Scan"><a href="#Index-Only-Scan" class="headerlink" title="Index Only Scan"></a>Index Only Scan</h2><p>如果想避免回表可以使用Index Only Scan，目前已知這個例子是回表所引起效能問題，那就將更多資訊儲存到index避免去table回表，</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX emp_covering</span><br><span class="line">    <span class="keyword">ON</span> employees (subsidiary_id, employee_id)</span><br><span class="line">    INCLUDE (last_name, first_name, phone_number)</span><br></pre></td></tr></table></figure>
+
+<p>last_name、first_name、phone_number 通通都已經在索引裡了，不管檢查結果通過還是沒通過，都不需要再跑去資料表撈資料，因為索引已經有查詢需要的全部欄位。本來25 次(每筆都要回表才能檢查 last_name,也才能拿到 first_name、phone_number)，現在0次直接去index裡面取得。</p>
+<img class="jed-post-image" style="--jed-image-width: 860px;" alt="Image" src="https://github.com/user-attachments/assets/0529dcfd-9a71-4ca5-af2d-103d4eb5ebe0" />
+
+<h2 id="Index-Only-Scan-雙面刃"><a href="#Index-Only-Scan-雙面刃" class="headerlink" title="Index Only Scan 雙面刃"></a>Index Only Scan 雙面刃</h2><p>但這也要權衡就是了，提到很多次index也是需要空間的，此外加進index代表table存一份，index存一份就很浪費，且連帶CUD速度下降。</p>
+<table>
+<thead>
+<tr>
+<th align="left">維度</th>
+<th align="left">獲得的好處（Benefits）</th>
+<th align="left">付出的代價（Costs）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>效能 (Performance)</strong></td>
+<td align="left"><strong>查詢變快（Read 提升）</strong><br>• 省去回表（Table Lookup）<br>• 將隨機 I&#x2F;O 轉為順序 I&#x2F;O</td>
+<td align="left"><strong>寫入變慢（Write 降級）</strong><br>• <code>INSERT</code> &#x2F; <code>UPDATE</code> &#x2F; <code>DELETE</code> 變慢<br>• 需同步維護與更新 B+Tree</td>
+</tr>
+<tr>
+<td align="left"><strong>資源 (Resource)</strong></td>
+<td align="left"><strong>降低 Disk I&#x2F;O</strong><br>• 直接在索引頁完成讀取<br>• 減少磁碟隨機讀取次數</td>
+<td align="left"><strong>空間膨脹 (Storage)</strong><br>• 索引體積變大<br>• 佔用更多硬碟空間與 Buffer Pool 記憶體</td>
+</tr>
+</tbody></table>
+<h2 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h2><p>複合索引不是把多個單欄位索引疊在一起，而是在同一棵 B+Tree 裡，依照欄位順序組成排序規則。因此它能不能派上用場，關鍵在於查詢條件是否符合最左前綴原則，以及索引是否真的能縮小掃描範圍。</p>
+<p>這篇的重點可以收斂成三句話：</p>
+<ul>
+<li>複合索引的欄位順序會決定資料庫能不能有效定位資料。</li>
+<li>Index lookup 變慢時，常見瓶頸不是 tree traversal，而是 leaf scan 範圍過大與逐筆回表。</li>
+<li>Index Only Scan 可以避免回表，但代價是索引變大、寫入維護成本也會上升。</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://use-the-index-luke.com/sql/anatomy">Use The Index, Luke - Anatomy of an SQL Index</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2026/08/12/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95-part-2/">https://jed-4a6g0109.github.io/Software-Jed/2026/08/12/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95-part-2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/SQL/">SQL</a><a class="post-meta__tags" href="/Software-Jed/tags/Index/">Index</a><a class="post-meta__tags" href="/Software-Jed/tags/Database/">Database</a><a class="post-meta__tags" href="/Software-Jed/tags/Performance/">Performance</a></div><div class="post-share"><div class="social-share" data-image="https://github.com/user-attachments/assets/85330f29-b8fe-45c8-8e23-9380bc6b3e73" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Software-Jed/2026/08/12/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95-part-3/" title="SQL Function Index：為什麼 lower(name) 會讓索引失效？"><img class="cover" src="https://github.com/user-attachments/assets/7014aa10-639f-4482-9368-f04a1be8e1e8" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">SQL Function Index：為什麼 lower(name) 會讓索引失效？</div></div><div class="info-2"><div class="info-item-1">Function Index 是什麼？Function Index 的概念很直覺：不是只把「欄位原始值」放進 index，而是把「欄位經過某個 function 或 expression 計算後的結果」放進 index。 先看一般索引： 12CREATE INDEX idx_users_nameON users(name);  這個 index 排序的是 name 原始值，所以像下面這種查詢可以用上索引： 1WHERE name = &#x27;Alice&#x27;  Function 如何影響 Index問題出在查詢條件套了 function 之後，資料庫看到的就不再是 name，而是 lower(name)： 12WHERE lower(name) = &#x27;alice&#x27;# 索引是 name，不是 lower(name)，所以一般 name index 幫不上忙  原因是 index 裡保存與排序的是原始 name，不是每個 name 經過 lower() 後的結果。對資料庫來說，name 和 lower(name) 是兩種不同的搜尋條件。 flowchar...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/08/04/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95/" title="SQL 索引入門：B+ 樹、葉節點與查詢加速原理"><img class="cover" src="https://github.com/user-attachments/assets/7014aa10-639f-4482-9368-f04a1be8e1e8" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">SQL 索引入門：B+ 樹、葉節點與查詢加速原理</div></div><div class="info-2"><div class="info-item-1">在工作上很常用索引，但有想過為什麼有些情況下加上索引，查詢反而變慢了?這篇筆記從最基礎的索引結構開始講起，一路拆解到 B 樹如何加速查詢，最後帶到「索引為什麼會變慢」這個問題的根源。 （本篇整理自 Use The Index， Luke 的 Anatomy of an SQL Index 系列） 一、Index 是什麼：像書本目錄一樣的獨立結構Index 是用 CREATE INDEX 語句建立的獨立資料結構，它會佔用自己的磁碟空間，並保存著被索引欄位的副本。建立索引不會改變原表(table)資料，它只是另外建立一個指向原表的新資料結構。 就像一本書的目錄，他需要佔據一頁紙張的空間，而目錄裡各篇章頁碼指向內容的實際位置。而索引關鍵在於所有條目都按照明確的順序排列。在有序資料集中尋找資料既快速又方便，因為排序順序決定了每個條目的位置。 但資料庫比一本書的目錄複雜得多，因為它必須隨時面對變動。一本書的目錄可以等下一次印刷才更新，但 SQL 資料庫必須即時處理 insert、delete、update，而且要在不大量搬移資料的前提下維持順序。 為了應付這個挑戰，資料庫結合了兩種資料結構...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/Software-Jed/2026/08/14/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95-part-5/" title="SQL Partial Index：用部分索引優化軟刪除與高頻查詢"><img class="cover" src="https://github.com/user-attachments/assets/1336636d-136c-47c0-97df-2b30e48bc9aa" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-14</div><div class="info-item-2">SQL Partial Index：用部分索引優化軟刪除與高頻查詢</div></div><div class="info-2"><div class="info-item-1">Partial Indexes目前討論的都是索引該包含哪些「欄位」，而索引其實也能包含「列」，這稱為 partial index(PostgreSQL 用語)。 例子在核心的表中，通常會使用軟刪除避免誤刪無法拯救資料 123SELECT idFROM usersWHERE deleted_at IS NULL;  應用程式幾乎所有查詢都是 WHERE deleted_at IS NULL(找還活著的資料)，已刪除的資料極少被查。資料庫用久了，deleted_at IS NOT NULL 的資料可能佔一大半，但索引可以完全排除它們。 123CREATE INDEX idx_active_users          ON users (email)       WHERE deleted_at IS NULL  這種索引設計好處是即使資料表持續無限成長，因為索引裡只包含已刪除資料，所以索引增長會相較慢節省空間又能提升查詢效能。這種設計可以以查詢常帶有某個「值分佈極度不均勻」的固定條件，而你只在乎少數那一邊的情境 例子1狀態型(進行中 vs 已完成) 123CREATE INDEX ...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/08/12/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95-part-3/" title="SQL Function Index：為什麼 lower(name) 會讓索引失效？"><img class="cover" src="https://github.com/user-attachments/assets/7014aa10-639f-4482-9368-f04a1be8e1e8" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-12</div><div class="info-item-2">SQL Function Index：為什麼 lower(name) 會讓索引失效？</div></div><div class="info-2"><div class="info-item-1">Function Index 是什麼？Function Index 的概念很直覺：不是只把「欄位原始值」放進 index，而是把「欄位經過某個 function 或 expression 計算後的結果」放進 index。 先看一般索引： 12CREATE INDEX idx_users_nameON users(name);  這個 index 排序的是 name 原始值，所以像下面這種查詢可以用上索引： 1WHERE name = &#x27;Alice&#x27;  Function 如何影響 Index問題出在查詢條件套了 function 之後，資料庫看到的就不再是 name，而是 lower(name)： 12WHERE lower(name) = &#x27;alice&#x27;# 索引是 name，不是 lower(name)，所以一般 name index 幫不上忙  原因是 index 裡保存與排序的是原始 name，不是每個 name 經過 lower() 後的結果。對資料庫來說，name 和 lower(name) 是兩種不同的搜尋條件。 flowchar...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/08/04/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95/" title="SQL 索引入門：B+ 樹、葉節點與查詢加速原理"><img class="cover" src="https://github.com/user-attachments/assets/7014aa10-639f-4482-9368-f04a1be8e1e8" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-04</div><div class="info-item-2">SQL 索引入門：B+ 樹、葉節點與查詢加速原理</div></div><div class="info-2"><div class="info-item-1">在工作上很常用索引，但有想過為什麼有些情況下加上索引，查詢反而變慢了?這篇筆記從最基礎的索引結構開始講起，一路拆解到 B 樹如何加速查詢，最後帶到「索引為什麼會變慢」這個問題的根源。 （本篇整理自 Use The Index， Luke 的 Anatomy of an SQL Index 系列） 一、Index 是什麼：像書本目錄一樣的獨立結構Index 是用 CREATE INDEX 語句建立的獨立資料結構，它會佔用自己的磁碟空間，並保存著被索引欄位的副本。建立索引不會改變原表(table)資料，它只是另外建立一個指向原表的新資料結構。 就像一本書的目錄，他需要佔據一頁紙張的空間，而目錄裡各篇章頁碼指向內容的實際位置。而索引關鍵在於所有條目都按照明確的順序排列。在有序資料集中尋找資料既快速又方便，因為排序順序決定了每個條目的位置。 但資料庫比一本書的目錄複雜得多，因為它必須隨時面對變動。一本書的目錄可以等下一次印刷才更新，但 SQL 資料庫必須即時處理 insert、delete、update，而且要在不大量搬移資料的前提下維持順序。 為了應付這個挑戰，資料庫結合了兩種資料結構...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/08/13/%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1SQL-%E7%B4%A2%E5%BC%95-part-4/" title="SQL 範圍查詢索引設計：等值條件、Access Predicate 與欄位順序"><img class="cover" src="https://github.com/user-attachments/assets/939c8ce2-db3e-47d4-9da7-ffcd65619273" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-13</div><div class="info-item-2">SQL 範圍查詢索引設計：等值條件、Access Predicate 與欄位順序</div></div><div class="info-2"><div class="info-item-1">範圍查詢(&gt;、&lt;、BETWEEN)的索引欄位順序當 WHERE 子句同時有範圍條件和等於條件時，索引裡兩個欄位的先後順序會嚴重影響效能。 前面「SQL 索引入門：B+ 樹、葉節點與查詢加速原理」和「SQL 複合索引：回表成本、Concatenated Keys 與索引順序」其實已經一直在講兩件事：  縮小掃描範圍：讓資料庫在 B+Tree 裡更早定位到真正需要讀的 index entries。 掃完再逐筆比對：資料已經被掃出來了，但還要一筆一筆檢查條件，最後再把不符合的資料丟掉。  在資料庫執行計劃裡，這兩件事通常會對應到兩個詞：  存取條件（Access Predicate）：真正用來定位索引掃描範圍的條件。它會決定 B+Tree 從哪裡開始掃、掃到哪裡停，因此能直接減少需要讀取的 index entries。 過濾條件（Filter Predicate）：資料已經被掃出來之後，才逐筆套用的條件。它可以把不符合的資料排掉，但不能縮小一開始的索引掃描範圍。  簡單講，Access Predicate 是「少掃一點」，Filter Predicate 是「掃完再丟掉」。...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">87</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">47</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:bombom7108@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #ea4335;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><div class="jed-announcement">
+  <p class="jed-announcement__intro">科技趣事入口：近期從 AI、HTTP、DevSecOps 與系統設計新聞切進工程思考。</p>
+  <a href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/">祖克伯認為 5 年內 AI 代理會爆炸式成長</a>
+  <a href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/">Spring Boot 工程師看 FastAPI 的破防感</a>
+  <a href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/">OpenAI Agent 鍵盤與 AI 工具硬體化</a>
+  <a href="/Software-Jed/2026/06/29/RFC-10008-HTTP%E6%96%B0%E5%A2%9EQUERY%E6%96%B9%E6%B3%95/">SQLite 作者為什麼拒絕免費 PR？</a>
+  <a href="/Software-Jed/2026/06/04/DevSecOps-%E5%AF%A6%E8%B8%90%EF%BC%9APac%E5%AF%A6%E8%B8%90%E8%88%87%E6%BC%8F%E6%B4%9E%E6%8E%83%E6%8F%8F/">ZIP 炸彈與爬蟲防護趣事</a>
+</div>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Concatenated-Keys-%E8%A4%87%E5%90%88%E7%B4%A2%E5%BC%95"><span class="toc-number">1.</span> <span class="toc-text">Concatenated Keys(複合索引)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A4%87%E5%90%88%E7%B4%A2%E5%BC%95%E5%A4%B1%E6%95%88%E6%9F%A5%E8%A9%A2"><span class="toc-number">1.1.</span> <span class="toc-text">複合索引失效查詢</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A4%87%E5%90%88%E7%B4%A2%E5%BC%95%E8%88%87%E5%A4%9A%E5%80%8B%E5%96%AE%E4%B8%80%E7%B4%A2%E5%BC%95"><span class="toc-number">1.2.</span> <span class="toc-text">複合索引與多個單一索引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A4%87%E5%90%88%E7%B4%A2%E5%BC%95%E6%AC%84%E4%BD%8D%E9%A0%86%E5%BA%8F"><span class="toc-number">1.3.</span> <span class="toc-text">複合索引欄位順序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A4%87%E5%90%88%E7%B4%A2%E5%BC%95%E8%AE%93%E9%80%9F%E5%BA%A6%E8%AE%8A%E6%9B%B4%E6%85%A2%E4%BA%86"><span class="toc-number">1.4.</span> <span class="toc-text">複合索引讓速度變更慢了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Index-Only-Scan"><span class="toc-number">1.5.</span> <span class="toc-text">Index Only Scan</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Index-Only-Scan-%E9%9B%99%E9%9D%A2%E5%88%83"><span class="toc-number">1.6.</span> <span class="toc-text">Index Only Scan 雙面刃</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%B5%90"><span class="toc-number">1.7.</span> <span class="toc-text">小結</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.8.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="AI Agent Action：從決定要做到「真的做完」最終章"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章">AI Agent Action：從決定要做到「真的做完」最終章</a><time datetime="2026-09-18T07:51:08.000Z" title="發表於 2026-09-18 15:51:08">2026-09-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="AI Agent Tools：讓模型從只會講變成「真的能做」"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」">AI Agent Tools：讓模型從只會講變成「真的能做」</a><time datetime="2026-09-18T07:29:45.000Z" title="發表於 2026-09-18 15:29:45">2026-09-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話">LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話</a><time datetime="2026-09-17T07:35:34.000Z" title="發表於 2026-09-17 15:35:34">2026-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%89-create-react-agent-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E8%A9%B2%E7%94%A8/" title="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%89-create-react-agent-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E8%A9%B2%E7%94%A8/" title="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?">LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?</a><time datetime="2026-09-17T07:35:01.000Z" title="發表於 2026-09-17 15:35:01">2026-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%BA%8C-%E6%8E%A7%E5%88%B6%E6%B5%81%E8%88%87%E5%88%86%E6%94%AF-%E6%89%8B%E5%88%BB-ReAct-Agent/" title="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%BA%8C-%E6%8E%A7%E5%88%B6%E6%B5%81%E8%88%87%E5%88%86%E6%94%AF-%E6%89%8B%E5%88%BB-ReAct-Agent/" title="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent">LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent</a><time datetime="2026-09-17T07:34:29.000Z" title="發表於 2026-09-17 15:34:29">2026-09-17</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

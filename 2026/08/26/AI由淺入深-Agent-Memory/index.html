@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="zh-TW" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>AI Agent Memory：短期記憶與長期記憶怎麼運作？ | Jed學習筆記</title><meta name="author" content="Jed Hung"><meta name="copyright" content="Jed Hung"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在前面Agent概念篇講到這張圖為Agent核心 - Memory - Action - Planning - Tools 上章節介紹完了Planning此篇來介紹Memory 圖片Overview of a LLM-powered autonomous agent system. 來源 https">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Agent Memory：短期記憶與長期記憶怎麼運作？">
+<meta property="og:url" content="https://jed-4a6g0109.github.io/Software-Jed/2026/08/26/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Memory/index.html">
+<meta property="og:site_name" content="Jed學習筆記">
+<meta property="og:description" content="在前面Agent概念篇講到這張圖為Agent核心 - Memory - Action - Planning - Tools 上章節介紹完了Planning此篇來介紹Memory 圖片Overview of a LLM-powered autonomous agent system. 來源 https">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e">
+<meta property="article:published_time" content="2026-08-26T02:09:46.000Z">
+<meta property="article:modified_time" content="2026-08-27T14:42:06.493Z">
+<meta property="article:author" content="Jed Hung">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="Memory">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI Agent Memory：短期記憶與長期記憶怎麼運作？",
+  "url": "https://jed-4a6g0109.github.io/Software-Jed/2026/08/26/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Memory/",
+  "image": "https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e",
+  "datePublished": "2026-08-26T02:09:46.000Z",
+  "dateModified": "2026-08-27T14:42:06.493Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Jed Hung",
+      "url": "https://jed-4a6g0109.github.io/Software-Jed"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Software-Jed/img/favicon.png"><link rel="canonical" href="https://jed-4a6g0109.github.io/Software-Jed/2026/08/26/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Memory/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Software-Jed/css/index.css?v=5.5.3"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3RQPJSYG2V"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', 'G-3RQPJSYG2V')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', 'G-3RQPJSYG2V', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/Software-Jed/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '複製成功',
+    error: '複製失敗',
+    noSupport: '瀏覽器不支援'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '剛剛',
+    min: '分鐘前',
+    hour: '小時前',
+    day: '天前',
+    month: '個月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '載入更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'AI Agent Memory：短期記憶與長期記憶怎麼運作？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/Software-Jed/css/blog-guide.css"><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">87</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">47</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Software-Jed/"><span class="site-name">Jed學習筆記</span></a><a class="nav-page-title" href="/Software-Jed/"><span class="site-name">AI Agent Memory：短期記憶與長期記憶怎麼運作？</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首頁</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Software-Jed/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章歸檔</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></div><div class="menus_item"><a class="site-page" href="/Software-Jed/about/"><i class="fa-fw fas fa-user"></i><span> 關於</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">AI Agent Memory：短期記憶與長期記憶怎麼運作？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">發表於</span><time class="post-meta-date-created" datetime="2026-08-26T02:09:46.000Z" title="發表於 2026-08-26 10:09:46">2026-08-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新於</span><time class="post-meta-date-updated" datetime="2026-08-27T14:42:06.493Z" title="更新於 2026-08-27 22:42:06">2026-08-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/Software-Jed/categories/AI/">AI</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">瀏覽量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>在前面Agent概念篇講到這張圖為Agent核心</p>
+<ul>
+<li>Memory </li>
+<li>Action</li>
+<li>Planning</li>
+<li>Tools</li>
+</ul>
+<p>上章節介紹完了Planning此篇來介紹Memory</p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e" />
+
+<p><a target="_blank" rel="noopener" href="https://lilianweng.github.io/posts/2023-06-23-agent/">圖片Overview of a LLM-powered autonomous agent system. 來源</a></p>
+<h1 id="關於大型語言模型固定知識"><a href="#關於大型語言模型固定知識" class="headerlink" title="關於大型語言模型固定知識"></a>關於大型語言模型固定知識</h1><p>大型語言模型運作起來像「只能憑記憶回答不能查資料」系統，只能依賴模型本身參數與當初訓練資訊記住的東西回答問題，知識固定在訓練那一刻，沒辦法即時更新，也容易編造錯誤資訊(幻覺)。</p>
+<p>對照日本旅遊:如果女友問你「前年那間拉麵店還開著嗎」，你只能憑「上次去的印象」回答，上一次去還在所以你硬要答:是還在，但事實上已經不再了，存在過時(倒閉、或搬遷)，或根本不存在的答案(還存在)，這就是「缺乏特地知識或者訓練時沒此資訊」的困境:你手邊沒有紀錄可以查與參考，只能憑腦中殘存的記憶硬答，答錯了也不會有人告訴你，你自己還以為講得對的。</p>
+<h1 id="Memory"><a href="#Memory" class="headerlink" title="Memory"></a>Memory</h1><p>如果 Planning 負責「想清楚怎麼做」，Memory 負責的是「記得住什麼」。</p>
+<p>每次對話都是失憶狀態，Agent 回答就不可能精準。就像人類對話都會有上下文，你會記得對方上一句講了什麼,才知道怎麼接下去回應，如果每一句都當作第一次聽到，根本沒辦法接話。Agent 也是同樣的道理，因此才有了記憶的概念:記住使用者偏好、過去執行過的任務等等。</p>
+<p>日本旅遊比喻:如果你每次跟女友討論行程都完全忘記上次聊到哪、她說過喜歡什麼、想去日本哪個網美景點拍照，就算你很會規劃(Planning 很強)，沒有記錄這些資訊，最終還是沒辦法真正滿足女友的需求。</p>
+<p>而Agent Memory有兩個概念</p>
+<ul>
+<li>Short-term memory(短期記憶)</li>
+</ul>
+<p>Short-term memory 本質上就是 LLM 的 <strong>context window(上下文視窗)</strong>，當前這一次對話裡看得到的所有內容，用完即丟對話一結束就清空。</p>
+<ul>
+<li>不需要額外的儲存機制，就是模型當下能「看到」的文字</li>
+<li>容量有限(受模型的 context window 上限限制)</li>
+<li>對話一結束，或超出視窗容量的舊內容被擠出去，就再也讀不到了</li>
+</ul>
+<p>對照日本旅遊:這次跟女友討論行程時，聊到的所有細節(她今天說想吃什麼、想去哪裡、想要去哪個網美景點、想要穿和服)，都在你當下的腦袋裡，聊完這次天後你跑去洗澡，一出來發現有些細節忘記了，你可能只記得剛女友說她很喜歡吃拉麵，然後後面就全忘了。</p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/60a205c8-e77a-4c1f-9d10-d26bba4787cc" />
+
+<h3 id="Long-term-memory-長期記憶"><a href="#Long-term-memory-長期記憶" class="headerlink" title="Long-term memory(長期記憶)"></a>Long-term memory(長期記憶)</h3><p>Long-term memory 需要額外的儲存機制，才能讓資訊跨對話、跨時間保留下來。<br>實作上靠向量資料庫跟語意檢索兩者搭配完成，一個負責「存」,一個負責「取」</p>
+<ul>
+<li><p>存-向量資料庫 Vector Database<br>把想保留的資訊(檔案、影片、音訊、文字等等)轉換成向量(Embedding)，存進向量資料庫。</p>
+</li>
+<li><p>取-語意檢索<br>需要用到某段記憶時，不是用關鍵字比對(字面要一模一樣才找得到)，而是把當下的查詢也轉成向量，去資料庫裡找「數學上距離最相近」的內容，再放進 prompt 給 LLM 參考，就算用字完全不同，只要意思相近，一樣撈得到。</p>
+</li>
+</ul>
+<blockquote>
+<p>延伸閱讀<a href="https://jed-4a6g0109.github.io/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/">向量資料庫怎麼在海量資料裡快速找到最相近的內容?</a></p>
+</blockquote>
+<p>對照日本旅遊:你洗完澡出來，發現剛剛聊的細節只記得女友說喜歡吃拉麵，其他的都想不起來了，但幸好你有把聊天內容記錄在手機<br>備忘錄裡(這就是向量資料庫在做的事)。你打開備忘錄,不需要逐字回想她當初講的話，只要在心裡想「她還說了哪些想去的地方、想拍的照片」，備忘錄就能幫你把「網美景點」「和服」這些相關內容撈出來(這就是語意檢索在做的事)，就算你當下想的問法，跟女友原本講的字句不完全一樣，也一樣找得回來避免女友生氣。</p>
+<img class="jed-post-image" style="--jed-image-width: 920px;" alt="Image" src="https://github.com/user-attachments/assets/71bbd562-0773-47c5-b5ea-bdeef17d01b3" />
+
+
+<h2 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h2><p>本篇重點分為短期記憶與長期記憶。短期記憶對應模型當下能看到的 context window，長期記憶則需要外部儲存與檢索機制，讓 Agent 能跨對話、跨時間保留重要資訊。也因為有了記憶，LLM 才能在不重新訓練模型的情況下擴展可用知識；業界對應的經典框架是 RAG，之後會再另外深入介紹。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://lilianweng.github.io/posts/2023-06-23-agent/">Lilian Weng - LLM Powered Autonomous Agents</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed">Jed Hung</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章連結: </span><span class="post-copyright-info"><a href="https://jed-4a6g0109.github.io/Software-Jed/2026/08/26/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Memory/">https://jed-4a6g0109.github.io/Software-Jed/2026/08/26/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Memory/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版權聲明: </span><span class="post-copyright-info">本部落格所有文章除特別聲明外，均採用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 授權協議。轉載請註明來源 <a href="https://jed-4a6g0109.github.io/Software-Jed" target="_blank">Jed學習筆記</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/Software-Jed/tags/AI/">AI</a><a class="post-meta__tags" href="/Software-Jed/tags/LLM/">LLM</a><a class="post-meta__tags" href="/Software-Jed/tags/AI-Agent/">AI Agent</a><a class="post-meta__tags" href="/Software-Jed/tags/Memory/">Memory</a></div><div class="post-share"><div class="social-share" data-image="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%80-State-Node-Edge/" title="LangGraph 由淺入深(一):State、Node、Edge"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">LangGraph 由淺入深(一):State、Node、Edge</div></div><div class="info-2"><div class="info-item-1">LangGraph 由淺入深(一):State、Node、Edge 核心心智模型在前面我們鋪層了許多概念與知識，從解釋向量是甚麼至AI是如何搜索向量，再到解釋OpenAI研究員部落格講到的Agent四個核心架構  圖解 AI 搜尋引擎背後的 ANN 演算法，HNSW、IVF 與 PQ 向量檢索技術 AI Agent 入門：從旅行規劃理解 Planning、Memory 與 Tools AI Agent Planning：任務拆解、反思修正與多步驟推理 AI Agent Memory：短期記憶與長期記憶怎麼運作？  目前我們已經對Agent有一定的深度了解，那該如何實現呢? 接下來將開始介紹低階的Agent 編排框架 LangGraph 為什麼需要 LangGraph?LLM 本質上是一次生成一段文字的服務，沒有記憶、不能自己執行任何外部動作。要做一個「查詢天氣、記得對話、能被打斷審核」的完整 Agent，這些其實你可以用Python也一堆if-else去創建一個Agent，但是你需要自己維護狀態、寫分支邏輯、處理迴圈跟中斷恢復，甚至每個模型的定義跟串接都要自己處理，很多非常細部的...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/08/20/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Planning/" title="AI Agent Planning：任務拆解、反思修正與多步驟推理"><img class="cover" src="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e" onerror="onerror=null;src='/Software-Jed/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">AI Agent Planning：任務拆解、反思修正與多步驟推理</div></div><div class="info-2"><div class="info-item-1">在前面Agent概念篇講到這張圖為Agent核心  Memory  Action Planning Tools  他們是概念與技術是如何實踐的本篇將來講述Planning。   圖片Overview of a LLM-powered autonomous agent system. 來源 Planning前面所提女友突然向你提出要去日本，而你拿到一個任務，該怎麼想、怎麼安排步驟才能完成它?本質上就是Planning。 規劃女友的日本旅遊行程 Planning 需要的所有元素:  拆解任務(訂機票&#x2F;飯店&#x2F;行程) 線性推理(一步步想景點遊玩順序) 自我審查(排完先自己挑毛病) 事後反思(這次行程太趕女友不開心，下次筆記記起來)  而LLM 本身是一次生成一段回應的機制，但複雜任務往往需要多步驟、有依賴關係、可能中途要修正方向。如果沒有 Planning，Agent 就容易在長任務中迷失或繞遠路。Planning 的本質，目的是讓 Agent 從「憑感覺直接回答」進化成「像人一樣有條理地想清楚再行動，而且會從錯誤中學習」。    Subgoal Decomposit...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相關推薦</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-18</div><div class="info-item-2">AI Agent Action：從決定要做到「真的做完」最終章</div></div><div class="info-2"><div class="info-item-1">前面三篇分別講了 Planning（想清楚怎麼做）、Memory（記得住什麼）、Tools（有工具可以用），這篇來補上 Agent 核心四大模組的最後一塊：Action。 四篇寫完，Memory &#x2F; Action &#x2F; Planning &#x2F; Tools 這張圖總算補齊。算是花了一個半月學習收穫頗豐   圖片Overview of a LLM-powered autonomous agent system. 來源 還是回到女友吵著去日本的例子。你已經規劃好行程(Planning)、陸續把資訊記在 LINE 上(Memory)、也打開了訂票 App 查到票價(Tools)，但如果你查完票價之後就放著不動，行程永遠停在「查到」而已，女友還是沒有機票。真正把「查到 3000 元的機票」變成「刷卡訂下去、收到電子機票」的那個動作，就是 Action。 Action 跟 Tools 差在哪？ Tools講的是「Agent 有哪些能力可以呼叫」，Tools 是你車上有方向盤、油門、剎車這些可以用的裝置  Action講的是「Agent 實際上選了哪個能力、在什麼時機...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/08/17/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent%E6%A6%82%E5%BF%B5%E7%AF%87/" title="AI Agent 入門：從旅行規劃理解 Planning、Memory 與 Tools"><img class="cover" src="https://github.com/user-attachments/assets/663204b5-c5cb-45af-8cd5-f9481963a557" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-17</div><div class="info-item-2">AI Agent 入門：從旅行規劃理解 Planning、Memory 與 Tools</div></div><div class="info-2"><div class="info-item-1">AI Agent是什麼?其實你已經知道Agent是什麼了，只是太多深疏的專有名詞你不能理解，這邊舉個例子，假如快放長假了，你女朋友突然想要去日本，那你會怎做呢? 身為一個男朋友通常會分幾步驟:  聽你女友想去日本哪邊、想吃什麼、想住什麼類型飯店 開始上網開起工具(Google、IG)，開始尋找機票、飯店、網美景點、好吃的好料、交通、伴手禮店 然後你會將這些記錄(女友要求、查詢日本相關資訊等)陸陸續續紀錄在Line上阿，或者兄弟DC群阿等等 最後將結果輸出上報給女友大人等待好玩的日本之旅  其實你就等於Agent，Agent做的事情概念與你相同    步驟 對應 Agent 模組 對照重點    聽女友想去哪、想吃什麼、想住什麼飯店 推理與規劃(大腦) 理解需求、拆解成「地點、美食、住宿」等子任務   開 Google、IG 找機票、飯店、景點、美食、交通、伴手禮 感知交互(工具) 調用不同工具(Google、IG)去外部獲取資訊   陸陸續續把女友要求、查到的資訊記錄在 LINE 或兄弟 DC 群 狀態管理(記憶) 重點就在「陸陸續續」——不是查完一次性記錄,而是邊查邊更新、持續...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-18</div><div class="info-item-2">AI Agent Tools：讓模型從只會講變成「真的能做」</div></div><div class="info-2"><div class="info-item-1">前面兩篇分別講了 Planning（想清楚怎麼做）跟 Memory（記得住什麼），這篇來把 Agent 核心四大模組的第三塊拼上：Tools。  Memory  Action Planning Tools    圖片Overview of a LLM-powered autonomous agent system. 來源 為什麼 LLM 需要 Tools回想女友吵著要去日本玩的例子，你負責規劃行程(Planning)，也把女友的需求跟查到的資訊陸續記在 LINE 上(Memory)，但光靠這兩樣，你還是訂不到機票、訂不到飯店，因為這些事情不是用腦子想就能完成的，你得打開 Google、開 App、甚至打電話給航空公司，而這些就是 Tools 在做的事。 大型語言模型本質上是個「文字接龍機器」，它只會根據訓練時記住的東西生成文字，沒辦法真的幫你查今天匯率、訂機票、查資料庫。就像你腦袋再怎麼會規劃行程，沒有 Google Maps、沒有訂票網站，你也只能空想。  關於「LLM只會根據訓練時記住的東西生成文字」，可以透過詢問方式來佐證  Tools 要解決的問題就是讓 Agent 從「...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/08/20/AI%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-Agent-Planning/" title="AI Agent Planning：任務拆解、反思修正與多步驟推理"><img class="cover" src="https://github.com/user-attachments/assets/b28325c0-bbd8-485e-83e8-0e86a45ceb5e" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-20</div><div class="info-item-2">AI Agent Planning：任務拆解、反思修正與多步驟推理</div></div><div class="info-2"><div class="info-item-1">在前面Agent概念篇講到這張圖為Agent核心  Memory  Action Planning Tools  他們是概念與技術是如何實踐的本篇將來講述Planning。   圖片Overview of a LLM-powered autonomous agent system. 來源 Planning前面所提女友突然向你提出要去日本，而你拿到一個任務，該怎麼想、怎麼安排步驟才能完成它?本質上就是Planning。 規劃女友的日本旅遊行程 Planning 需要的所有元素:  拆解任務(訂機票&#x2F;飯店&#x2F;行程) 線性推理(一步步想景點遊玩順序) 自我審查(排完先自己挑毛病) 事後反思(這次行程太趕女友不開心，下次筆記記起來)  而LLM 本身是一次生成一段回應的機制，但複雜任務往往需要多步驟、有依賴關係、可能中途要修正方向。如果沒有 Planning，Agent 就容易在長任務中迷失或繞遠路。Planning 的本質，目的是讓 Agent 從「憑感覺直接回答」進化成「像人一樣有條理地想清楚再行動，而且會從錯誤中學習」。    Subgoal Decomposit...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-17</div><div class="info-item-2">LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話</div></div><div class="info-2"><div class="info-item-1">LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話沒有記憶的 Agent每次 invoke() 都是全新的一次呼叫。LLM不會有記憶這機制，可以從下面程式驗證這件事情 123456789101112131415161718192021222324252627282930313233from langgraph.prebuilt import create_react_agentimport osos.environ[&quot;GOOGLE_API_KEY&quot;] = &quot;KEY&quot;from langchain_core.tools import tool@tooldef get_weather(city: str) -&gt; str:    &quot;&quot;&quot;查詢指定城市的天氣&quot;&quot;&quot;    fake_data = &#123;&quot;台北&quot;: &quot;晴天,28度&quot;, &quot;東京&quot;: &quot;雨天,18度&quot;&...</div></div></div></a><a class="pagination-related" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%BA%8C-%E6%8E%A7%E5%88%B6%E6%B5%81%E8%88%87%E5%88%86%E6%94%AF-%E6%89%8B%E5%88%BB-ReAct-Agent/" title="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent"><img class="cover" src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-17</div><div class="info-item-2">LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent</div></div><div class="info-2"><div class="info-item-1">天氣Agent在前一篇LangGraph 由淺入深(一)章節我們成功做出第一個圖，接下來此篇章將做一個天氣Agent並真正串接LLM模型，而將學會以下實作:  ReAct Tool 串接LLM 實作條件邊  需求說明天氣Agent的需求  使用者可以查詢台北、東京的天氣、風速、氣溫 如果查詢其他地區則顯示查無此地 詢問完後並回答該地區天氣、風速、氣溫  在實作前養成好習慣先設計圖與釐清，以這Agent所以歸納出幾點  建立ReAct Agent圖 建立查詢天氣、風速、氣溫 tool 建立LLM Token與串接  整體圖須建構llm node再來就是tool建立   動手前的兩個常見誤解在動手之前先釐清兩個常見誤解 LLM 本身完全不會呼叫任何 function，它連「呼叫」這個動作都做不到，它只會生成文字。 真正的流程是:  你把工具的 JSON schema(名稱、描述、參數)跟 messages 一起送進 API LLM 判斷「這句話需要用工具」，生成一個 tool_use block(仍然只是文字生成，只是格式特殊) 你的程式碼解析這個 block，真正去執行對應的 Py...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/CQ6DT61DJP7CWGBANS27X17RV0.png" onerror="this.onerror=null;this.src='/Software-Jed/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Jed Hung</div><div class="author-info-description">後端、Python、資安、AI 與工程師職涯筆記。</div><div class="site-data"><a href="/Software-Jed/archives/"><div class="headline">文章</div><div class="length-num">65</div></a><a href="/Software-Jed/tags/"><div class="headline">標籤</div><div class="length-num">87</div></a><a href="/Software-Jed/categories/"><div class="headline">分類</div><div class="length-num">47</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/JED-4a6g0109"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/JED-4a6g0109" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:bombom7108@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #ea4335;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><div class="jed-announcement">
+  <p class="jed-announcement__intro">科技趣事入口：近期從 AI、HTTP、DevSecOps 與系統設計新聞切進工程思考。</p>
+  <a href="/Software-Jed/2026/07/28/%E5%9C%96%E8%A7%A3-AI-%E6%90%9C%E5%B0%8B%E5%BC%95%E6%93%8E%E8%83%8C%E5%BE%8C%E7%9A%84-ANN-%E6%BC%94%E7%AE%97%E6%B3%95%EF%BC%8CHNSW%E3%80%81IVF-%E8%88%87-PQ-%E5%90%91%E9%87%8F%E6%AA%A2%E7%B4%A2%E6%8A%80%E8%A1%93/">祖克伯認為 5 年內 AI 代理會爆炸式成長</a>
+  <a href="/Software-Jed/2026/07/22/%E5%BE%9EConcurrency%E8%88%87Parallelism%E6%A6%82%E5%BF%B5%E5%8E%BB%E4%BA%86%E8%A7%A3Python-Multiprocessing%E3%80%81Threading%E3%80%81Coroutine%E3%80%81asyncio/">Spring Boot 工程師看 FastAPI 的破防感</a>
+  <a href="/Software-Jed/2026/07/16/bytebytego%E6%B2%92%E5%91%8A%E8%A8%B4%E4%BD%A0%E7%9A%84%E7%B4%B0%E7%AF%80%E4%B9%8B%E8%BC%AA%E8%A9%A2-vs-%E9%95%B7%E8%BC%AA%E8%A9%A2-vs-Webhooks-vs-SSE/">OpenAI Agent 鍵盤與 AI 工具硬體化</a>
+  <a href="/Software-Jed/2026/06/29/RFC-10008-HTTP%E6%96%B0%E5%A2%9EQUERY%E6%96%B9%E6%B3%95/">SQLite 作者為什麼拒絕免費 PR？</a>
+  <a href="/Software-Jed/2026/06/04/DevSecOps-%E5%AF%A6%E8%B8%90%EF%BC%9APac%E5%AF%A6%E8%B8%90%E8%88%87%E6%BC%8F%E6%B4%9E%E6%8E%83%E6%8F%8F/">ZIP 炸彈與爬蟲防護趣事</a>
+</div>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目錄</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%97%9C%E6%96%BC%E5%A4%A7%E5%9E%8B%E8%AA%9E%E8%A8%80%E6%A8%A1%E5%9E%8B%E5%9B%BA%E5%AE%9A%E7%9F%A5%E8%AD%98"><span class="toc-number">1.</span> <span class="toc-text">關於大型語言模型固定知識</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Memory"><span class="toc-number">2.</span> <span class="toc-text">Memory</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Long-term-memory-%E9%95%B7%E6%9C%9F%E8%A8%98%E6%86%B6"><span class="toc-number">2.1.</span> <span class="toc-text">Long-term memory(長期記憶)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%B5%90"><span class="toc-number">2.2.</span> <span class="toc-text">小結</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">2.3.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="AI Agent Action：從決定要做到「真的做完」最終章"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/18/AI-Agent-Action-%E5%BE%9E%E6%B1%BA%E5%AE%9A%E8%A6%81%E5%81%9A%E5%88%B0%E7%9C%9F%E7%9A%84%E5%81%9A%E5%AE%8C%E6%9C%80%E7%B5%82%E7%AB%A0/" title="AI Agent Action：從決定要做到「真的做完」最終章">AI Agent Action：從決定要做到「真的做完」最終章</a><time datetime="2026-09-18T07:51:08.000Z" title="發表於 2026-09-18 15:51:08">2026-09-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="AI Agent Tools：讓模型從只會講變成「真的能做」"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/18/AI-Agent-Tools-%E8%AE%93%E6%A8%A1%E5%9E%8B%E5%BE%9E%E5%8F%AA%E6%9C%83%E8%AC%9B%E8%AE%8A%E6%88%90%E7%9C%9F%E7%9A%84%E8%83%BD%E5%81%9A/" title="AI Agent Tools：讓模型從只會講變成「真的能做」">AI Agent Tools：讓模型從只會講變成「真的能做」</a><time datetime="2026-09-18T07:29:45.000Z" title="發表於 2026-09-18 15:29:45">2026-09-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E5%9B%9B-Checkpointer-%E8%AE%93-Agent-%E8%A8%98%E5%BE%97%E4%BD%8F%E5%B0%8D%E8%A9%B1/" title="LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話">LangGraph 由淺入深(四):Checkpointer,讓 Agent 真正記得住對話</a><time datetime="2026-09-17T07:35:34.000Z" title="發表於 2026-09-17 15:35:34">2026-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%89-create-react-agent-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E8%A9%B2%E7%94%A8/" title="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%B8%89-create-react-agent-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E8%A9%B2%E7%94%A8/" title="LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?">LangGraph 由淺入深(三):三行程式碼的 create_react_agent,什麼時候該用?</a><time datetime="2026-09-17T07:35:01.000Z" title="發表於 2026-09-17 15:35:01">2026-09-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%BA%8C-%E6%8E%A7%E5%88%B6%E6%B5%81%E8%88%87%E5%88%86%E6%94%AF-%E6%89%8B%E5%88%BB-ReAct-Agent/" title="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent"><img src="https://s3.ap-northeast-1.amazonaws.com/django.blog/static/article_image/MQ68T61TJP7ZWGBENS27X17RV0.jpeg" onerror="this.onerror=null;this.src='/Software-Jed/img/404.jpg'" alt="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent"/></a><div class="content"><a class="title" href="/Software-Jed/2026/09/17/LangGraph-%E7%94%B1%E6%B7%BA%E5%85%A5%E6%B7%B1-%E4%BA%8C-%E6%8E%A7%E5%88%B6%E6%B5%81%E8%88%87%E5%88%86%E6%94%AF-%E6%89%8B%E5%88%BB-ReAct-Agent/" title="LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent">LangGraph 由淺入深(二):控制流與分支,手刻一個 ReAct Agent</a><time datetime="2026-09-17T07:34:29.000Z" title="發表於 2026-09-17 15:34:29">2026-09-17</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Jed Hung</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主題 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="閱讀模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日夜模式切換"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="單欄和雙欄切換"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="設定"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目錄"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到頂端"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/Software-Jed/js/utils.js?v=5.5.3"></script><script src="/Software-Jed/js/main.js?v=5.5.3"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script src="/Software-Jed/js/blog-guide.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

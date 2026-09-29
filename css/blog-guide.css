@@ -501,11 +501,20 @@
 }
 
 /* Article image sizing */
+#article-container img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto !important;
+  object-fit: contain;
+  margin: 1.4rem auto 1.75rem;
+}
+
 #article-container img.jed-post-image {
   display: block;
   width: min(100%, var(--jed-image-width, 860px));
   max-width: 100%;
-  height: auto;
+  height: auto !important;
   object-fit: contain;
   margin: 1.4rem auto 1.75rem;
 }
@@ -514,5 +523,97 @@
   #article-container img.jed-post-image {
     width: 100%;
     margin: 1rem auto 1.25rem;
+  }
+}
+
+#article-container img.jed-lightbox-trigger {
+  cursor: zoom-in;
+}
+
+#article-container img.jed-lightbox-trigger:hover {
+  filter: brightness(0.96);
+}
+
+.jed-lightbox-open {
+  overflow: hidden;
+}
+
+.jed-image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 32px);
+  background: rgba(0, 0, 0, 0.86);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.jed-image-lightbox.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.jed-image-lightbox__img {
+  width: auto;
+  max-width: min(96vw, 1400px);
+  max-height: 86vh;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.45);
+  cursor: zoom-out;
+}
+
+.jed-image-lightbox__close {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.38);
+  color: #fff;
+  cursor: pointer;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.jed-image-lightbox__close:hover,
+.jed-image-lightbox__close:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+  outline: none;
+}
+
+.jed-image-lightbox__caption {
+  max-width: min(96vw, 1000px);
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .jed-image-lightbox {
+    padding: 12px;
+  }
+
+  .jed-image-lightbox__img {
+    max-height: 82vh;
+  }
+
+  .jed-image-lightbox__close {
+    top: 10px;
+    right: 10px;
+    width: 38px;
+    height: 38px;
+    font-size: 24px;
   }
 }
